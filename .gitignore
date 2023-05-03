@@ -1,0 +1,14 @@
+node_modules/
+data/
+.*
+!/.gitignore
+!/.dockerignore
+package-lock.json
+yarn-error.log
+output/
+eval.json
+token.json
+!.github
+!.env.example
+matching
+misc/

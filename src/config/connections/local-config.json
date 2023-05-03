@@ -1,0 +1,8 @@
+{
+  "local": {
+    "hostIp": "localhost",
+    "port": 3535,
+    "dbName": "property",
+    "active": true
+  }
+}
