@@ -50,7 +50,7 @@ export class SLDFuntions implements AggregatorInterface {
             inStocktext: '.item_delivery_stock_frame .item_stock',
             subsource: '.item_shop_name_frame .item_shop_name',
             price: '.item_price',
-            mainContainer: 'div[itemprop="offers"] .item_box_main'
+            mainContainer: 'div[itemprop="offers"] .item_box_main[itemprop="offers"]'
         }
 
         item.brand = adLinkMeta?.brand
