@@ -39,7 +39,7 @@ export class SLDFuntions implements AggregatorInterface {
         }
     }
 
-    public async scrapeAggregatorItem($, url, adLinkMeta) {
+    public scrapeAggregatorItem($, url, adLinkMeta) {
         let item: any = {}
         item.title = getNodeText($('h1'))
         item.sourceId = this.urlToSourceId(url)
@@ -82,10 +82,12 @@ export class SLDFuntions implements AggregatorInterface {
         return undefined
     }
 
-    public addItems($, idUrls, url) {
+    public addItems($, idUrls, url, adLinkMeta) {
         let title = getNodeText($('h1'))
         let id = this.urlToSourceId(url)
         idUrls[id] = url
+        
+        idUrls.parsedItem = this.scrapeAggregatorItem($, url, adLinkMeta)
     }
 
     public isAdModified(currentItem, previousItem): string {

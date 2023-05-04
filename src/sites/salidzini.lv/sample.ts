@@ -27,11 +27,12 @@ export class SLDTesting {
         let sourceId = '4539'
         let url = `https://www.salidzini.lv/cena?q=BSK999330T`
 
-        await this.test_page()
+        // await this.test_page()
         // await this.test_ad(url)
         // await this.test_is_changed()
         // await this.test_e2e()
         // await this.test_fetching_all_page()
+        await this.test_page_ad_parsing()
     }
 
     async test_page() {
@@ -46,9 +47,29 @@ export class SLDTesting {
     }
     async test_ad(url) {
         let { $ } = await getHTML(url, this.sourceFunctions)
-        let parsedItem = await this.sourceFunctions.scrapeAggregatorItem($, url, { model: 'BSK999330T', barcode: '7332543808533' })
+        let parsedItem = this.sourceFunctions.scrapeAggregatorItem($, url, { model: 'BSK999330T', barcode: '7332543808533' })
         console.log(parsedItem)
         return parsedItem
+    }
+    async test_page_ad_parsing() {
+        this.context.url = "https://www.salidzini.lv/cena?q=iphone+13"
+        let idUrls: any = {}
+        let nextPageUrl: string
+        let parsedItem: any = {}
+        let adLinkMeta = { brand: 'iphone', model: 'iphone 13' }
+
+        let { $ } = await getHTML(this.context.url, this.sourceFunctions)
+
+        this.sourceFunctions.addItems($, idUrls, this.context.url, adLinkMeta)
+        nextPageUrl = this.sourceFunctions.getNextPageUrl($, this.context.url)
+
+        console.log('idUrls', idUrls)
+        console.log(idUrls.parsedItem)
+        if (nextPageUrl) {
+            console.log('nextPageUrl', nextPageUrl)
+        } else {
+            console.log('Next page does not exists')
+        }
     }
 
 }
