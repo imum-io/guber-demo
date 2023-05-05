@@ -55,7 +55,6 @@ export class SLDTesting {
         this.context.url = "https://www.salidzini.lv/cena?q=iphone+13"
         let idUrls: any = {}
         let nextPageUrl: string
-        let parsedItem: any = {}
         let adLinkMeta = { brand: 'iphone', model: 'iphone 13' }
 
         let { $ } = await getHTML(this.context.url, this.sourceFunctions)
@@ -64,7 +63,6 @@ export class SLDTesting {
         nextPageUrl = this.sourceFunctions.getNextPageUrl($, this.context.url)
 
         console.log('idUrls', idUrls)
-        console.log(idUrls.parsedItem)
         if (nextPageUrl) {
             console.log('nextPageUrl', nextPageUrl)
         } else {

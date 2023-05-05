@@ -60,11 +60,11 @@ export class SLDFuntions implements AggregatorInterface {
         item.meta = {
             adLinkMeta
         }
-        let baseUrl = getBaseUrl(url)
-        item.subItems = {
-            aggregatorSource: this.aggregatorSourceDetails($, $(requiredTagNames.mainContainer), item.sourceId, requiredTagNames, baseUrl)
-        }
-        return item
+        // let baseUrl = getBaseUrl(url)
+        // item.subItems = {
+        //     aggregatorSource: this.aggregatorSourceDetails($, $(requiredTagNames.mainContainer), item.sourceId, requiredTagNames, baseUrl)
+        // }
+        return { item, requiredTagNames }
     }
 
     public getNextPageUrl($, url) {
@@ -83,11 +83,16 @@ export class SLDFuntions implements AggregatorInterface {
     }
 
     public addItems($, idUrls, url, adLinkMeta) {
-        let title = getNodeText($('h1'))
-        let id = this.urlToSourceId(url)
-        idUrls[id] = url
-        
-        idUrls.parsedItem = this.scrapeAggregatorItem($, url, adLinkMeta)
+        let { item, requiredTagNames } = this.scrapeAggregatorItem($, url, adLinkMeta)
+
+        let baseUrl = getBaseUrl(url)
+        $(requiredTagNames.mainContainer).each((i, elem) => {
+            let scrapedItem = this.aggregatorSourceDetails($, elem, item.sourceId , requiredTagNames, baseUrl)
+            scrapedItem.meta = { position: i }
+
+            let id = stringToHash(scrapedItem.url)
+            idUrls[id] = scrapedItem
+        })
     }
 
     public isAdModified(currentItem, previousItem): string {
@@ -102,36 +107,32 @@ export class SLDFuntions implements AggregatorInterface {
         return false
     }
 
-    private aggregatorSourceDetails($: CheerioAPI, infoContainer, sourceId: string, requiredTagNames, baseUrl) {
-        let dataArray: any = []
-        infoContainer.each((i, elem) => {
-            let priceType: string = 'member_price'
-            let inStock = true
-            let title = $(requiredTagNames.title, elem)?.text()
-            let url = baseUrl + $(requiredTagNames.url, elem)?.attr('href')
-            let inStocktext = $(requiredTagNames.inStocktext, elem)?.text()
-            let subsource = $(requiredTagNames.subsource, elem)?.text()
-            let price = $(`${requiredTagNames.price} span[itemprop="price"]`, elem)?.attr('content') || $(`${requiredTagNames.price}`, elem)?.text()
-            price = price?.match(/^[0-9.]+$/)?.[0]
-            let subsourceId: string = stringToHash(subsource + title)
-            let meta = { position: i }
+    private aggregatorSourceDetails($: CheerioAPI, element, sourceId: string, requiredTagNames, baseUrl) {
+        let item: any = {}
+        let priceType: string = 'member_price'
+        let inStock = true
+        let title = $(requiredTagNames.title, element)?.text()
+        let url = baseUrl + $(requiredTagNames.url, element)?.attr('href')
+        let inStocktext = $(requiredTagNames.inStocktext, element)?.text()
+        let subsource = $(requiredTagNames.subsource, element)?.text()
+        let price = $(`${requiredTagNames.price} span[itemprop="price"]`, element)?.attr('content') || $(`${requiredTagNames.price}`, element)?.text()
+        price = price?.match(/^[0-9.]+$/)?.[0]
+        let subsourceId: string = stringToHash(subsource + title)
 
-            // if (matchLabelTranslation(inStocktext, this.labelTranslations.inStock, true)) {
-            //     inStock = true
-            // }
-            dataArray.push({
-                title,
-                url,
-                sourceId,
-                subsource,
-                subsourceId,
-                inStock,
-                price,
-                priceType,
-                meta,
-            })
-        })
-        return dataArray
+        // if (matchLabelTranslation(inStocktext, this.labelTranslations.inStock, true)) {
+        //     inStock = true
+        // }
+        item = {
+            title,
+            url,
+            sourceId,
+            subsource,
+            subsourceId,
+            inStock,
+            price,
+            priceType,
+        }
+        return item
     }
 
     public async testing() {
