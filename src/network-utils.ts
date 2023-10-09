@@ -410,6 +410,8 @@ async function getHTML(url, configs: sourceFunctionConfig, proxyConfig?: proxyCo
         Logger.info({ url, itemId, resCode }, "success getHtml")
         return { $, resCode, proxy }
     } catch (error) {
+        console.log("error", error);
+        
         let resCode = error.statusCode
         Logger.error({ url, itemId, resCode }, "error getHtml")
         let message = `http getHTML error ${resCode}`

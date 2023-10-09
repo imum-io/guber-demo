@@ -4,6 +4,7 @@ export enum sources {
     MDE = 'MDE',
     SLD = 'SLD',
     BNU = 'BNU',
+    ELD = 'ELD',
 }
 
 export const sourceFromUrl = {
