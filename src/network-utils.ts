@@ -246,7 +246,7 @@ async function getJSONWithOptions(url: string, headers, mitm: boolean, proxyConf
         proxy = axiosProxy.proxy
         proxyInfo = axiosProxy.proxyInfo
     }
-    options.proxy = proxyInfo
+    // options.proxy = proxyInfo
 
     try {
         const { data, status } = await axios.get(url, options)
