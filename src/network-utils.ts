@@ -395,7 +395,7 @@ async function getHTML(url, configs: sourceFunctionConfig, proxyConfig?: proxyCo
             const options = getOptions(url, headers, cookies)
 
             let rpToUse = rp.defaults({
-                proxy: proxyUrl,
+                // proxy: proxyUrl,
                 strictSSL: false
             })
             if (!rpToUse) {
