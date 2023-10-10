@@ -8,7 +8,7 @@ import { SNKTesting } from './sample'
 
 export class SNKFunctions implements HomeAppliancesInterface {
     public headers = {}
-    public useHeadless = true
+    public useHeadless = false
 
     private labelTranslations = {
         brand: {
@@ -118,11 +118,20 @@ export class SNKFunctions implements HomeAppliancesInterface {
         item.subsubcategory = $(categories[7]).text()?.trim()
         item.subsubsubcategory = $(categories[9]).text()?.trim()
 
+        let specification = {}
         $('.info-table')
             .find('tr')
             .each((i, element) => {
+                if(element.attribs?.class == 'group-title-row') {
+                    return
+                }
+                $("div.ck-info-tooltip-wrap", element).empty()
+
                 const label = $('td', element).first()?.text().trim()
                 const value = $('td', element).last()?.text().trim()
+                if (label.length && value.length) {
+                    specification[label] = value
+                }
 
                 for (let key in this.labelTranslations) {
                     if (
@@ -194,6 +203,11 @@ export class SNKFunctions implements HomeAppliancesInterface {
             sku: $('#videoly-product-sku').text()?.trim(),
             ean: item.barcode,
         }
+
+        if (Object.keys(specification).length) {
+            item.meta['specification'] = specification
+        }
+
         return item
     }
 

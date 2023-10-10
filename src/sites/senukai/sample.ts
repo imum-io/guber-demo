@@ -50,10 +50,11 @@ export class SNKTesting {
     }
 
     async test_ad() {
-        let url = 'https://www.senukai.lt/p/plyteles-akmens-mases-cerrad-climatic-5900423052912-1197-mm-x-597-mm/jxxo?cat=axs&index=1'
+        let url = 'https://www.senukai.lt/p/nesiojamas-kompiuteris-apple-macbook-air-13-6-m2-8c-cpu-8c-gpu-256gb-midnight-int/lo0h?cat=5ei&index=1'
         let { $ } = await getHTML(url, this.sourceFunctions, { source: sources.SNK })
 
         let parsedItem = this.sourceFunctions.scrapeHomeAppliancesItem($, url)
+        console.log("parsed item ==>", parsedItem)
 
         // let processedItem = await processItem(parsedItem, this.context.source, this.context.vehicleType)
         // console.log('processedItem', processedItem)
