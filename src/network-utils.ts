@@ -1,28 +1,27 @@
-import { username, password, dcProxyUsername, dcProxyPassword, dcProxiesUrl, currentEnv, mitmHost, mitmPort } from './config'
-import cheerio from 'cheerio'
-import rp from 'request-promise'
-import fetch from 'node-fetch'
-import HttpsProxyAgent from 'https-proxy-agent'
-import convert from 'xml-js'
-import { executeTask, puppeteerTask, setClusterTask } from './libs/cluster/puppeteer-request'
-import tough from 'tough-cookie'
-import axios, { AxiosProxyConfig, AxiosRequestConfig } from 'axios'
-import _ from 'lodash'
-import { proxies } from './config/proxys.json'
-import Logger from './libs/logger'
-import { envs } from './config/enums'
-import { proxyType, sourceFunctionConfig } from './types/common'
-import { sources } from './sites/sources'
+import axios, { AxiosProxyConfig, AxiosRequestConfig } from "axios";
+import cheerio from "cheerio";
+import HttpsProxyAgent from "https-proxy-agent";
+import fetch from "node-fetch";
+import rp from "request-promise";
+import tough from "tough-cookie";
+import convert from "xml-js";
+import { currentEnv, dcProxiesUrl, dcProxyPassword, dcProxyUsername, mitmHost, mitmPort } from "./config";
+import { envs } from "./config/enums";
+import { proxies } from "./config/proxys.json";
+import { executeTask, puppeteerTask, setClusterTask } from "./libs/cluster/puppeteer-request";
+import Logger from "./libs/logger";
+import { sources } from "./sites/sources";
+import { proxyType, sourceFunctionConfig } from "./types/common";
 
-let dcProxiesArray = proxies
-let datacenterProxies = []
-let oxylabProxies = []
-let webshareProxies = []
+let dcProxiesArray = proxies;
+let datacenterProxies = [];
+let oxylabProxies = [];
+let webshareProxies = [];
 
-let proxyRotationCounter = 0
+let proxyRotationCounter = 0;
 
-type proxyProvider = 'oxyLab' | 'webShare'
-type proxyConfig = { source?: string; itemId?: string; retries?: number; }
+type proxyProvider = "oxyLab" | "webShare";
+type proxyConfig = { source?: string; itemId?: string; retries?: number };
 
 /**
  * It takes a URL, headers, and cookies, and returns an object that can be passed to the
@@ -39,15 +38,16 @@ function getOptions(url, headers, cookies?) {
         // 'Connection': 'keep-alive',
         // 'User-Agent': 'Rested/2009 CFNetwork/902.1 Darwin/17.7.0 (x86_64)',
         // TODO: ability to dynamically use user-agent passed from portal-specific interfaces
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
-        'Accept-Language': 'en-us',
-    }
+        "User-Agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36",
+        "Accept-Language": "en-us",
+    };
 
     let cookieObject: any = {
         uri: url,
         headers,
         resolveWithFullResponse: true,
-    }
+    };
     if (cookies && Object.keys(cookies).length > 0) {
         let cookie = new tough.Cookie(cookies);
 
@@ -56,8 +56,7 @@ function getOptions(url, headers, cookies?) {
 
         cookieObject.jar = cookiejar;
     }
-    return cookieObject
-
+    return cookieObject;
 }
 
 /**
@@ -66,78 +65,76 @@ function getOptions(url, headers, cookies?) {
  */
 async function setDatacenterProxies(fetchDynamicProxies = false) {
     if (datacenterProxies && datacenterProxies.length) {
-        return
+        return;
     }
-    oxylabProxies = setupDefaultProxies()
-    webshareProxies = []
+    oxylabProxies = setupDefaultProxies();
+    webshareProxies = [];
 
     if (currentEnv != envs.local && fetchDynamicProxies) {
         try {
-
             const dcProxiesResponse = await rp({
-                uri: dcProxiesUrl, auth: {
+                uri: dcProxiesUrl,
+                auth: {
                     user: dcProxyUsername,
                     pass: dcProxyPassword,
-                }
-            })
-            oxylabProxies = JSON.parse(dcProxiesResponse).map(proxy => {
-                return { ...proxy, username: dcProxyUsername, password: dcProxyPassword }
-            })
-
-        }
-        catch (error) {
-            console.log("Can't access remote proxy list. Using local")
+                },
+            });
+            oxylabProxies = JSON.parse(dcProxiesResponse).map((proxy) => {
+                return { ...proxy, username: dcProxyUsername, password: dcProxyPassword };
+            });
+        } catch (error) {
+            console.log("Can't access remote proxy list. Using local");
         }
     }
-    datacenterProxies = [...oxylabProxies, ...webshareProxies]
+    datacenterProxies = [...oxylabProxies, ...webshareProxies];
 }
 
 function getProxyPool(source, retries) {
-    let proxyProvider: proxyProvider
-    if (
-        source == sources.MDE
-    ) {
-        proxyProvider = 'oxyLab'
+    let proxyProvider: proxyProvider;
+    if (source == sources.MDE) {
+        proxyProvider = "oxyLab";
     }
-    let proxiesPool = []
-    if (proxyProvider == 'webShare') {
-        proxiesPool = webshareProxies
-    } else if (proxyProvider == 'oxyLab' || retries >= 2) {
-        proxiesPool = oxylabProxies
+    let proxiesPool = [];
+    if (proxyProvider == "webShare") {
+        proxiesPool = webshareProxies;
+    } else if (proxyProvider == "oxyLab" || retries >= 2) {
+        proxiesPool = oxylabProxies;
     } else {
-        proxiesPool = datacenterProxies
+        proxiesPool = datacenterProxies;
     }
-    return proxiesPool
+    return proxiesPool;
 }
 
 function getProxy(proxyConfig: proxyConfig = {}) {
-    let { source, itemId, retries } = proxyConfig
+    let { source, itemId, retries } = proxyConfig;
 
-    let proxiesPool = getProxyPool(source, retries)
-    let proxyId: number
+    let proxiesPool = getProxyPool(source, retries);
+    let proxyId: number;
     if (itemId == null || itemId == undefined || retries == null || retries == undefined) {
-        proxyRotationCounter++
+        proxyRotationCounter++;
         if (proxyRotationCounter >= proxiesPool.length) {
-            proxyRotationCounter = 0
+            proxyRotationCounter = 0;
         }
-        proxyId = proxyRotationCounter
+        proxyId = proxyRotationCounter;
     } else {
-        proxyId = (Number(itemId) + retries) % proxiesPool.length
+        proxyId = (Number(itemId) + retries) % proxiesPool.length;
     }
 
-    let proxy: proxyType = proxiesPool[proxyId]
-    let proxyUrl = `http://${proxy.username}:${proxy.password}@${proxy.ip}:${proxy.port}`
+    let proxy: proxyType = proxiesPool[proxyId];
+    let proxyUrl = `http://${proxy.username}:${proxy.password}@${proxy.ip}:${proxy.port}`;
 
-    Logger.info({ scope: 'getProxy', itemId, retries }, `[PROXY]-> (${proxyId}/${proxiesPool.length}) host: ${proxy.ip} port: ${proxy.port} retries: ${retries}`)
-
+    Logger.info(
+        { scope: "getProxy", itemId, retries },
+        `[PROXY]-> (${proxyId}/${proxiesPool.length}) host: ${proxy.ip} port: ${proxy.port} retries: ${retries}`
+    );
 
     Logger.setProxyLog({
         host: proxy.ip,
         port: proxy.port,
         rotation: `${proxyId}/${datacenterProxies.length}`,
-    })
+    });
 
-    return { proxyUrl, proxy }
+    return { proxyUrl, proxy };
 }
 
 /**
@@ -147,18 +144,17 @@ function getProxy(proxyConfig: proxyConfig = {}) {
  */
 function request(uri) {
     return rp({
-        uri, maxRedirects: 100,
+        uri,
+        maxRedirects: 100,
         followRedirect: false,
-        simple: false
-    })
-        .then(response => {
-            try {
-                return JSON.parse(response)
-            }
-            catch (error) {
-                return JSON.parse(convert.xml2json(response, { compact: true, spaces: 4 }))
-            }
-        })
+        simple: false,
+    }).then((response) => {
+        try {
+            return JSON.parse(response);
+        } catch (error) {
+            return JSON.parse(convert.xml2json(response, { compact: true, spaces: 4 }));
+        }
+    });
 }
 
 /**
@@ -167,16 +163,16 @@ function request(uri) {
  * @returns A promise
  */
 function getUrl(url: string, proxyConfigs?: proxyConfig) {
-
-    let { proxyUrl } = getProxy(proxyConfigs)
+    let { proxyUrl } = getProxy(proxyConfigs);
     return fetch(url, {
         // headers: headers,
         headers: {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
+            "User-Agent":
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36",
         },
         timeout: 15000,
         agent: HttpsProxyAgent(proxyUrl),
-    })
+    });
 }
 
 /**
@@ -187,21 +183,21 @@ function getUrl(url: string, proxyConfigs?: proxyConfig) {
  * @param [returnJson=true] - true/false - whether to return json or html
  */
 function getResponseWithOptions(url, options, returnJson = true, proxyConfig?: proxyConfig) {
-    let resCode
-    let { proxyUrl, proxy } = getProxy(proxyConfig)
-    options.agent = HttpsProxyAgent(proxyUrl)
+    let resCode;
+    let { proxyUrl, proxy } = getProxy(proxyConfig);
+    options.agent = HttpsProxyAgent(proxyUrl);
     return fetch(url, options)
-        .then(res => {
-            resCode = res.status
-            return returnJson ? res.json() : res.text()
+        .then((res) => {
+            resCode = res.status;
+            return returnJson ? res.json() : res.text();
         })
-        .then(res => {
+        .then((res) => {
             return {
                 data: res,
                 resCode,
-                proxy
-            }
-        })
+                proxy,
+            };
+        });
 }
 
 /**
@@ -214,12 +210,13 @@ function getResponseWithOptions(url, options, returnJson = true, proxyConfig?: p
  */
 async function getJson<T = any>(url: string, headers = {}, mitm = false, proxyConfig?: proxyConfig): Promise<T> {
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
+        "User-Agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36",
         ...headers,
-    }
-    const response: any = await getJSONWithOptions(url, headers, mitm, proxyConfig)
+    };
+    const response: any = await getJSONWithOptions(url, headers, mitm, proxyConfig);
 
-    return response as T
+    return response as T;
 }
 
 /**
@@ -234,60 +231,61 @@ async function getJson<T = any>(url: string, headers = {}, mitm = false, proxyCo
 async function getJSONWithOptions(url: string, headers, mitm: boolean, proxyConfig?: proxyConfig) {
     let options: AxiosRequestConfig = {
         headers,
-    }
-    let proxy, proxyInfo
+    };
+    let proxy, proxyInfo;
     if (mitm) {
-        let mitmProxy = getProxy(proxyConfig)
+        let mitmProxy = getProxy(proxyConfig);
         // mitm should be run with concurrency 1 always, otherwise this setMitmOptions won't work
-        proxy = mitmProxy.proxy
-        proxyInfo = await setMitmOptions(proxy)
+        proxy = mitmProxy.proxy;
+        proxyInfo = await setMitmOptions(proxy);
     } else {
-        let axiosProxy = getAxiosProxy(proxyConfig)
-        proxy = axiosProxy.proxy
-        proxyInfo = axiosProxy.proxyInfo
+        let axiosProxy = getAxiosProxy(proxyConfig);
+        proxy = axiosProxy.proxy;
+        proxyInfo = axiosProxy.proxyInfo;
     }
-    options.proxy = proxyInfo
+    options.proxy = proxyInfo;
 
     try {
-        const { data, status } = await axios.get(url, options)
-        return { data, resCode: status, proxy }
+        const { data, status } = await axios.get(url, options);
+        return { data, resCode: status, proxy };
     } catch (error) {
-        let statusCode = error.response?.status
-        let data = error.response?.data
-        Logger.error({ url, itemId: proxyConfig?.itemId }, "error getJSONWithOptions " + statusCode)
+        let statusCode = error.response?.status;
+        let data = error.response?.data;
+        Logger.error({ url, itemId: proxyConfig?.itemId }, "error getJSONWithOptions " + statusCode);
         throw {
             data,
             statusCode,
             message: "getJSONWithOptions error " + statusCode,
-            proxy
-        }
+            proxy,
+        };
     }
 }
 
 async function setMitmOptions(proxy: proxyType) {
     try {
-        let mode = [`upstream:http://${proxy.ip}:${proxy.port}`]
-        let upstream_auth = `${proxy.username}:${proxy.password}`
+        let mode = [`upstream:http://${proxy.ip}:${proxy.port}`];
+        let upstream_auth = `${proxy.username}:${proxy.password}`;
         let request = {
-            mode, upstream_auth
-        }
+            mode,
+            upstream_auth,
+        };
         let response = await fetch(`http://${mitmHost}:8081/options`, {
             headers: {
-                "accept": "*/*",
+                accept: "*/*",
                 "accept-language": "en-US,en;q=0.9",
                 "content-type": "application/json",
-                "Cookie": "_xsrf=2|01cae2fa|8e6bf0f1f0eba117fece7ee76bf6720f|1671085181",
-                "x-xsrftoken": "2|01cae2fa|8e6bf0f1f0eba117fece7ee76bf6720f|1671085181"
+                Cookie: "_xsrf=2|01cae2fa|8e6bf0f1f0eba117fece7ee76bf6720f|1671085181",
+                "x-xsrftoken": "2|01cae2fa|8e6bf0f1f0eba117fece7ee76bf6720f|1671085181",
             },
             body: JSON.stringify(request),
-            method: "PUT"
+            method: "PUT",
         });
     } catch (error) {
-        Logger.error(proxy, "MITM proxy setup was not successful")
+        Logger.error(proxy, "MITM proxy setup was not successful");
     }
-    let proxyInfo = { host: mitmHost, port: Number(mitmPort) }
+    let proxyInfo = { host: mitmHost, port: Number(mitmPort) };
 
-    return proxyInfo
+    return proxyInfo;
 }
 
 /**
@@ -299,9 +297,8 @@ async function setMitmOptions(proxy: proxyType) {
  *         username: The username to use for proxy authentication
  *         password: The password to use for proxy authentication
  */
-function getAxiosProxy(proxyConfig?: proxyConfig): { proxy: proxyType, proxyInfo: AxiosProxyConfig } {
-
-    let { proxy } = getProxy(proxyConfig)
+function getAxiosProxy(proxyConfig?: proxyConfig): { proxy: proxyType; proxyInfo: AxiosProxyConfig } {
+    let { proxy } = getProxy(proxyConfig);
 
     let proxyInfo: AxiosProxyConfig = {
         host: proxy.ip,
@@ -309,10 +306,10 @@ function getAxiosProxy(proxyConfig?: proxyConfig): { proxy: proxyType, proxyInfo
         auth: {
             username: proxy.username,
             password: proxy.password,
-        }
-    }
+        },
+    };
 
-    return { proxy, proxyInfo }
+    return { proxy, proxyInfo };
 }
 
 /**
@@ -324,15 +321,16 @@ function getAxiosProxy(proxyConfig?: proxyConfig): { proxy: proxyType, proxyInfo
  */
 function getJsonLegacy(url, headers = {}, withProxy = true) {
     let options = {
-        method: 'get',
+        method: "get",
         // headers: headers,
         headers: {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
+            "User-Agent":
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36",
             ...headers,
         },
-    }
+    };
 
-    return getResponseWithOptions(url, options, true).then(res => res.data)
+    return getResponseWithOptions(url, options, true).then((res) => res.data);
 }
 
 /**
@@ -344,24 +342,22 @@ function getJsonLegacy(url, headers = {}, withProxy = true) {
  * @param [withProxy=true] - if true, will use a proxy for the request
  */
 async function withRetries(asyncFunc, params, maxRetries = 3, withProxy = true) {
-    console.log("stuff", asyncFunc.name)
-    let result = null
+    console.log("stuff", asyncFunc.name);
+    let result = null;
     for (let i = 0; i < maxRetries; i++) {
         try {
             if (Array.isArray(params)) {
-                result = await asyncFunc(...params)
-            }
-            else {
-                result = await asyncFunc(params)
+                result = await asyncFunc(...params);
+            } else {
+                result = await asyncFunc(params);
             }
 
-            break
-        }
-        catch (e) {
-            console.log(i, " error for ", asyncFunc.name, e)
+            break;
+        } catch (e) {
+            console.log(i, " error for ", asyncFunc.name, e);
         }
     }
-    return result
+    return result;
 }
 
 /**
@@ -378,61 +374,66 @@ async function withRetries(asyncFunc, params, maxRetries = 3, withProxy = true) 
  */
 
 async function getHTML(url, configs: sourceFunctionConfig, proxyConfig?: proxyConfig) {
-    let { headers, useHeadless, cookies, isXmlMode, fetchDomOnly } = configs
-    let itemId = proxyConfig?.itemId
-    let $, resCode
-    let { proxyUrl, proxy } = getProxy(proxyConfig)
+    let { headers, useHeadless, cookies, isXmlMode, fetchDomOnly } = configs;
+    let itemId = proxyConfig?.itemId;
+    let $, resCode;
+    let { proxyUrl, proxy } = getProxy(proxyConfig);
     try {
         if (useHeadless) {
-            await setClusterTask(headers, cookies)
+            await setClusterTask(headers, cookies);
             const taskData: puppeteerTask = {
-                itemId, url, proxyUrl, proxy, fetchDomOnly, isXmlMode
-            }
-            const headlessRes = await executeTask(taskData)
-            $ = headlessRes.$
-            resCode = headlessRes.resCode
+                itemId,
+                url,
+                proxyUrl,
+                proxy,
+                fetchDomOnly,
+                isXmlMode,
+            };
+            const headlessRes = await executeTask(taskData);
+            $ = headlessRes.$;
+            resCode = headlessRes.resCode;
         } else {
-            const options = getOptions(url, headers, cookies)
+            const options = getOptions(url, headers, cookies);
 
             let rpToUse = rp.defaults({
-                proxy: proxyUrl,
-                strictSSL: false
-            })
+                // proxy: proxyUrl,
+                strictSSL: false,
+            });
             if (!rpToUse) {
-                console.log("no getDatacenterProxy")
-                rpToUse = rp
+                console.log("no getDatacenterProxy");
+                rpToUse = rp;
             }
 
-            const httpRes = await rpToUse(options)
-            $ = cheerio.load(httpRes.body, { xmlMode: isXmlMode })
-            resCode = httpRes.statusCode
+            const httpRes = await rpToUse(options);
+            $ = cheerio.load(httpRes.body, { xmlMode: isXmlMode });
+            resCode = httpRes.statusCode;
         }
-        Logger.info({ url, itemId, resCode }, "success getHtml")
-        return { $, resCode, proxy }
+        Logger.info({ url, itemId, resCode }, "success getHtml");
+        return { $, resCode, proxy };
     } catch (error) {
-        let resCode = error.statusCode
-        Logger.error({ url, itemId, resCode }, "error getHtml")
-        let message = `http getHTML error ${resCode}`
+        let resCode = error.statusCode;
+        Logger.error({ url, itemId, resCode }, "error getHtml");
+        let message = `http getHTML error ${resCode}`;
         if (error.headless) {
-            message = `headless getHTML error ${resCode}`
+            message = `headless getHTML error ${resCode}`;
         }
         throw {
             resCode,
             $: error.error ? cheerio.load(error.error, { xmlMode: isXmlMode }) : undefined,
             message,
-            proxy
-        }
+            proxy,
+        };
     }
 }
 
 // this function should only be used for local testing purpose
 function setADefaultProxy(defaultProxy: proxyType, proxyProvider: proxyProvider): void {
-    if (proxyProvider == 'oxyLab') {
-        oxylabProxies = [defaultProxy]
-    } else if (proxyProvider == 'webShare') {
-        webshareProxies = [defaultProxy]
+    if (proxyProvider == "oxyLab") {
+        oxylabProxies = [defaultProxy];
+    } else if (proxyProvider == "webShare") {
+        webshareProxies = [defaultProxy];
     } else {
-        datacenterProxies = [defaultProxy]
+        datacenterProxies = [defaultProxy];
     }
 }
 
@@ -443,8 +444,7 @@ function setADefaultProxy(defaultProxy: proxyType, proxyProvider: proxyProvider)
  */
 
 function setupDefaultProxies(): proxyType[] {
-
-    let dcProxies = dcProxiesArray.map(ip => {
+    let dcProxies = dcProxiesArray.map((ip) => {
         return {
             ip,
             port: "60000",
@@ -452,21 +452,21 @@ function setupDefaultProxies(): proxyType[] {
             city: "Vilnius",
             username: dcProxyUsername,
             password: dcProxyPassword,
-        }
-    })
-    return dcProxies
+        };
+    });
+    return dcProxies;
 }
 
 export {
     getHTML,
     getJson,
     getJsonLegacy,
+    getProxy,
     getResponseWithOptions,
     getUrl,
-    request,
-    setDatacenterProxies,
-    setADefaultProxy,
-    withRetries,
-    getProxy,
     proxyConfig,
-}
+    request,
+    setADefaultProxy,
+    setDatacenterProxies,
+    withRetries,
+};
