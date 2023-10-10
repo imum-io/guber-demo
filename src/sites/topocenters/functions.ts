@@ -146,6 +146,17 @@ export class TOPFunctions {
 
         item.meta = {}
 
+        let specification = {}
+        productDetail?.visible_on_front?.forEach(item => {
+            let label = item.label
+            let value = item.value
+            if(label.length && value.length) {
+                specification[label] = value
+            }
+        })
+
+        item.meta = {...item.meta, specification}
+
         return item
     }
 

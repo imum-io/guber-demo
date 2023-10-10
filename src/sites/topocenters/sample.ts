@@ -57,10 +57,14 @@ export class TOPTesting {
     }
 
     async test_jsonAd() {
-        const url = `https://www.topocentras.lt/graphql?query=ROOT_GetProduct&vars={\"id\":\"79871\"}`
-        // const url = `https://www.topocentras.lt/ketaus-keptuve-maku-blini-pan-cast-iron.html`
+        const url = `https://www.topocentras.lt/graphql?query=ROOT_GetProduct&vars={\"id\":\"246878\"}`
+        // const url = `https://www.topocentras.lt/mac/nesiojamas-kompiuteris-apple-macbook-air-13-m2-8c-cpu-8c-gpu-8gb-256gb-ssd-midnight.html`
         const json = await getJson(url, {})
+
         const parsedItem = await this.sourceFunctions.scrapeHomeAppliancesJson(json.data, url)
+
+        console.log("parsed item ==>", parsedItem)
+
         // const proccessItem = await processItem(parsedItem, this.context.source, this.context.vehicleType)
         // console.log(proccessItem)
     }
