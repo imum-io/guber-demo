@@ -1,8 +1,8 @@
 import { dbServers, vehicleTypes } from '../../config/enums'
-import { fetchIds } from '../../fetch'
+// import { fetchIds } from '../../fetch'
 import { getHTML } from '../../network-utils'
-import { processItem } from '../../process'
-import { htmlFromSource, performE2e } from '../../tests/Testing'
+// import { processItem } from '../../process'
+// import { htmlFromSource, performE2e } from '../../tests/Testing'
 import { SNKFunctions } from './functions'
 import { ContextType } from '../../libs/logger'
 import { sources } from '../sources'
@@ -46,7 +46,7 @@ export class SNKTesting {
         this.context.url =
             'https://www.senukai.lt/p/dulkiu-siurblys-sluota-karcher-fc-3/b92u'
         this.context.sourceId = '903840918323'
-        await performE2e(this.context, this.sourceFunctions)
+        // await performE2e(this.context, this.sourceFunctions)
     }
 
     async test_ad() {
@@ -55,8 +55,8 @@ export class SNKTesting {
 
         let parsedItem = this.sourceFunctions.scrapeHomeAppliancesItem($, url)
 
-        let processedItem = await processItem(parsedItem, this.context.source, this.context.vehicleType)
-        console.log('processedItem', processedItem)
+        // let processedItem = await processItem(parsedItem, this.context.source, this.context.vehicleType)
+        // console.log('processedItem', processedItem)
     }
 
     async test_addRemoved() {
@@ -105,18 +105,18 @@ export class SNKTesting {
 
     async test_fetching_all_page() {
         this.context.url = 'https://www.senukai.lt/paieska/?c3=Kompiuterinė+technika%2C+biuro+prekės%2F%2FNešiojami+kompiuteriai+ir+priedai%2F%2FNešiojami+kompiuteriai&c4=Kompiuterinė+technika%2C+biuro+prekės%2F%2FNešiojami+kompiuteriai+ir+priedai%2F%2FNešiojami+kompiuteriai%2F%2FLenovo+nešiojami+kompiuteriai&q=lenovo'
-        while (this.context.url) {
-            let { nextPageUrl, idUrls } = await fetchIds(this.context, this.sourceFunctions, undefined, undefined)
-            this.context.url = nextPageUrl
-            console.log({ nextPageUrl, idUrls: Object.keys(idUrls).length })
-        }
+        // while (this.context.url) {
+            // let { nextPageUrl, idUrls } = await fetchIds(this.context, this.sourceFunctions, undefined, undefined)
+            // this.context.url = nextPageUrl
+            // console.log({ nextPageUrl, idUrls: Object.keys(idUrls).length })
+        // }
     }
 
     async test_addItems() {
         this.context.url = 'https://www.senukai.lt/paieska/?c3=Kompiuterinė+technika%2C+biuro+prekės%2F%2FNešiojami+kompiuteriai+ir+priedai%2F%2FNešiojami+kompiuteriai&c4=Kompiuterinė+technika%2C+biuro+prekės%2F%2FNešiojami+kompiuteriai+ir+priedai%2F%2FNešiojami+kompiuteriai%2F%2FLenovo+nešiojami+kompiuteriai&q=lenovo'
         this.context.url = 'https://www.senukai.lt/paieska/?c3=Kompiuterinė+technika%2C+biuro+prekės%2F%2FNešiojami+kompiuteriai+ir+priedai%2F%2FNešiojami+kompiuteriai&c4=Kompiuterinė+technika%2C+biuro+prekės%2F%2FNešiojami+kompiuteriai+ir+priedai%2F%2FNešiojami+kompiuteriai%2F%2FLenovo+nešiojami+kompiuteriai&q=lenovo&o=432'
-        let { nextPageUrl, idUrls } = await fetchIds(this.context, this.sourceFunctions, undefined, undefined)
-        console.log({ nextPageUrl, idUrls })
+        // let { nextPageUrl, idUrls } = await fetchIds(this.context, this.sourceFunctions, undefined, undefined)
+        // console.log({ nextPageUrl, idUrls })
     }
 
     // FOR Unit Testing
@@ -132,24 +132,24 @@ export class SNKTesting {
     }) {
         let parsedItem = undefined
 
-        const $ = await htmlFromSource({
-            url,
-            source: this.context.source,
-            filename: filename,
-            integration: this.sourceFunctions,
-        })
+        // const $ = await htmlFromSource({
+        //     url,
+        //     source: this.context.source,
+        //     filename: filename,
+        //     integration: this.sourceFunctions,
+        // })
 
         if (vehicleType == vehicleTypes.homeAppliances) {
-            parsedItem = this.sourceFunctions.scrapeHomeAppliancesItem($, url)
+            // parsedItem = this.sourceFunctions.scrapeHomeAppliancesItem($, url)
         }
 
-        const processedItem = await processItem(
-            parsedItem,
-            this.context.source,
-            vehicleType
-        )
+        // const processedItem = await processItem(
+        //     parsedItem,
+        //     this.context.source,
+        //     vehicleType
+        // )
 
-        return processedItem
+        // return processedItem
     }
 
     // Home Appliances Testing

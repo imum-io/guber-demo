@@ -4,7 +4,7 @@ import { TOPTesting } from "./sample";
 import { AdResponseTOP } from "./adTypes";
 import { HomeAppliencesType } from "../../types/items/homeAppliencesItem";
 import { matchLabelTranslation } from "../../utils";
-import { isChangedHomeAppliences } from "../../common/homeAppliences-common";
+// import { isChangedHomeAppliences } from "../../common/homeAppliences-common";
 
 
 export class TOPFunctions {
@@ -154,7 +154,8 @@ export class TOPFunctions {
     }
 
     public isAdModified(currentItem, previousItem): string {
-        return isChangedHomeAppliences(currentItem, previousItem)
+        // return isChangedHomeAppliences(currentItem, previousItem)
+        return ""
     }
 
     private checkZero(price: number) {

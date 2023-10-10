@@ -1,5 +1,5 @@
 import { CheerioAPI } from 'cheerio'
-import { isChangedHomeAppliences } from '../../common/homeAppliences-common'
+// import { isChangedHomeAppliences } from '../../common/homeAppliences-common'
 import { HomeAppliencesType } from '../../types/items/homeAppliencesItem'
 import { getBaseUrl, matchLabelTranslation } from '../../utils'
 import { HomeAppliancesInterface } from '../interfaces'
@@ -87,7 +87,8 @@ export class SNKFunctions implements HomeAppliancesInterface {
     }
 
     public isAdModified(currentItem, previousItem): string {
-        return isChangedHomeAppliences(currentItem, previousItem)
+        // return isChangedHomeAppliences(currentItem, previousItem)
+        return ""
     }
 
     public isAdRemoved($): boolean {

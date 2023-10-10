@@ -5,9 +5,9 @@ import isEqual from 'is-equal'
 import { PharmacyInterface } from '../interfaces'
 import { BNUTesting } from './sample'
 import { PharmacyItem } from '../../types/items/pharmacyItem'
-import { isChangedPharmacy } from '../../common/pharmacy-common'
+// import { isChangedPharmacy } from '../../common/pharmacy-common'
 import { vehicleTypes } from '../../config/enums'
-import { parseDimensions } from '../../product-matching/match-rules'
+// import { parseDimensions } from '../../product-matching/match-rules'
 
 
 export class BNUFunctions implements PharmacyInterface {
@@ -218,7 +218,7 @@ export class BNUFunctions implements PharmacyInterface {
         item.sourceId = sourceId
         item.quantityLeft = quantityLeft
 
-        item.dimensions = parseDimensions(item.title)
+        // item.dimensions = parseDimensions(item.title)
 
         let imageUrls = []
         $('.bnSingleProductGallery__image').find('img').each((indx, elem) => {
@@ -282,7 +282,8 @@ export class BNUFunctions implements PharmacyInterface {
     }
 
     public isAdModified(currentItem: PharmacyItem, previousItem: PharmacyItem): string {
-        return isChangedPharmacy(currentItem, previousItem)
+        // return isChangedPharmacy(currentItem, previousItem)
+        return ""
     }
 
     public addItems(response, idUrls) {

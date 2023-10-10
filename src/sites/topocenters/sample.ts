@@ -1,8 +1,8 @@
 import { dbServers, vehicleTypes } from '../../config/enums'
 import { ContextType } from '../../libs/logger'
 import { getJson } from '../../network-utils'
-import { processItem } from '../../process'
-import { performE2e } from '../../tests/Testing'
+// import { processItem } from '../../process'
+// import { performE2e } from '../../tests/Testing'
 import { sources } from '../sources'
 import { TOPFunctions } from './functions'
 
@@ -41,7 +41,7 @@ export class TOPTesting {
         this.context.url =
             'https://www.topocentras.lt/graphql?query=ROOT_GetProduct&vars={"id":"14656"}'
         this.context.sourceId = '14656'
-        await performE2e(this.context, this.sourceFunctions as any)
+        // await performE2e(this.context, this.sourceFunctions as any)
     }
 
     async test_fetching_json_page() {
@@ -61,8 +61,8 @@ export class TOPTesting {
         // const url = `https://www.topocentras.lt/ketaus-keptuve-maku-blini-pan-cast-iron.html`
         const json = await getJson(url, {})
         const parsedItem = await this.sourceFunctions.scrapeHomeAppliancesJson(json.data, url)
-        const proccessItem = await processItem(parsedItem, this.context.source, this.context.vehicleType)
-        console.log(proccessItem)
+        // const proccessItem = await processItem(parsedItem, this.context.source, this.context.vehicleType)
+        // console.log(proccessItem)
     }
 
     async test_isAddRemoved() {

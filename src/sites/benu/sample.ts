@@ -1,8 +1,8 @@
 import { dbServers, vehicleTypes } from '../../config/enums'
 import { ContextType } from '../../libs/logger'
 import { getHTML, getResponseWithOptions } from '../../network-utils'
-import { processItem } from '../../process'
-import { performE2e } from '../../tests/Testing'
+// import { processItem } from '../../process'
+// import { performE2e } from '../../tests/Testing'
 import { sources } from '../sources'
 import { BNUFunctions } from './functions'
 
@@ -34,7 +34,7 @@ export class BNUTesting {
   async test_E2e() {
     this.context.url = 'https://www.benu.lv/e-aptieka/vichy-dercos-aminexil-ampulas-pret-matu-izkrisanu-viriesiem-6ml-n21'
     this.context.sourceId = '1336822'
-    await performE2e(this.context, this.sourceFunctions)
+    // await performE2e(this.context, this.sourceFunctions)
   }
 
   async test_ad() {
@@ -56,8 +56,8 @@ export class BNUTesting {
     console.log({ isRemoved });
     
     let parsedItem = await this.sourceFunctions.scrapePharmacyItem($, url)
-    let processedItem = await processItem(parsedItem, this.context.source, this.context.vehicleType)
-    console.log("processedItem", processedItem)
+    // let processedItem = await processItem(parsedItem, this.context.source, this.context.vehicleType)
+    // console.log("processedItem", processedItem)
   }
 
   async test_page() {

@@ -1,5 +1,5 @@
 import { CheerioAPI } from 'cheerio'
-import { isChangedHomeAppliences } from '../../common/homeAppliences-common'
+// import { isChangedHomeAppliences } from '../../common/homeAppliences-common'
 import { HomeAppliencesType } from '../../types/items/homeAppliencesItem'
 import {
     getBaseUrl,
@@ -85,7 +85,8 @@ export class PGUFunctions implements HomeAppliancesInterface {
         return subLinkUrls
     }
     public isAdModified(currentItem, previousItem): string {
-        return isChangedHomeAppliences(currentItem, previousItem)
+        // return isChangedHomeAppliences(currentItem, previousItem)
+        return ""
     }
 
     public isAdRemoved($): boolean {

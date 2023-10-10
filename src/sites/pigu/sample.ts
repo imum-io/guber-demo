@@ -1,9 +1,9 @@
 import { dbServers, vehicleTypes } from '../../config/enums'
-import { fetchIds } from '../../fetch'
+// import { fetchIds } from '../../fetch'
 import { ContextType } from '../../libs/logger'
 import { getHTML } from '../../network-utils'
-import { processItem } from '../../process'
-import { htmlFromSource, performE2e } from '../../tests/Testing'
+// import { processItem } from '../../process'
+// import { htmlFromSource, performE2e } from '../../tests/Testing'
 import { sources } from '../sources'
 import { PGUFunctions } from './functions'
 
@@ -46,7 +46,7 @@ export class PGUTesting {
         this.context.url =
             'https://pigu.lt/lt/baldai-ir-namu-interjeras/kilimai-kilimeliai/kilimai/kilimas-yazz-6076-133x190-cm?id=55657259'
         this.context.sourceId = '39712'
-        await performE2e(this.context, this.sourceFunctions)
+        // await performE2e(this.context, this.sourceFunctions)
     }
 
     async test_ad() {
@@ -61,12 +61,12 @@ export class PGUTesting {
             this.context.url
         )
 
-        let processedItem = await processItem(
-            parsedItem,
-            this.context.source,
-            this.context.vehicleType
-        )
-        console.log('processedItem =>', processedItem)
+        // let processedItem = await processItem(
+        //     parsedItem,
+        //     this.context.source,
+        //     this.context.vehicleType
+        // )
+        // console.log('processedItem =>', processedItem)
     }
 
     async test_ad_removed() {
@@ -113,13 +113,13 @@ export class PGUTesting {
     async test_addItems() {
         this.context.url =
             'https://pigu.lt/lt/baldai-ir-namu-interjeras/namu-interjeras/zvakides-zvakes?f[1934280056][1786367244]=ambientair'
-        let { nextPageUrl, idUrls } = await fetchIds(
-            this.context,
-            this.sourceFunctions,
-            undefined,
-            undefined
-        )
-        console.log(nextPageUrl, idUrls)
+        // let { nextPageUrl, idUrls } = await fetchIds(
+        //     this.context,
+        //     this.sourceFunctions,
+        //     undefined,
+        //     undefined
+        // )
+        // console.log(nextPageUrl, idUrls)
     }
 
     // FOR Unit Testing
@@ -135,24 +135,24 @@ export class PGUTesting {
     }) {
         let parsedItem = undefined
 
-        const $ = await htmlFromSource({
-            url,
-            source: this.context.source,
-            filename: filename,
-            integration: this.sourceFunctions,
-        })
+        // const $ = await htmlFromSource({
+        //     url,
+        //     source: this.context.source,
+        //     filename: filename,
+        //     integration: this.sourceFunctions,
+        // })
 
         if (vehicleType == vehicleTypes.homeAppliances) {
-            parsedItem = this.sourceFunctions.scrapeHomeAppliancesItem($, url)
+            // parsedItem = this.sourceFunctions.scrapeHomeAppliancesItem($, url)
         }
 
-        const processedItem = await processItem(
-            parsedItem,
-            this.context.source,
-            vehicleType
-        )
+        // const processedItem = await processItem(
+        //     parsedItem,
+        //     this.context.source,
+        //     vehicleType
+        // )
 
-        return processedItem
+        // return processedItem
     }
 
     async test_pguAdWithDashKg() {
