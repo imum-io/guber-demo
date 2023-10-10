@@ -136,11 +136,14 @@ export class PGUFunctions implements HomeAppliancesInterface {
             item.subsubsubcategory = $(categories[4]).text()?.trim()
         }
 
-        $('.details-table')
+        let specification = {}
+        $('#field-info')
             .find('tr')
             .each((i, element) => {
                 const label = $('td', element).first()?.text().trim()
                 const value = $('td', element).last()?.text().trim()
+
+                specification[label] = value
 
                 for (let key in this.labelTranslations) {
                     if (
@@ -212,6 +215,9 @@ export class PGUFunctions implements HomeAppliancesInterface {
         )
 
         item.meta = {}
+        if(Object.keys(specification).length) {
+            item.meta = {...item.meta, specification}
+        }
 
         return item
     }

@@ -60,6 +60,7 @@ export class PGUTesting {
             $,
             this.context.url
         )
+        console.log("parsed item ==>", parsedItem)
 
         // let processedItem = await processItem(
         //     parsedItem,
