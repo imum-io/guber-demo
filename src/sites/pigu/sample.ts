@@ -53,10 +53,13 @@ export class PGUTesting {
         this.context.url =
             "https://pigu.lt/lt/kompiuteriai/nesiojami-kompiuteriai/nesiojamas-kompiuteris-apple-macbook-air-13-apple-m2-8256gb?id=55975314";
 
+        console.log(this.sourceFunctions);
+
         let { $ } = await getHTML(this.context.url, this.sourceFunctions);
         let isAdRemoved = this.sourceFunctions.isAdRemoved($);
         console.log("isAdRemoved =>", isAdRemoved);
         let parsedItem = this.sourceFunctions.scrapeHomeAppliancesItem($, this.context.url);
+        console.log("item details =>", parsedItem);
 
         // let processedItem = await processItem(parsedItem, this.context.source, this.context.vehicleType);
         // console.log("processedItem =>", processedItem);

@@ -169,6 +169,31 @@ export class PGUFunctions implements HomeAppliancesInterface {
 
         item.meta = {};
 
+        let specification = {};
+        $("#field-info")
+            .find("table")
+            .first()
+            .find("tr")
+            .each((i, tr) => {
+                let key = "",
+                    val = "";
+                $(tr)
+                    .find("td")
+                    .each((j, td) => {
+                        if (j == 0) {
+                            key = $(td).contents().text().trim();
+                        } else {
+                            val = $(td).contents().text().trim();
+                        }
+                    });
+                if (key.length && val.length) {
+                    specification[key] = val;
+                }
+            });
+        if (Object.keys(specification).length) {
+            item.meta = { specification };
+        }
+
         return item;
     }
 
