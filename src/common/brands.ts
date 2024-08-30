@@ -156,6 +156,13 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
 
     const groupAssignmentMap: { [key: string]: string } = {};
 
+    const reverseBrandsMapping: { [key: string]: string } = {};
+    for (const [mainBrand, relatedBrands] of Object.entries(brandsMapping)) {
+        for (const brand of relatedBrands) {
+            reverseBrandsMapping[brand.toLowerCase()] = mainBrand;
+        }
+    }
+
     for (let product of products) {
         counter++
 
@@ -201,33 +208,34 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         // Prioritize matches at the beginning
         matchedBrands = _.uniq(matchedBrands.sort((a, b) => product.title.indexOf(a) - product.title.indexOf(b)))
 
-        const firstMatchedBrand = matchedBrands.length ? matchedBrands[0] : null;
-        if (firstMatchedBrand) {
-            const relatedGroup = brandsMapping[firstMatchedBrand];
-            const commonBrand = relatedGroup.find((brand) => matchedBrands.includes(brand)) || firstMatchedBrand;
-
-            // Assign the commonBrand to all brands in the relatedGroup
-            if (groupAssignmentMap[firstMatchedBrand]) {
-                matchedBrands = [groupAssignmentMap[firstMatchedBrand]];
-            } else {
-                matchedBrands = [commonBrand];
-                relatedGroup.forEach((brand) => {
-                    if (!groupAssignmentMap[brand]) {
-                        groupAssignmentMap[brand] = commonBrand;
-                    }
-                });
+        let assignedBrand = null;
+        if (matchedBrands.length > 0) {
+            const groupMainBrand = reverseBrandsMapping[matchedBrands[0].toLowerCase()]
+            if (!groupAssignmentMap[groupMainBrand]) {
+                groupAssignmentMap[groupMainBrand] = matchedBrands[0];
             }
+
+            assignedBrand = groupAssignmentMap[groupMainBrand];
         }
 
         const sourceId = product.source_id
-        const meta = { matchedBrands }
-        const brand = matchedBrands.length ? matchedBrands[0] : null
+        const meta = { matchedBrands: assignedBrand ? [assignedBrand] : [] }
+        const brand = assignedBrand
 
         const key = `${source}_${countryCode}_${sourceId}`
         const uuid = stringToHash(key)
 
-        console.log(`Product: ${product.title} -> Matched Brands: ${_.uniq(matchedBrands)}`);
+        console.log(`\nProduct: ${product.title}`);
+        console.log(`URL: ${product.url}`);
+        console.log(`Assigned Brand: ${assignedBrand || 'None'}`);
+        console.log(`Original Matched Brands:`);
+        matchedBrands.forEach((brand, index) => {
+            console.log(`  ${index + 1}. ${brand}`);
+        });
+    }
 
-        // Then brand is inserted into product mapping table
+    console.log("\nBrand Mapping Group Assignment:");
+    for (const [group, brand] of Object.entries(groupAssignmentMap)) {
+        console.log(`Group: ${group} -> Assigned Brand: ${brand}`);
     }
 }
