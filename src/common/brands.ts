@@ -153,6 +153,9 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
     const versionKey = "assignBrandIfKnown"
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
     let counter = 0
+
+    const groupAssignmentMap: { [key: string]: string } = {};
+
     for (let product of products) {
         counter++
 
@@ -175,13 +178,12 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
 
                 // 3. Brands that need to be at the front
                 const mustBeInFront = ["rich", "rff", "flex", "ultra", "gum", "beauty", "orto", "free", "112", "kin", "happy"];
-                // 4. Brands that need to be in front or second
-                const mustBeInFrontOrSecond = ["heel", "contour", "nero", "rsv"];
-
                 if (mustBeInFront.includes(brandToCheck)) {
                     if (!product.title.toLowerCase().startsWith(brandToCheck)) continue;
                 }
 
+                // 4. Brands that need to be in front or second
+                const mustBeInFrontOrSecond = ["heel", "contour", "nero", "rsv"];
                 if (mustBeInFrontOrSecond.includes(brandToCheck)) {
                     const words = product.title.toLowerCase().split(" ");
                     if (!(words[0] === brandToCheck || words[1] === brandToCheck)) continue;
@@ -198,6 +200,24 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         }
         // Prioritize matches at the beginning
         matchedBrands = _.uniq(matchedBrands.sort((a, b) => product.title.indexOf(a) - product.title.indexOf(b)))
+
+        const firstMatchedBrand = matchedBrands.length ? matchedBrands[0] : null;
+        if (firstMatchedBrand) {
+            const relatedGroup = brandsMapping[firstMatchedBrand];
+            const commonBrand = relatedGroup.find((brand) => matchedBrands.includes(brand)) || firstMatchedBrand;
+
+            // Assign the commonBrand to all brands in the relatedGroup
+            if (groupAssignmentMap[firstMatchedBrand]) {
+                matchedBrands = [groupAssignmentMap[firstMatchedBrand]];
+            } else {
+                matchedBrands = [commonBrand];
+                relatedGroup.forEach((brand) => {
+                    if (!groupAssignmentMap[brand]) {
+                        groupAssignmentMap[brand] = commonBrand;
+                    }
+                });
+            }
+        }
 
         const sourceId = product.source_id
         const meta = { matchedBrands }
