@@ -156,31 +156,56 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
     for (let product of products) {
         counter++
 
-        if (product.m_id) {
-            // Already exists in the mapping table, probably no need to update
-            continue
-        }
+        if (product.m_id) continue;
 
-        let matchedBrands = []
+        let matchedBrands: string[] = []
+
         for (const brandKey in brandsMapping) {
             const relatedBrands = brandsMapping[brandKey]
             for (const brand of relatedBrands) {
-                if (matchedBrands.includes(brand)) {
-                    continue
+                if (matchedBrands.includes(brand)) continue;
+
+                let brandToCheck = brand;
+
+                 // Babē = Babe
+                if (brandToCheck === "babē") brandToCheck = "babe";
+
+                // Ignore BIO, NEB
+                if (["bio", "neb"].includes(brandToCheck)) continue;
+
+                // Brands that need to be at the front
+                const mustBeInFront = ["rich", "rff", "flex", "ultra", "gum", "beauty", "orto", "free", "112", "kin", "happy"];
+                const mustBeInFrontOrSecond = ["heel", "contour", "nero", "rsv"];
+
+                if (mustBeInFront.includes(brandToCheck)) {
+                    if (!product.title.toLowerCase().startsWith(brandToCheck)) continue;
                 }
-                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
+
+                if (mustBeInFrontOrSecond.includes(brandToCheck)) {
+                    const words = product.title.toLowerCase().split(" ");
+                    if (!(words[0] === brandToCheck || words[1] === brandToCheck)) continue;
+                }
+
+                // HAPPY must be capitalized
+                if (brandToCheck === "happy" && !/HAPPY/.test(product.title)) continue;
+
+                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brandToCheck)
                 if (isBrandMatch) {
-                    matchedBrands.push(brand)
+                    matchedBrands.push(brandToCheck)
                 }
             }
         }
-        console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
+        // Prioritize matches at the beginning
+        matchedBrands = _.uniq(matchedBrands.sort((a, b) => product.title.indexOf(a) - product.title.indexOf(b)))
+
         const sourceId = product.source_id
         const meta = { matchedBrands }
         const brand = matchedBrands.length ? matchedBrands[0] : null
 
         const key = `${source}_${countryCode}_${sourceId}`
         const uuid = stringToHash(key)
+
+        console.log(`Product: ${product.title} -> Matched Brands: ${_.uniq(matchedBrands)}`);
 
         // Then brand is inserted into product mapping table
     }
