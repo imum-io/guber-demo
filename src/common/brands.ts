@@ -4,8 +4,10 @@ import { ContextType } from "../libs/logger"
 import { jsonOrStringForDb, jsonOrStringToJson, stringOrNullForDb, stringToHash } from "../utils"
 import _ from "lodash"
 import { sources } from "../sites/sources"
-import items from "./../../pharmacyItems.json"
+// import items from "./../../pharmacyItems.json"
+import items from "./../../pharmacyItemsTest.json"
 import connections from "./../../brandConnections.json"
+import brandValidations from "./../../brandValidations.json"
 
 type BrandsMapping = {
     [key: string]: string[]
@@ -129,17 +131,50 @@ async function getPharmacyItems(countryCode: countryCodes, source: sources, vers
 }
 
 export function checkBrandIsSeparateTerm(input: string, brand: string): boolean {
+    const validations = brandValidations;
+
+    //Edge case validations
+    if (validations.ignore.includes(brand)) {
+        //TASK 3c: Ignore BIO, NEB
+        return false;
+    } 
+    else if (validations.second_word.includes(brand)) {
+        //TASK 3e: Brands that can be in the first or second word only
+        input = new RegExp('^(\\S+)\\s+(\\S+)', 'u').exec(input)[0]
+    } 
+    else if (validations.first_word.includes(brand)) {
+        //TASK 3d: Brands that can be in the first word only
+        input = new RegExp('^([\\S]+)', 'u').exec(input)[0]
+    }
+
+    //Task 3g: HAPPY needs to be matched capitalized
+    let capitalization_flag = "i"
+    if(brand == "happy"){
+        brand = brand.toUpperCase();
+        capitalization_flag = ""
+    }
+
+    //Task 3b: babē = babe
+    if(brand == "babe"){
+        input = input.replace(/\\bbabē\\b/gi, 'babe')
+    }
+    //End of validations
+
+
     // Escape any special characters in the brand name for use in a regular expression
     const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+
+    // var atBeginningOrEnd = false;
+    
 
     // Check if the brand is at the beginning or end of the string
     const atBeginningOrEnd = new RegExp(
         `^(?:${escapedBrand}\\s|.*\\s${escapedBrand}\\s.*|.*\\s${escapedBrand})$`,
-        "i"
+        capitalization_flag
     ).test(input)
 
     // Check if the brand is a separate term in the string
-    const separateTerm = new RegExp(`\\b${escapedBrand}\\b`, "i").test(input)
+    const separateTerm = new RegExp(`\\b${escapedBrand}\\b`, capitalization_flag).test(input)
 
     // The brand should be at the beginning, end, or a separate term
     return atBeginningOrEnd || separateTerm
@@ -148,7 +183,7 @@ export function checkBrandIsSeparateTerm(input: string, brand: string): boolean 
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
     const context = { scope: "assignBrandIfKnown" } as ContextType
 
-    const brandsMapping = await getBrandsMapping()
+    const brandsMapping = await getBrandsMapping();
 
     const versionKey = "assignBrandIfKnown"
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
@@ -185,3 +220,9 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         // Then brand is inserted into product mapping table
     }
 }
+
+assignBrandIfKnown(countryCodes['lt'], sources['APO']);
+
+// let input = "Dantų pasta Paroex  75ml su 0,06%"
+// let reg = new RegExp('^(\\S+)\\s+(\\S+)').exec(input);
+// console.log(reg);
