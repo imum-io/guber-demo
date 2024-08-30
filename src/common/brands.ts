@@ -233,8 +233,8 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         });
     }
 
-    // console.log("\nBrand Mapping Group Assignment:");
-    // for (const [group, brand] of Object.entries(groupAssignmentMap)) {
-    //     console.log(`Group: ${group} -> Assigned Brand: ${brand}`);
-    // }
+    console.log("\nBrand Mapping Group Assignment:");
+    for (const [group, brand] of Object.entries(groupAssignmentMap)) {
+        console.log(`Group: ${group} -> Assigned Brand: ${brand}`);
+    }
 }
