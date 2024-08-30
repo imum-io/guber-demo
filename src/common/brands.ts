@@ -145,6 +145,19 @@ export function checkBrandIsSeparateTerm(input: string, brand: string): boolean 
     return atBeginningOrEnd || separateTerm
 }
 
+function getCanonicalBrands(brandsMapping: BrandsMapping): Map<string, string> {
+    const canonicalBrands = new Map<string, string>();
+
+    for (const [brand, relatedBrands] of Object.entries(brandsMapping)) {
+        const canonicalBrand = canonicalBrands.get(brand) || brand;
+        for (const relatedBrand of relatedBrands) {
+            canonicalBrands.set(relatedBrand, canonicalBrand);
+        }
+    }
+
+    return canonicalBrands;
+}
+
 function matchBrand(title: string, brand: string): boolean {
     // Convert both title and brand to lowercase for case-insensitive matching
     const lowerTitle = title.toLowerCase();
@@ -167,7 +180,7 @@ function matchBrand(title: string, brand: string): boolean {
         const words = lowerTitle.split(/\s+/);
         return words[0] === lowerBrand || words[1] === lowerBrand;
     }
-    
+
     if (brand === "HAPPY") {
         return title.includes("HAPPY");
     }
@@ -181,6 +194,9 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
 
     const brandsMapping = await getBrandsMapping()
 
+    // Get the canonical brands
+    const canonicalBrands = getCanonicalBrands(brandsMapping);
+
     const versionKey = "assignBrandIfKnown"
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
 
@@ -191,16 +207,12 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         }
 
         let matchedBrands: string[] = [];
-        for (const brandKey in brandsMapping) {
-            const relatedBrands = brandsMapping[brandKey]
-            for (const brand of relatedBrands) {
-                if (matchedBrands.includes(brand)) {
-                    continue
-                }
 
-                if (matchBrand(product.title, brand)) {
-                    matchedBrands.push(brand);
-                }
+        // Use canonicalBrands instead of brandsMapping
+        for (const brand of canonicalBrands.keys()) {
+            if (matchBrand(product.title, brand)) {
+                // Use the canonical brand name
+                matchedBrands.push(canonicalBrands.get(brand)!);
             }
         }
 
