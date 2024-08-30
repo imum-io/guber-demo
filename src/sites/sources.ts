@@ -7,6 +7,7 @@ export enum sources {
     SNK = 'SNK',
     PGU = 'PGU',
     TOP = 'TOP',
+    APO = 'APO',
 }
 
 export const sourceFromUrl = {
