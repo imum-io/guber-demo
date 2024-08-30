@@ -225,17 +225,20 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         }
 
         // TASK: 3f: If more than one brand found, prioritize matching beginning
+        let assiged_brand = '';
         if(matchedBrands.length > 1){
-            let title_words = product.title.toLowerCase().split(' ')
-            forEach(title_words, (word) =>{
-                if(matchedBrands.includes(word)){
-                    matchedBrands = []
-                    matchedBrands.push(word)
-                    return
+            let lowest_index = Number.MAX_SAFE_INTEGER
+            for (let brand of matchedBrands){
+                let index = product.title.toLowerCase().indexOf(brand)
+                if(index < lowest_index){
+                    lowest_index = index
+                    assiged_brand = brand
                 }
-            });
+            }
+        } else if (matchedBrands.length > 0) {
+            assiged_brand = matchedBrands[0]
         }
-        let assiged_brand = seenBrands.has(matchedBrands[0]) ? seenBrands.get(matchedBrands[0]) : ""
+        assiged_brand = seenBrands.has(assiged_brand) ? seenBrands.get(assiged_brand) : assiged_brand
         console.log(`${product.title} -> ${assiged_brand}`)
         const sourceId = product.source_id
         const meta = { matchedBrands }
@@ -248,4 +251,4 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
     }
 }
 
-// assignBrandIfKnown(countryCodes['lt'], sources['APO']);
+assignBrandIfKnown(countryCodes['lt'], sources['APO']);
