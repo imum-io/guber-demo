@@ -178,17 +178,17 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
                 // 4. Brands that need to be in front or second
                 const mustBeInFrontOrSecond = ["heel", "contour", "nero", "rsv"];
 
-                if (mustBeInFront.includes(brandToCheck.toLowerCase())) {
-                    if (!product.title.toLowerCase().startsWith(brandToCheck.toLowerCase())) continue;
+                if (mustBeInFront.includes(brandToCheck)) {
+                    if (!product.title.toLowerCase().startsWith(brandToCheck)) continue;
                 }
 
-                if (mustBeInFrontOrSecond.includes(brandToCheck.toLowerCase())) {
+                if (mustBeInFrontOrSecond.includes(brandToCheck)) {
                     const words = product.title.toLowerCase().split(" ");
-                    if (!(words[0] === brandToCheck.toLowerCase() || words[1] === brandToCheck.toLowerCase())) continue;
+                    if (!(words[0] === brandToCheck || words[1] === brandToCheck)) continue;
                 }
 
                 // HAPPY must be capitalized
-                if (brandToCheck.toLowerCase() === "happy" && !/HAPPY/.test(product.title)) continue;
+                if (brandToCheck === "happy" && !/HAPPY/.test(product.title)) continue;
 
                 const isBrandMatch = checkBrandIsSeparateTerm(product.title, brandToCheck)
                 if (isBrandMatch) {
@@ -197,7 +197,7 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
             }
         }
         // Prioritize matches at the beginning
-        matchedBrands = _.uniq(matchedBrands.sort((a, b) => product.title.toLowerCase().indexOf(a.toLowerCase()) - product.title.toLowerCase().indexOf(b.toLowerCase())))
+        matchedBrands = _.uniq(matchedBrands.sort((a, b) => product.title.indexOf(a) - product.title.indexOf(b)))
 
         const sourceId = product.source_id
         const meta = { matchedBrands }
