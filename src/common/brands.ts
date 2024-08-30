@@ -226,7 +226,6 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         const uuid = stringToHash(key)
 
         console.log(`\nProduct: ${product.title}`);
-        console.log(`URL: ${product.url}`);
         console.log(`Assigned Brand: ${assignedBrand || 'None'}`);
         console.log(`Original Matched Brands:`);
         matchedBrands.forEach((brand, index) => {
@@ -234,8 +233,8 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         });
     }
 
-    console.log("\nBrand Mapping Group Assignment:");
-    for (const [group, brand] of Object.entries(groupAssignmentMap)) {
-        console.log(`Group: ${group} -> Assigned Brand: ${brand}`);
-    }
+    // console.log("\nBrand Mapping Group Assignment:");
+    // for (const [group, brand] of Object.entries(groupAssignmentMap)) {
+    //     console.log(`Group: ${group} -> Assigned Brand: ${brand}`);
+    // }
 }
