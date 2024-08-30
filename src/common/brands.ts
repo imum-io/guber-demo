@@ -224,7 +224,7 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
             }
         }
 
-        // TASK: 3f: If more than one brand found, prioritize matching beginning
+        // TASK: 3f: If more than one brand found, prioritize matching beginning brand
         let assiged_brand = '';
         if(matchedBrands.length > 1){
             let lowest_index = Number.MAX_SAFE_INTEGER
@@ -251,4 +251,4 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
     }
 }
 
-assignBrandIfKnown(countryCodes['lt'], sources['APO']);
+// assignBrandIfKnown(countryCodes['lt'], sources['APO']);
