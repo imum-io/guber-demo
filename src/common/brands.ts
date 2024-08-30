@@ -167,27 +167,28 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
 
                 let brandToCheck = brand;
 
-                 // Babē = Babe
+                 // 1. Babē = Babe
                 if (brandToCheck === "babē") brandToCheck = "babe";
 
-                // Ignore BIO, NEB
-                if (["bio", "neb"].includes(brandToCheck)) continue;
+                // 2. Ignore BIO, NEB
+                if (["bio", "neb"].includes(brandToCheck.toLowerCase())) continue;
 
-                // Brands that need to be at the front
+                // 3. Brands that need to be at the front
                 const mustBeInFront = ["rich", "rff", "flex", "ultra", "gum", "beauty", "orto", "free", "112", "kin", "happy"];
+                // 4. Brands that need to be in front or second
                 const mustBeInFrontOrSecond = ["heel", "contour", "nero", "rsv"];
 
-                if (mustBeInFront.includes(brandToCheck)) {
-                    if (!product.title.toLowerCase().startsWith(brandToCheck)) continue;
+                if (mustBeInFront.includes(brandToCheck.toLowerCase())) {
+                    if (!product.title.toLowerCase().startsWith(brandToCheck.toLowerCase())) continue;
                 }
 
-                if (mustBeInFrontOrSecond.includes(brandToCheck)) {
+                if (mustBeInFrontOrSecond.includes(brandToCheck.toLowerCase())) {
                     const words = product.title.toLowerCase().split(" ");
-                    if (!(words[0] === brandToCheck || words[1] === brandToCheck)) continue;
+                    if (!(words[0] === brandToCheck.toLowerCase() || words[1] === brandToCheck.toLowerCase())) continue;
                 }
 
                 // HAPPY must be capitalized
-                if (brandToCheck === "happy" && !/HAPPY/.test(product.title)) continue;
+                if (brandToCheck.toLowerCase() === "happy" && !/HAPPY/.test(product.title)) continue;
 
                 const isBrandMatch = checkBrandIsSeparateTerm(product.title, brandToCheck)
                 if (isBrandMatch) {
@@ -196,7 +197,7 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
             }
         }
         // Prioritize matches at the beginning
-        matchedBrands = _.uniq(matchedBrands.sort((a, b) => product.title.indexOf(a) - product.title.indexOf(b)))
+        matchedBrands = _.uniq(matchedBrands.sort((a, b) => product.title.toLowerCase().indexOf(a.toLowerCase()) - product.title.toLowerCase().indexOf(b.toLowerCase())))
 
         const sourceId = product.source_id
         const meta = { matchedBrands }
