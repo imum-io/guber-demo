@@ -4,8 +4,8 @@ import { ContextType } from "../libs/logger"
 import { jsonOrStringForDb, jsonOrStringToJson, stringOrNullForDb, stringToHash } from "../utils"
 import _, { forEach } from "lodash"
 import { sources } from "../sites/sources"
-// import items from "./../../pharmacyItems.json"
-import items from "./../../pharmacyItemsTest.json"
+import items from "./../../pharmacyItems.json"
+// import items from "./../../pharmacyItemsTest.json"
 import connections from "./../../brandConnections.json"
 import brandValidations from "./../../brandValidations.json"
 
@@ -148,10 +148,10 @@ export function checkBrandIsSeparateTerm(input: string, brand: string): boolean 
     }
 
     //Task 3g: HAPPY needs to be matched capitalized
-    let capitalization_flag = "i"
+    let flags = "ui"
     if(brand == "happy"){
         brand = brand.toUpperCase();
-        capitalization_flag = ""
+        flags = "u"
     }
 
     //Task 3b: babē = babe
@@ -164,17 +164,16 @@ export function checkBrandIsSeparateTerm(input: string, brand: string): boolean 
     // Escape any special characters in the brand name for use in a regular expression
     const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 
-    // var atBeginningOrEnd = false;
-    
-
     // Check if the brand is at the beginning or end of the string
     const atBeginningOrEnd = new RegExp(
         `^(?:${escapedBrand}\\s|.*\\s${escapedBrand}\\s.*|.*\\s${escapedBrand})$`,
-        capitalization_flag
+        flags
     ).test(input)
 
+    
+
     // Check if the brand is a separate term in the string
-    const separateTerm = new RegExp(`\\b${escapedBrand}\\b`, capitalization_flag).test(input)
+    const separateTerm = new RegExp(`\\b${escapedBrand}\\b`, flags).test(input)
 
     // The brand should be at the beginning, end, or a separate term
     return atBeginningOrEnd || separateTerm
@@ -246,8 +245,4 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
     }
 }
 
-assignBrandIfKnown(countryCodes['lt'], sources['APO']);
-
-// let input = "Dantų pasta Paroex  75ml su 0,06%"
-// let reg = new RegExp('^(\\S+)\\s+(\\S+)').exec(input);
-// console.log(reg);
+// assignBrandIfKnown(countryCodes['lt'], sources['APO']);
