@@ -42,7 +42,7 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
     //     `
     //     const brandConnections = await executeQueryAndGetResponse(dbServers.pharmacy, query)
     // For this test day purposes exported the necessary object
-    const brandConnections = connections
+    const brandConnections = connections 
 
     const getRelatedBrands = (map: Map<string, Set<string>>, brand: string): Set<string> => {
         const relatedBrands = new Set<string>()
@@ -64,7 +64,7 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
 
     // Create a map to track brand relationships
     const brandMap = new Map<string, Set<string>>()
-
+    
     brandConnections.forEach(({ manufacturer_p1, manufacturers_p2 }) => {
         const brand1 = manufacturer_p1.toLowerCase()
         const brands2 = manufacturers_p2.toLowerCase()
@@ -156,7 +156,7 @@ export function checkBrandIsSeparateTerm(input: string, brand: string): boolean 
 
     //Task 3b: babē = babe
     if(brand == "babe"){
-        input = input.replace(/\\bbabē\\b/gi, 'babe')
+        input = input.replace(new RegExp('babē', 'gi'), 'babe')
     }
     //End of validations
 
@@ -184,8 +184,11 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
     const context = { scope: "assignBrandIfKnown" } as ContextType
 
     const brandsMapping = await getBrandsMapping();
+    // console.log(brandsMapping)
 
     const versionKey = "assignBrandIfKnown"
+
+    const seenBrands = new Map<String, string>();
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
     let counter = 0
     for (let product of products) {
@@ -198,8 +201,17 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
 
         let matchedBrands = []
         for (const brandKey in brandsMapping) {
+            let key = brandKey
+            if(!seenBrands.has(brandKey)){
+                seenBrands.set(brandKey, key)
+            } else {
+                key = seenBrands.get(brandKey)
+            }
             const relatedBrands = brandsMapping[brandKey]
             for (const brand of relatedBrands) {
+                if(!seenBrands.has(brand)){
+                    seenBrands.set(brand, key)
+                }
                 if (matchedBrands.includes(brand)) {
                     continue
                 }
@@ -210,7 +222,7 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
             }
         }
 
-        //TASK: 3f: If more than one brand found, prioritize matching beginning
+        // TASK: 3f: If more than one brand found, prioritize matching beginning
         if(matchedBrands.length > 1){
             let title_words = product.title.toLowerCase().split(' ')
             forEach(title_words, (word) =>{
@@ -221,8 +233,8 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
                 }
             });
         }
-        
-        console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
+        let assiged_brand = seenBrands.has(matchedBrands[0]) ? seenBrands.get(matchedBrands[0]) : ""
+        console.log(`${product.title} -> ${assiged_brand}`)
         const sourceId = product.source_id
         const meta = { matchedBrands }
         const brand = matchedBrands.length ? matchedBrands[0] : null
