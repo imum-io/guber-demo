@@ -145,6 +145,19 @@ export function checkBrandIsSeparateTerm(input: string, brand: string): boolean 
     return atBeginningOrEnd || separateTerm
 }
 
+function normalizeBrand(brand: string): string {
+    return brand.toLowerCase().replace("babē", "babe");
+}
+
+function checkBrandPosition(title: string, brand: string, positions: string[]): boolean {
+    const words = title.toLowerCase().split(" ");
+    return positions.some(pos => {
+        if (pos === "front") return words[0] === brand;
+        if (pos === "second") return words[1] === brand;
+        return false;
+    });
+}
+
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
     const context = { scope: "assignBrandIfKnown" } as ContextType
 
@@ -153,51 +166,40 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
     const versionKey = "assignBrandIfKnown"
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
     let counter = 0
+
     for (let product of products) {
         counter++
 
         if (product.m_id) continue;
 
         let matchedBrands: string[] = []
+        const normalizedTitle = normalizeBrand(product.title);
 
         for (const brandKey in brandsMapping) {
             const relatedBrands = brandsMapping[brandKey]
             for (const brand of relatedBrands) {
                 if (matchedBrands.includes(brand)) continue;
 
-                let brandToCheck = brand;
+                const normalizedBrand = normalizeBrand(brand);
 
-                 // 1. Babē = Babe
-                if (brandToCheck === "babē") brandToCheck = "babe";
+                if (["bio", "neb"].includes(normalizedBrand)) continue;
 
-                // 2. Ignore BIO, NEB
-                if (["bio", "neb"].includes(brandToCheck.toLowerCase())) continue;
-
-                // 3. Brands that need to be at the front
                 const mustBeInFront = ["rich", "rff", "flex", "ultra", "gum", "beauty", "orto", "free", "112", "kin", "happy"];
-                // 4. Brands that need to be in front or second
                 const mustBeInFrontOrSecond = ["heel", "contour", "nero", "rsv"];
 
-                if (mustBeInFront.includes(brandToCheck)) {
-                    if (!product.title.toLowerCase().startsWith(brandToCheck)) continue;
-                }
+                if (mustBeInFront.includes(normalizedBrand) && !checkBrandPosition(normalizedTitle, normalizedBrand, ["front"])) continue;
+                if (mustBeInFrontOrSecond.includes(normalizedBrand) && !checkBrandPosition(normalizedTitle, normalizedBrand, ["front", "second"])) continue;
 
-                if (mustBeInFrontOrSecond.includes(brandToCheck)) {
-                    const words = product.title.toLowerCase().split(" ");
-                    if (!(words[0] === brandToCheck || words[1] === brandToCheck)) continue;
-                }
+                if (normalizedBrand  === "happy" && !/HAPPY/.test(product.title)) continue;
 
-                // HAPPY must be capitalized
-                if (brandToCheck === "happy" && !/HAPPY/.test(product.title)) continue;
-
-                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brandToCheck)
+                const isBrandMatch = checkBrandIsSeparateTerm(normalizedTitle, normalizedBrand)
                 if (isBrandMatch) {
-                    matchedBrands.push(brandToCheck)
+                    matchedBrands.push(normalizedBrand )
                 }
             }
         }
-        // Prioritize matches at the beginning
-        matchedBrands = _.uniq(matchedBrands.sort((a, b) => product.title.indexOf(a) - product.title.indexOf(b)))
+
+        matchedBrands = _.uniq(matchedBrands.sort((a, b) => normalizedTitle.indexOf(normalizeBrand(a)) - normalizedTitle.indexOf(normalizeBrand(b))))
 
         const sourceId = product.source_id
         const meta = { matchedBrands }
