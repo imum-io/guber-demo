@@ -2,7 +2,7 @@ import { Job } from "bullmq"
 import { countryCodes, dbServers, EngineType } from "../config/enums"
 import { ContextType } from "../libs/logger"
 import { jsonOrStringForDb, jsonOrStringToJson, stringOrNullForDb, stringToHash } from "../utils"
-import _ from "lodash"
+import _, { forEach } from "lodash"
 import { sources } from "../sites/sources"
 // import items from "./../../pharmacyItems.json"
 import items from "./../../pharmacyItemsTest.json"
@@ -209,6 +209,19 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
                 }
             }
         }
+
+        //TASK: 3f: If more than one brand found, prioritize matching beginning
+        if(matchedBrands.length > 1){
+            let title_words = product.title.toLowerCase().split(' ')
+            forEach(title_words, (word) =>{
+                if(matchedBrands.includes(word)){
+                    matchedBrands = []
+                    matchedBrands.push(word)
+                    return
+                }
+            });
+        }
+        
         console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
         const sourceId = product.source_id
         const meta = { matchedBrands }
