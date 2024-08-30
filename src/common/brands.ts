@@ -165,6 +165,7 @@ export function checkBrandIsSeparateTerm(input: string, brand: string): boolean 
     const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 
     // Check if the brand is at the beginning or end of the string
+    // IMPROVEMENT: Does not seem to handle for unicode characters like švf.
     const atBeginningOrEnd = new RegExp(
         `^(?:${escapedBrand}\\s|.*\\s${escapedBrand}\\s.*|.*\\s${escapedBrand})$`,
         flags
@@ -179,6 +180,7 @@ export function checkBrandIsSeparateTerm(input: string, brand: string): boolean 
     return atBeginningOrEnd || separateTerm
 }
 
+//IMPROVEMENT: Maybe map brands once, then loop through splitted product title to perform operations, to avoid loop every brand for every product. 
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
     const context = { scope: "assignBrandIfKnown" } as ContextType
 
@@ -198,6 +200,7 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
             continue
         }
 
+        // Task 2: Adds a map of seenBrands with all brands as keys and the first seen brand as value. Needs better testing.
         let matchedBrands = []
         for (const brandKey in brandsMapping) {
             let key = brandKey
