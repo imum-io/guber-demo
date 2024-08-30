@@ -145,6 +145,37 @@ export function checkBrandIsSeparateTerm(input: string, brand: string): boolean 
     return atBeginningOrEnd || separateTerm
 }
 
+function matchBrand(title: string, brand: string): boolean {
+    // Convert both title and brand to lowercase for case-insensitive matching
+    const lowerTitle = title.toLowerCase();
+    const lowerBrand = brand.toLowerCase();
+
+    // Handle special cases
+    if (brand === "Babē" && lowerTitle.includes("babe")) {
+        return true;
+    }
+
+    if (["bio", "neb"].includes(lowerBrand)) {
+        return false;
+    }
+
+    if (["rich", "rff", "flex", "ultra", "gum", "beauty", "orto", "free", "112", "kin"].includes(lowerBrand)) {
+        return lowerTitle.startsWith(lowerBrand);
+    }
+
+    if (["heel", "contour", "nero", "rsv"].includes(lowerBrand)) {
+        const words = lowerTitle.split(/\s+/);
+        return words[0] === lowerBrand || words[1] === lowerBrand;
+    }
+    
+    if (brand === "HAPPY") {
+        return title.includes("HAPPY");
+    }
+
+    // Default case: check if brand is a separate term
+    return checkBrandIsSeparateTerm(title, brand);
+}
+
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
     const context = { scope: "assignBrandIfKnown" } as ContextType
 
@@ -152,28 +183,34 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
 
     const versionKey = "assignBrandIfKnown"
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
-    let counter = 0
-    for (let product of products) {
-        counter++
 
+    for (let product of products) {
         if (product.m_id) {
             // Already exists in the mapping table, probably no need to update
             continue
         }
 
-        let matchedBrands = []
+        let matchedBrands: string[] = [];
         for (const brandKey in brandsMapping) {
             const relatedBrands = brandsMapping[brandKey]
             for (const brand of relatedBrands) {
                 if (matchedBrands.includes(brand)) {
                     continue
                 }
-                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
-                if (isBrandMatch) {
-                    matchedBrands.push(brand)
+
+                if (matchBrand(product.title, brand)) {
+                    matchedBrands.push(brand);
                 }
             }
         }
+
+        // Prioritize matching at the beginning
+        matchedBrands.sort((a, b) => {
+            const aIndex = product.title.toLowerCase().indexOf(a.toLowerCase());
+            const bIndex = product.title.toLowerCase().indexOf(b.toLowerCase());
+            return aIndex - bIndex;
+        });
+
         console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
         const sourceId = product.source_id
         const meta = { matchedBrands }
