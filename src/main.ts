@@ -1,6 +1,7 @@
 // import { sources } from "src"
 
-import { assignBrandIfKnown } from "./common/brands"
+// import { assignBrandIfKnown } from "./common/brands"
+import { assignBrandIfKnown } from "./common/brands-task"
 import { countryCodes } from "./config/enums"
 import { sources } from "./sites/sources"
 
