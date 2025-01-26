@@ -15,25 +15,7 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
 //     type of connection is -> { manufacturer_p1: string, manufacturers_p2: string}[]
     const brandConnections = connections
 
-    const getRelatedBrands = (map: Map<string, Set<string>>, brand: string): Set<string> => {
-        const relatedBrands = new Set<string>()
-        const queue = [brand]
-        while (queue.length > 0) {
-            const current = queue.pop()!
-            if (map.has(current)) {
-                const brands = map.get(current)!
-                for (const b of brands) {
-                    if (!relatedBrands.has(b)) {
-                        relatedBrands.add(b)
-                        queue.push(b)
-                    }
-                }
-            }
-        }
-        return relatedBrands
-    }
-
-    // Create a map to track brand relationships
+       // Create a map to track brand relationships
     // for this map manufacturer_p1 is the key
     // manufacturers_p2 is multiple brands separated by ; (connected brands)
     // if connected-brands(brands from manufacturers_p2) are not in the map we add it
@@ -59,6 +41,24 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
 
     // Build the final flat map
     const flatMap = new Map<string, Set<string>>()
+
+    const getRelatedBrands = (map: Map<string, Set<string>>, brand: string): Set<string> => {
+        const relatedBrands = new Set<string>()
+        const queue = [brand]
+        while (queue.length > 0) {
+            const current = queue.pop()!
+            if (map.has(current)) {
+                const brands = map.get(current)!
+                for (const b of brands) {
+                    if (!relatedBrands.has(b)) {
+                        relatedBrands.add(b)
+                        queue.push(b)
+                    }
+                }
+            }
+        }
+        return relatedBrands
+    }
 
     brandMap.forEach((_, brand) => {
         const relatedBrands = getRelatedBrands(brandMap, brand)
