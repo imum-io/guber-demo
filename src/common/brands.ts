@@ -12,34 +12,7 @@ type BrandsMapping = {
 }
 
 export async function getBrandsMapping(): Promise<BrandsMapping> {
-    //     const query = `
-    //     SELECT
-    //     LOWER(p1.manufacturer) manufacturer_p1
-    //     , LOWER(GROUP_CONCAT(DISTINCT p2.manufacturer ORDER BY p2.manufacturer SEPARATOR ';')) AS manufacturers_p2
-    // FROM
-    //     property_matchingvalidation v
-    // INNER JOIN
-    //     property_pharmacy p1 ON v.m_source = p1.source
-    //     AND v.m_source_id = p1.source_id
-    //     AND v.m_country_code = p1.country_code
-    //     AND p1.newest = true
-    // INNER JOIN
-    //     property_pharmacy p2 ON v.c_source = p2.source
-    //     AND v.c_source_id = p2.source_id
-    //     AND v.c_country_code = p2.country_code
-    //     AND p2.newest = true
-    // WHERE
-    //     v.m_source = 'AZT'
-    //     AND v.engine_type = '${EngineType.Barcode}'
-    //     and p1.manufacturer is not null
-    //     and p2.manufacturer is not null
-    //     and p1.manufacturer not in ('kita', 'nera', 'cits')
-    //     and p2.manufacturer not in ('kita', 'nera', 'cits')
-    // GROUP BY
-    //     p1.manufacturer
-    //     `
-    //     const brandConnections = await executeQueryAndGetResponse(dbServers.pharmacy, query)
-    // For this test day purposes exported the necessary object
+//     type of connection is -> { manufacturer_p1: string, manufacturers_p2: string}[]
     const brandConnections = connections
 
     const getRelatedBrands = (map: Map<string, Set<string>>, brand: string): Set<string> => {
@@ -61,6 +34,11 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
     }
 
     // Create a map to track brand relationships
+    // for this map manufacturer_p1 is the key
+    // manufacturers_p2 is multiple brands separated by ; (connected brands)
+    // if connected-brands(brands from manufacturers_p2) are not in the map we add it
+    // the value of the map is a set of connected brands
+    // that means-> p1 will have every brands from p2 and vice versa
     const brandMap = new Map<string, Set<string>>()
 
     brandConnections.forEach(({ manufacturer_p1, manufacturers_p2 }) => {
@@ -183,7 +161,7 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         const uuid = stringToHash(key)
 
         // for now lets make sense the data structure first
-        if(counter > 20) {
+        if(counter > 3960) {
             break
         }
 
