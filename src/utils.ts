@@ -684,6 +684,27 @@ function createCustomError(errorObject) {
   return customError;
 }
 
+ function normalizeString(input: string): string {
+  return input.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+ function prioritizeKeywords(brand: string, priorityWords: string[]): string {
+  const words = brand.split(' ');
+  words.sort((a, b) => {
+      if (priorityWords.includes(a) && !priorityWords.includes(b)) return -1;
+      if (!priorityWords.includes(a) && priorityWords.includes(b)) return 1;
+      return 0;
+  });
+  return words.join(' ');
+}
+
+ function resolveBrandConflict(matches: string[]): string | null {
+  // Return the first match prioritizing brands that start at the beginning
+  return matches.sort((a, b) => a.startsWith(b) ? -1 : 1)[0] || null;
+}
+
+
+
 export {
   stringOrNullForDb,
   arrayToCSV,
@@ -741,4 +762,7 @@ export {
   decodeHtml,
   createCustomError,
   stringToHash,
+  normalizeString, 
+  prioritizeKeywords, 
+  resolveBrandConflict
 };

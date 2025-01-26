@@ -4,8 +4,11 @@ import { ContextType } from "../libs/logger"
 import { jsonOrStringForDb, jsonOrStringToJson, stringOrNullForDb, stringToHash } from "../utils"
 import _ from "lodash"
 import { sources } from "../sites/sources"
-import items from "./../../pharmacyItems.json"
-import connections from "./../../brandConnections.json"
+import items from "./../data/pharmacyItems.json"
+import connections from "./../data/brandConnections.json"
+
+import { normalizeString, prioritizeKeywords, resolveBrandConflict } from '../utils';
+import { brandsMapping }  from '../dataLoader';
 
 type BrandsMapping = {
     [key: string]: string[]
@@ -145,43 +148,69 @@ export function checkBrandIsSeparateTerm(input: string, brand: string): boolean 
     return atBeginningOrEnd || separateTerm
 }
 
-export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
-    const context = { scope: "assignBrandIfKnown" } as ContextType
+// export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
+//     const context = { scope: "assignBrandIfKnown" } as ContextType
 
-    const brandsMapping = await getBrandsMapping()
+//     const brandsMapping = await getBrandsMapping()
 
-    const versionKey = "assignBrandIfKnown"
-    let products = await getPharmacyItems(countryCode, source, versionKey, false)
-    let counter = 0
-    for (let product of products) {
-        counter++
+//     const versionKey = "assignBrandIfKnown"
+//     let products = await getPharmacyItems(countryCode, source, versionKey, false)
+//     let counter = 0
+//     for (let product of products) {
+//         counter++
 
-        if (product.m_id) {
-            // Already exists in the mapping table, probably no need to update
-            continue
-        }
+//         if (product.m_id) {
+//             // Already exists in the mapping table, probably no need to update
+//             continue
+//         }
 
-        let matchedBrands = []
-        for (const brandKey in brandsMapping) {
-            const relatedBrands = brandsMapping[brandKey]
-            for (const brand of relatedBrands) {
-                if (matchedBrands.includes(brand)) {
-                    continue
-                }
-                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
-                if (isBrandMatch) {
-                    matchedBrands.push(brand)
-                }
-            }
-        }
-        console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
-        const sourceId = product.source_id
-        const meta = { matchedBrands }
-        const brand = matchedBrands.length ? matchedBrands[0] : null
+//         let matchedBrands = []
+//         for (const brandKey in brandsMapping) {
+//             const relatedBrands = brandsMapping[brandKey]
+//             for (const brand of relatedBrands) {
+//                 if (matchedBrands.includes(brand)) {
+//                     continue
+//                 }
+//                 const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
+//                 if (isBrandMatch) {
+//                     matchedBrands.push(brand)
+//                 }
+//             }
+//         }
+//         console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
+//         const sourceId = product.source_id
+//         const meta = { matchedBrands }
+//         const brand = matchedBrands.length ? matchedBrands[0] : null
 
-        const key = `${source}_${countryCode}_${sourceId}`
-        const uuid = stringToHash(key)
+//         const key = `${source}_${countryCode}_${sourceId}`
+//         const uuid = stringToHash(key)
 
-        // Then brand is inserted into product mapping table
-    }
+//         // Then brand is inserted into product mapping table
+//     }
+// }
+
+
+export function assignBrandIfKnown(brand) {
+    const ignoredWords = ['BIO', 'NEB'];
+    const priorityWords = ['RICH', 'flex', 'gum', 'HAPPY'];
+
+    // Normalize brand name
+    let normalizedBrand = normalizeString(brand);
+
+    // Ignore brands with specific words
+    if (ignoredWords.some((word) => normalizedBrand.includes(word.toLowerCase()))) return null;
+
+    // Prioritize specific keywords
+    normalizedBrand = prioritizeKeywords(normalizedBrand, priorityWords);
+
+    // Check against mapping
+    const matchedBrands = brandsMapping[normalizedBrand] || [];
+    const resolvedBrand = resolveBrandConflict(matchedBrands) || normalizedBrand;
+
+    // Ensure group consistency
+    return ensureGroupConsistency(resolvedBrand);
+};
+
+export function ensureGroupConsistency(brand: string): string {
+    return brandsMapping[brand] || brand;
 }
