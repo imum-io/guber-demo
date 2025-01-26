@@ -11,6 +11,8 @@ type BrandsMapping = {
     [key: string]: string[]
 }
 
+
+
 export async function getBrandsMapping(): Promise<BrandsMapping> {
 //     type of connection is -> { manufacturer_p1: string, manufacturers_p2: string}[]
     const brandConnections = connections
@@ -74,6 +76,7 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
     })
 
 
+    //if b1 is related to b2 and b2 is related to b3 then b1 is related to b3
     // so. it will return a map of brands with all connected ones.
     return flatMapObject
 }
