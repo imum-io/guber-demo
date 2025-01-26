@@ -42,6 +42,7 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
     // Build the final flat map
     const flatMap = new Map<string, Set<string>>()
 
+    // this function do node search(DFS with for loop as pop is used) and get all the connected brands
     const getRelatedBrands = (map: Map<string, Set<string>>, brand: string): Set<string> => {
         const relatedBrands = new Set<string>()
         const queue = [brand]
@@ -72,6 +73,8 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
         flatMapObject[brand] = Array.from(relatedBrands)
     })
 
+
+    // so. it will return a map of brands with all connected ones.
     return flatMapObject
 }
 
