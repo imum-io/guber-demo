@@ -182,6 +182,11 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         const key = `${source}_${countryCode}_${sourceId}`
         const uuid = stringToHash(key)
 
+        // for now lets make sense the data structure first
+        if(counter > 20) {
+            break
+        }
+
         // Then brand is inserted into product mapping table
     }
 }
