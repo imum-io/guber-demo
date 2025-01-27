@@ -5,21 +5,30 @@ function escapeRegExp(input: string): string {
 
 
 // If any special case failed then validate with this function
-function checkBrandIsSeparateTerm(input: string, brand: string): boolean {
+// has to return the index of the brand in the product title or -1 if not found
+function checkBrandIsSeparateTerm(input: string, brand: string): number {
   // Escape any special characters in the brand name for use in a regular expression
   const escapedBrand = escapeRegExp(brand);
 
   // Check if the brand is at the beginning or end of the string
-  const atBeginningOrEnd = new RegExp(
+  const atBeginningOrEndMatch = new RegExp(
     `^(?:${escapedBrand}\\s|.*\\s${escapedBrand}\\s.*|.*\\s${escapedBrand})$`,
     "i"
-  ).test(input);
+  ).exec(input);
+
+  if(atBeginningOrEndMatch) {
+    return atBeginningOrEndMatch.index
+  }
+
 
   // Check if the brand is a separate term in the string
-  const separateTerm = new RegExp(`\\b${escapedBrand}\\b`, "i").test(input);
+  const separateTermMatch = new RegExp(`\\b${escapedBrand}\\b`, "i").exec(input);
 
-  // The brand should be at the beginning, end, or a separate term
-  return atBeginningOrEnd || separateTerm;
+  if(separateTermMatch) {
+    return separateTermMatch.index
+  };
+
+  return -1;
 }
 
 
@@ -36,7 +45,7 @@ abstract class BrandValidator {
     return this.listedBrands.includes(brand.toLowerCase());
   }
 
-  abstract validate(productTitle: string, brand: string): boolean;
+  abstract validate(productTitle: string, brand: string): number;
 }
 
 
@@ -48,8 +57,8 @@ class IgnoreValidator extends BrandValidator {
 
   // Ignore the brand
   // so if the brand is matched in the product title, it will be ignored
-  validate(_productTitle: string, _brand: string): boolean {
-    return false;
+  validate(_productTitle: string, _brand: string) {
+    return -1;
   }
 }
 
@@ -61,15 +70,15 @@ class CapitalizedValidator extends BrandValidator {
     super(capitalizedList);
   }
 
-  validate(productTitle: string, brand: string): boolean {
+  validate(productTitle: string, brand: string) {
     // regex to check if the brand is capitalized in the product title
     const escapedBrand = escapeRegExp(brand);
     const capitalizedMatch = new RegExp(
       `(^|\\s)${escapedBrand.toUpperCase()}\\s`
-    ).test(productTitle);
+    ).exec(productTitle);
 
     // capitalizedMatch && console.log(capitalizedMatch);
-    return capitalizedMatch;
+    return capitalizedMatch ? capitalizedMatch.index : -1;
   }
 }
 
@@ -81,14 +90,14 @@ class FrontOnlyValidator extends BrandValidator {
     super(frontOnlyList);
   }
 
-  validate(productTitle: string, brand: string): boolean {
+  validate(productTitle: string, brand: string) {
     const escapedBrand = escapeRegExp(brand);
-    const frontMatch = new RegExp(`^${escapedBrand}\\s`, "i").test(
+    const frontMatch = new RegExp(`^${escapedBrand}\\s`, "i").exec(
       productTitle.trim()
     );
 
     // frontMatch && console.log(frontMatch);
-    return frontMatch;
+    return frontMatch ? frontMatch.index : -1;
   }
 }
 
@@ -100,15 +109,15 @@ class FrontOrSecondValidator extends BrandValidator {
     super(frontOrSecondList);
   }
 
-  validate(productTitle: string, brand: string): boolean {
+  validate(productTitle: string, brand: string) {
     const escapedBrand = escapeRegExp(brand);
     const frontOrSecondMatch = new RegExp(
       `(^(${escapedBrand}\\s))|(^\\S+\\s+(${escapedBrand})(?:\\s|$))`,
       "i"
-    ).test(productTitle);
+    ).exec(productTitle);
 
     // frontOrSecondMatch && console.log(frontOrSecondMatch);
-    return frontOrSecondMatch;
+    return frontOrSecondMatch? frontOrSecondMatch.index : -1;
   }
 }
 
@@ -123,15 +132,25 @@ class NormalizedBrandValidator extends BrandValidator {
     this.normalizedBrandMap = normalizedMap;
   }
 
-  validate(productTitle: string, brand: string): boolean {
+  validate(productTitle: string, brand: string) {
     const normalizedBrand = this.normalizedBrandMap.get(brand);
 
     if (normalizedBrand) {
-      return (
-        checkBrandIsSeparateTerm(productTitle, normalizedBrand) ||
-        checkBrandIsSeparateTerm(productTitle, brand)
-      );
+      // return (
+      //   checkBrandIsSeparateTerm(productTitle, normalizedBrand) ||
+      //   checkBrandIsSeparateTerm(productTitle, brand)
+      // );
+      const normalizedIndex = checkBrandIsSeparateTerm(productTitle, normalizedBrand);
+      if(normalizedIndex !== -1) {
+        return normalizedIndex;
+      }
+
+      const brandIndex = checkBrandIsSeparateTerm(productTitle, brand);
+      if(brandIndex !== -1) {
+        return brandIndex;
+      }
     }
+    return -1;
   }
 }
 
@@ -148,7 +167,7 @@ class BrandValidatorFactory {
     this.validators.push(validator);
   }
 
-  validate(productTitle: string, brand: string): boolean {
+  validate(productTitle: string, brand: string) {
     for (const validator of this.validators) {
       if (validator.hasBrand(brand)) {
         return validator.validate(productTitle, brand);
