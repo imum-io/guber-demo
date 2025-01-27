@@ -6,6 +6,7 @@ import _ from "lodash"
 import { sources } from "../sites/sources"
 import items from "./../../pharmacyItems.json"
 import connections from "./../../brandConnections.json"
+import brandValidator from "./validator"
 
 type BrandsMapping = {
     [key: string]: string[]
@@ -82,56 +83,14 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
 }
 
 async function getPharmacyItems(countryCode: countryCodes, source: sources, versionKey: string, mustExist = true) {
-    //     let query = `
-    //     SELECT
-    //     p.url, p.removed_timestamp, p.title, p.source_id
-    //     , p.manufacturer
-    //     , map.source_id m_id
-    //     , map.source
-    //     , map.country_code
-    //     , map.meta
-    // FROM
-    //     property_pharmacy p
-    // left join pharmacy_mapping map on p.source_id = map.source_id and p.source = map.source and p.country_code = map.country_code
-    // WHERE
-    //     p.newest = TRUE
-    //     and p.country_code = '${countryCode}'
-    //     and p.source = '${source}'
-    //     and p.removed_timestamp is null
-    //     and (p.manufacturer is null or p.manufacturer in ('nera', 'kita', 'cits'))
-    //     ORDER BY p.removed_timestamp IS NULL DESC, p.removed_timestamp DESC
-    //     `
-    //     let products = await executeQueryAndGetResponse(dbServers.pharmacy, query)
-    //     for (let product of products) {
-    //         product.meta = jsonOrStringToJson(product.meta)
-    //     }
-
-    //     let finalProducts = products.filter((product) => (!mustExist || product.m_id) && !product.meta[versionKey])
-    const finalProducts = items
-
+   const finalProducts = items
     return finalProducts
-}
-
-export function checkBrandIsSeparateTerm(input: string, brand: string): boolean {
-    // Escape any special characters in the brand name for use in a regular expression
-    const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-
-    // Check if the brand is at the beginning or end of the string
-    const atBeginningOrEnd = new RegExp(
-        `^(?:${escapedBrand}\\s|.*\\s${escapedBrand}\\s.*|.*\\s${escapedBrand})$`,
-        "i"
-    ).test(input)
-
-    // Check if the brand is a separate term in the string
-    const separateTerm = new RegExp(`\\b${escapedBrand}\\b`, "i").test(input)
-
-    // The brand should be at the beginning, end, or a separate term
-    return atBeginningOrEnd || separateTerm
 }
 
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
     const context = { scope: "assignBrandIfKnown" } as ContextType
 
+    // Map<Brand, Set<All Connected Brands>>
     const brandsMapping = await getBrandsMapping()
 
     const versionKey = "assignBrandIfKnown"
@@ -145,20 +104,25 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
             continue
         }
 
+
         let matchedBrands = []
+        // iterate over all the brands and check if the brand is in the product title
+        // Q1: why did we do all the mapping thing if we are not using it?
+        //
         for (const brandKey in brandsMapping) {
             const relatedBrands = brandsMapping[brandKey]
             for (const brand of relatedBrands) {
                 if (matchedBrands.includes(brand)) {
                     continue
                 }
-                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
+                const isBrandMatch = brandValidator.validate(product.title, brand)
                 if (isBrandMatch) {
+                    // console.log(`Matched: ${brand} in ${product.title}`)
                     matchedBrands.push(brand)
                 }
             }
         }
-        console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
+        // console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
         const sourceId = product.source_id
         const meta = { matchedBrands }
         const brand = matchedBrands.length ? matchedBrands[0] : null
@@ -167,7 +131,7 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         const uuid = stringToHash(key)
 
         // for now lets make sense the data structure first
-        if(counter > 3960) {
+        if(counter > 4000) {
             break
         }
 
