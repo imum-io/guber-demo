@@ -158,11 +158,20 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
     const context = { scope: "assignBrandIfKnown" } as ContextType
 
     // Map<Brand, Set<All Connected Brands>>
-    const brandsMapping = await getBrandsMapping()
+    // const brandsMapping = await getBrandsMapping()
+
+    // Map<Brand, Brand Representing the Group>
+    const brandsMapping = getBrandsGroupMap()
 
     const versionKey = "assignBrandIfKnown"
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
     let counter = 0
+
+
+    // map all the unique brands so that we can iterate over them
+    // so that don't need to run this for every product
+    const brands = Array.from(brandsMapping.keys())
+
     for (let product of products) {
         counter++
 
@@ -171,36 +180,73 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
             continue
         }
 
+        // tracks the best match
+        let matchBrand = null
+        // tracks the index of the best match
+        let matchedIndex = -1
 
-        let matchedBrands = []
-        // iterate over all the brands and check if the brand is in the product title 
-        //
-        for (const brandKey in brandsMapping) {
-            const relatedBrands = brandsMapping[brandKey]
-            for (const brand of relatedBrands) {
-                if (matchedBrands.includes(brand)) {
-                    continue
-                }
-                const isBrandMatch = brandValidator.validate(product.title, brand)
-                if (isBrandMatch) {
-                    // console.log(`Matched: ${brand} in ${product.title}`)
-                    matchedBrands.push(brand)
-                }
+        for (const brand of brands) {
+            const curMatch = brandValidator.validate(product.title, brand)
+
+            if(curMatch == -1) {
+                continue
+            }
+
+            //if matchedIndex is -1 then it means it's the first match
+            if(matchedIndex == -1) {
+                matchedIndex = curMatch
+                matchBrand = brand
+            }
+
+
+            // if current match is less than the previous match then update the match
+            if (curMatch < matchedIndex) {
+                matchedIndex = curMatch
+                matchBrand = brand
+            }
+
+            // if the current match is 0 then it's the best match
+            // as it is from the begining of the string
+            if(matchedIndex == 0) {
+                break
             }
         }
+
+        
+
+
+        // iterate over all the brands and check if the brand is in the product title 
+        //
+        // let matchedBrands = []
+        // for (const brandKey in brandsMapping) {
+        //     const relatedBrands = brandsMapping[brandKey]
+        //     for (const brand of relatedBrands) {
+        //         if (matchedBrands.includes(brand)) {
+        //             continue
+        //         }
+        //         const isBrandMatch = brandValidator.validate(product.title, brand)
+        //         if (isBrandMatch) {
+        //             // console.log(`Matched: ${brand} in ${product.title}`)
+        //             matchedBrands.push(brand)
+        //         }
+        //     }
+        // }
         // console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
+
         const sourceId = product.source_id
-        const meta = { matchedBrands }
-        const brand = matchedBrands.length ? matchedBrands[0] : null
+
+        if(!matchBrand) {
+            console.log("No Brand Matched", product.title)
+            continue
+        }
+
+        const brandRepresenter = brandsMapping.get(matchBrand)
 
         const key = `${source}_${countryCode}_${sourceId}`
         const uuid = stringToHash(key)
 
-        // for now lets make sense the data structure first
-        if(counter > 4000) {
-            break
-        }
+        product.m_id = brandRepresenter // brand
 
-        // Then brand is inserted into product mapping table
+        console.log(matchBrand, brandRepresenter, product.title)
     }
 }
