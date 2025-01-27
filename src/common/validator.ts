@@ -1,9 +1,13 @@
 
+function escapeRegExp(input: string): string {
+  return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 
 // If any special case failed then validate with this function
 function checkBrandIsSeparateTerm(input: string, brand: string): boolean {
   // Escape any special characters in the brand name for use in a regular expression
-  const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const escapedBrand = escapeRegExp(brand);
 
   // Check if the brand is at the beginning or end of the string
   const atBeginningOrEnd = new RegExp(
@@ -59,7 +63,7 @@ class CapitalizedValidator extends BrandValidator {
 
   validate(productTitle: string, brand: string): boolean {
     // regex to check if the brand is capitalized in the product title
-    const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const escapedBrand = escapeRegExp(brand);
     const capitalizedMatch = new RegExp(
       `(^|\\s)${escapedBrand.toUpperCase()}\\s`
     ).test(productTitle);
@@ -78,7 +82,7 @@ class FrontOnlyValidator extends BrandValidator {
   }
 
   validate(productTitle: string, brand: string): boolean {
-    const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const escapedBrand = escapeRegExp(brand);
     const frontMatch = new RegExp(`^${escapedBrand}\\s`, "i").test(
       productTitle.trim()
     );
@@ -97,7 +101,7 @@ class FrontOrSecondValidator extends BrandValidator {
   }
 
   validate(productTitle: string, brand: string): boolean {
-    const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const escapedBrand = escapeRegExp(brand);
     const frontOrSecondMatch = new RegExp(
       `(^(${escapedBrand}\\s))|(^\\S+\\s+(${escapedBrand})(?:\\s|$))`,
       "i"
