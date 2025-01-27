@@ -251,4 +251,5 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
 
         console.log(matchBrand, brandRepresenter, product.title)
     }
+    console.log("completed!!!!!")
 }
