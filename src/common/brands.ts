@@ -186,24 +186,26 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         let matchedIndex = -1
 
         for (const brand of brands) {
-            const curMatch = brandValidator.validate(product.title, brand)
+            const curMatchIndex = brandValidator.validate(product.title, brand)
 
-            if(curMatch == -1) {
+            if(curMatchIndex == -1) {
                 continue
             }
 
             //if matchedIndex is -1 then it means it's the first match
             if(matchedIndex == -1) {
-                matchedIndex = curMatch
+                matchedIndex = curMatchIndex
                 matchBrand = brand
             }
 
 
             // if current match is less than the previous match then update the match
-            if (curMatch < matchedIndex) {
-                matchedIndex = curMatch
+            if (curMatchIndex < matchedIndex) {
+                matchedIndex = curMatchIndex
                 matchBrand = brand
             }
+
+            // console.log(curMatchIndex, matchedIndex)
 
             // if the current match is 0 then it's the best match
             // as it is from the begining of the string
