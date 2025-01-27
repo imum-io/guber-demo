@@ -13,6 +13,73 @@ type BrandsMapping = {
 }
 
 
+// returns Map<brands, brand_unique or representer of that brand group>
+// simplify the map efficiently and remove duplicates and keep the group by a single brand as representer
+export function getBrandsGroupMap() {
+    const brandConnection: Map<string, Set<string>> = new Map();
+   
+    connections.forEach(({ manufacturer_p1, manufacturers_p2 }) => {
+      const brand1 = manufacturer_p1.toLowerCase();
+      const brands2 = manufacturers_p2.toLowerCase();
+      const brand2Array = brands2.split(";").map((b) => b.trim());
+      //   console.log(brand1, brand2Array);
+  
+      if (!brandConnection.has(brand1)) {
+        brandConnection.set(brand1, new Set());
+      }
+  
+      brand2Array.forEach((brand2) => {
+        if (!brandConnection.has(brand2)) {
+          brandConnection.set(brand2, new Set());
+        }
+        brandConnection.get(brand1)!.add(brand2);
+      });
+    });
+  
+  
+    /*
+      2nd task - to always assign the same brand for whole group. i.e. for 
+          "baff-bombz": ["zimpli kids", "baff-bombz"] 
+          "zimpli kids": ["baff-bombz", "zimpli kids"] 
+      in all possible cases we should assign only 1.
+      doesn't matter which one - it can always be zimpli kids or baff-bombz. 
+      but after assigning brands, we cannot have both values in our mapping table.
+  */
+  
+    //as all related brands will represent with a single brand
+    // lets map it to it's representer brand
+  
+    // Map<brands, brand_unique or representer of that brand group>
+    const brandGroupMap = new Map<string, string>();
+  
+    // recursively find all the members of the group and assign a single brand to all
+    function mapBrandGroup(brand: string, groupName?: string) {
+      if (brandGroupMap.has(brand)) {
+        return;
+      }
+  
+      // if groupName is not provided then assign the brand to itself
+      const group = groupName || brand;
+  
+      if (brandConnection.has(brand)) {
+        brandGroupMap.set(brand, group);
+  
+        for (const relatedBrand of brandConnection.get(brand)) {
+          mapBrandGroup(relatedBrand, group);
+        }
+        brandConnection.delete(brand);
+      }
+    }
+  
+    while (brandConnection.size > 0) {
+      //just get the first brand from the map
+      const brand = brandConnection.keys().next().value; // just got the first value of the iterator
+      mapBrandGroup(brand);
+    }
+  
+    return brandGroupMap;
+  }
+  
 
 export async function getBrandsMapping(): Promise<BrandsMapping> {
 //     type of connection is -> { manufacturer_p1: string, manufacturers_p2: string}[]
