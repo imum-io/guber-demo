@@ -102,7 +102,7 @@ class FrontOrSecondValidator extends BrandValidator {
       `(^(${escapedBrand}\\s))|(^\\S+\\s+(${escapedBrand})(?:\\s|$))`,
       "i"
     ).test(productTitle);
-    
+
     // frontOrSecondMatch && console.log(frontOrSecondMatch);
     return frontOrSecondMatch;
   }

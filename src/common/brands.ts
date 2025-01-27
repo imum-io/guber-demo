@@ -106,8 +106,7 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
 
 
         let matchedBrands = []
-        // iterate over all the brands and check if the brand is in the product title
-        // Q1: why did we do all the mapping thing if we are not using it?
+        // iterate over all the brands and check if the brand is in the product title 
         //
         for (const brandKey in brandsMapping) {
             const relatedBrands = brandsMapping[brandKey]
