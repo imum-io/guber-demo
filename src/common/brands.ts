@@ -145,6 +145,15 @@ export function checkBrandIsSeparateTerm(input: string, brand: string): boolean 
     return atBeginningOrEnd || separateTerm
 }
 
+function findRepresentativeBrand(brand: string, brandsMapping: BrandsMapping): string {
+    for (const group in brandsMapping) {
+        if (brandsMapping[group].includes(brand)) {
+            return group
+        }
+    }
+    return brand
+}
+
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
     const context = { scope: "assignBrandIfKnown" } as ContextType
 
@@ -161,19 +170,66 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
             continue
         }
 
+        // 1. Babē = Babe
+        // P.S. The requirement is to change Babē and/or BABĒ to Babe or BABE. Not BABÉ. So leaving it as is.
+        product.title = product.title.replace(/Babē/g, "Babe").replace(/BABĒ/g, "BABE")
+
+        // 2. ignore BIO, NEB
+        if (/BIO|NEB/i.test(product.title)) {
+            continue
+        }
+
         let matchedBrands = []
+        const frontBrands = ["RICH", "RFF", "flex", "ultra", "gum", "beauty", "orto", "free", "112", "kin", "happy"]
+        const frontOrSecondBrands = ["heel", "contour", "nero", "rsv"]
+
         for (const brandKey in brandsMapping) {
             const relatedBrands = brandsMapping[brandKey]
             for (const brand of relatedBrands) {
                 if (matchedBrands.includes(brand)) {
                     continue
                 }
-                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
-                if (isBrandMatch) {
+                // 4. heel, contour, nero, rsv in front or 2nd word
+                if (frontOrSecondBrands.includes(brand.toLowerCase())) {
+                    const regex = new RegExp(`^(\\b${brand}\\b|\\b\\w+\\b\\s+\\b${brand}\\b)`, "i")
+                    if (regex.test(product.title)) {
+                        matchedBrands.push(brand)
+                    }
+                }
+                // 6. HAPPY needs to be matched capitalized 
+                else if (/HAPPY/.test(product.title)) {
                     matchedBrands.push(brand)
+                } else {
+                    const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
+                    if (isBrandMatch) {
+                        matchedBrands.push(brand)
+                    }
                 }
             }
         }
+
+        // 3. RICH, RFF, flex, ultra, gum, beauty, orto, free, 112, kin, happy has to be in the front
+        // Made it so that the brands that are in the frontBrands array are at the first places in the matchedBrands array
+        matchedBrands.sort((a, b) => {
+            const aIsFrontBrand = frontBrands.includes(a.toLowerCase())
+            const bIsFrontBrand = frontBrands.includes(b.toLowerCase())
+            if (aIsFrontBrand && !bIsFrontBrand) return -1
+            if (!aIsFrontBrand && bIsFrontBrand) return 1
+            return 0
+        })
+
+        // 5. if >1 brands matched, prioritize matching beginning
+        if (matchedBrands.length > 1) {
+            matchedBrands.sort((a, b) => {
+                const aIndex = product.title.indexOf(a)
+                const bIndex = product.title.indexOf(b)
+                return aIndex - bIndex
+            })
+        }
+
+        // 2nd task - to always assign the same brand for whole group.
+        matchedBrands = matchedBrands.map(brand => findRepresentativeBrand(brand, brandsMapping))
+
         console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
         const sourceId = product.source_id
         const meta = { matchedBrands }
