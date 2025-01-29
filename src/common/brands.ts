@@ -4,8 +4,10 @@ import { ContextType } from "../libs/logger"
 import { jsonOrStringForDb, jsonOrStringToJson, stringOrNullForDb, stringToHash } from "../utils"
 import _ from "lodash"
 import { sources } from "../sites/sources"
-import items from "./../../pharmacyItems.json"
-import connections from "./../../brandConnections.json"
+import items from "./../data/pharmacyItems.json"
+import connections from "./../data/brandConnections.json"
+import fs from "fs";
+import path from "path";
 
 type BrandsMapping = {
     [key: string]: string[]
@@ -146,42 +148,84 @@ export function checkBrandIsSeparateTerm(input: string, brand: string): boolean 
 }
 
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
-    const context = { scope: "assignBrandIfKnown" } as ContextType
+    const context = { scope: "assignBrandIfKnown" } as ContextType;
 
-    const brandsMapping = await getBrandsMapping()
+    const brandsMapping = await getBrandsMapping();
+    const versionKey = "assignBrandIfKnown";
+    let products = await getPharmacyItems(countryCode, source, versionKey, false);
+    
+    // Map to ensure consistent brand assignment
+    let brandGroupMap = new Map<string, string>(); 
+    
+    for (const brand in brandsMapping) {
+        const group = brandsMapping[brand].concat(brand);
+        // Pick a consistent brand (alphabetically first)
+        const chosenBrand = group.sort()[0]; 
+        group.forEach(b => brandGroupMap.set(b, chosenBrand));
+    }
 
-    const versionKey = "assignBrandIfKnown"
-    let products = await getPharmacyItems(countryCode, source, versionKey, false)
-    let counter = 0
+    const normalizeBrand = (brand: string) => {
+        if (brand.toLowerCase() === "babē") return "babe";
+        return brand;
+    };
+
+    const ignoredBrands = new Set(["bio", "neb"]);
+    const mustBeInFront = new Set(["rich", "rff", "flex", "ultra", "gum", "beauty", "orto", "free", "112", "kin", "happy"]);
+    const mustBeInFrontOrSecond = new Set(["heel", "contour", "nero", "rsv"]);
+
+    let outputData: Record<string, { title: string; assignedBrand: string | null; matchedBrands: string[] }> = {};
+
     for (let product of products) {
-        counter++
+        // Skip if already in the mapping table
+        if (product.m_id) continue; 
 
-        if (product.m_id) {
-            // Already exists in the mapping table, probably no need to update
-            continue
-        }
+        let matchedBrands: string[] = [];
 
-        let matchedBrands = []
         for (const brandKey in brandsMapping) {
-            const relatedBrands = brandsMapping[brandKey]
+            const relatedBrands = brandsMapping[brandKey].map(normalizeBrand);
+
             for (const brand of relatedBrands) {
-                if (matchedBrands.includes(brand)) {
-                    continue
-                }
-                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
+                if (ignoredBrands.has(brand.toLowerCase())) continue;
+                if (matchedBrands.includes(brand)) continue;
+
+                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand);
+
                 if (isBrandMatch) {
-                    matchedBrands.push(brand)
+                    const words = product.title.split(/\s+/);
+                    const brandIndex = words.findIndex(w => w.toLowerCase() === brand.toLowerCase());
+
+                    if (mustBeInFront.has(brand.toLowerCase()) && brandIndex !== 0) continue;
+                    if (mustBeInFrontOrSecond.has(brand.toLowerCase()) && brandIndex > 1) continue;
+                    if (brand === "HAPPY" && product.title !== product.title.toUpperCase()) continue;
+
+                    matchedBrands.push(brand);
                 }
             }
         }
-        console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
-        const sourceId = product.source_id
-        const meta = { matchedBrands }
-        const brand = matchedBrands.length ? matchedBrands[0] : null
 
-        const key = `${source}_${countryCode}_${sourceId}`
-        const uuid = stringToHash(key)
+        if (matchedBrands.length > 1) {
+            // Prioritize beginning matches
+            matchedBrands.sort((a, b) => product.title.indexOf(a) - product.title.indexOf(b)); 
+        }
 
-        // Then brand is inserted into product mapping table
+        let assignedBrand = matchedBrands.length ? matchedBrands[0] : null;
+
+        if (assignedBrand && brandGroupMap.has(assignedBrand)) {
+            // Assign consistent brand from the group
+            assignedBrand = brandGroupMap.get(assignedBrand)!; 
+        }
+
+        const sourceId = product.source_id;
+        const key = `${source}_${countryCode}_${sourceId}`;
+
+        outputData[key] = {
+            title: product.title,
+            assignedBrand,
+            matchedBrands,
+        };
     }
+    const outputFilePath = path.join(__dirname, '..', '/data', "brand_mapping_result.json");
+    fs.writeFileSync(outputFilePath, JSON.stringify(outputData, null, 2));
+
+    console.log(`Output written to ${outputFilePath}`);
 }
