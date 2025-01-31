@@ -251,3 +251,9 @@ export const manualLinkIds = {
     SNK: "9392",
     PGU: "9393",
 }
+
+export const ingnoreRule = ['bio', 'neb']
+export const capitalizedRule = ['HAPPY']
+export const frontOnlyRule = ['RICH', 'RFF', 'flex', 'ultra', 'gum', 'beauty', 'orto', 'free', '112', 'kin', 'happy']
+export const frontOrSecondRule = ['heel', 'contour', 'nero', 'rsv']
+export const normalizeMap = new Map<string, string>([['babe', 'babē']])
