@@ -2,13 +2,20 @@ import { Job } from "bullmq"
 import { countryCodes, dbServers, EngineType } from "../config/enums"
 import { ContextType } from "../libs/logger"
 import { jsonOrStringForDb, jsonOrStringToJson, stringOrNullForDb, stringToHash } from "../utils"
-import _ from "lodash"
+import _, { deburr } from "lodash"
 import { sources } from "../sites/sources"
 import items from "./../../pharmacyItems.json"
 import connections from "./../../brandConnections.json"
+import { CAPITALIZED, FRONT_OR_SECOND_WORDS, FRONT_WORDS, WORDS_TO_IGNORE } from "./constants"
+import path from "path"
+import * as fs from 'fs'
 
 type BrandsMapping = {
     [key: string]: string[]
+}
+
+function getWordsArray(str: string) {
+    return str.split(" ") || []
 }
 
 function getUniqueRows(mapping: BrandsMapping): BrandsMapping {
@@ -114,10 +121,11 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
     const context = { scope: "assignBrandIfKnown" } as ContextType
 
     const brandsMapping = await getBrandsMapping()
-    console.log('unique brands', brandsMapping)
+
     const versionKey = "assignBrandIfKnown"
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
     let counter = 0
+    const resultData = []
     for (let product of products) {
         counter++
 
@@ -130,16 +138,36 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         for (const brandKey in brandsMapping) {
             const relatedBrands = brandsMapping[brandKey]
             for (const brand of relatedBrands) {
-                if (matchedBrands.includes(brand)) {
+                if (matchedBrands.includes(brand) || WORDS_TO_IGNORE.includes(brand.toUpperCase())) {
                     continue
                 }
                 const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
                 if (isBrandMatch) {
-                    matchedBrands.push(brand)
+                    if(brand === CAPITALIZED && product.title.toUpperCase().contains(CAPITALIZED) && !product.title.contains(CAPITALIZED)) {
+                        continue
+                    }
+                    if (
+                        ![...FRONT_WORDS, ...FRONT_OR_SECOND_WORDS].includes(brand) ||
+                        FRONT_WORDS.some((word) =>
+                          product.title?.toLowerCase().startsWith(word)
+                        ) ||
+                        FRONT_OR_SECOND_WORDS.some(
+                          (word) =>
+                            product.title?.toLowerCase().startsWith(word) ||
+                            getWordsArray(product.title)?.[1] === word
+                        )
+                      ) {
+                        // Removed accent from brand name
+                        matchedBrands.push(deburr(brand))
+                      }
                 }
             }
+            if (matchedBrands.length > 1) {
+                matchedBrands.sort(
+                (a, b) => product.title?.indexOf(a) - product.title?.indexOf(b))
+            }
         }
-        console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
+
         const sourceId = product.source_id
         const meta = { matchedBrands }
         const brand = matchedBrands.length ? matchedBrands[0] : null
@@ -148,5 +176,16 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         const uuid = stringToHash(key)
 
         // Then brand is inserted into product mapping table
+        resultData.push({
+            key,
+            brand,
+            data: `${product.title} -> ${_.uniq(matchedBrands)}`
+        })
     }
+    const outputDir = path.resolve(__dirname, '..', '..', 'output')
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir)
+    }
+    const outputFile = path.join(outputDir, `brand_mapping_${source}_${countryCode}.json`)
+    fs.writeFileSync(outputFile, JSON.stringify(resultData))
 }
