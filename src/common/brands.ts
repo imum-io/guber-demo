@@ -205,7 +205,9 @@ function prioritizeBrands(matchedBrands: string[], title: string): string[] {
   });
 }
 
-// Add this new function to normalize brand groups
+// we can memoize this function
+// const normalizeBrandGroupsMemo = _.memoize(normalizeBrandGroups);
+// this will improve performance for large datasets
 function normalizeBrandGroups(
   brandsMapping: BrandsMapping
 ): Map<string, string> {
