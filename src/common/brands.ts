@@ -205,35 +205,59 @@ function prioritizeBrands(matchedBrands: string[], title: string): string[] {
   });
 }
 
+// Add this new function to normalize brand groups
+function normalizeBrandGroups(
+  brandsMapping: BrandsMapping
+): Map<string, string> {
+  const normalizedGroups = new Map<string, string>();
+  const processedGroups = new Set<string>();
+
+  // Process each brand group
+  for (const [brand, relatedBrands] of Object.entries(brandsMapping)) {
+    if (processedGroups.has(brand.toLowerCase())) continue;
+
+    // Get all brands in this group
+    const groupBrands = new Set<string>();
+    const queue = [...relatedBrands];
+
+    while (queue.length > 0) {
+      const currentBrand = queue.pop()!;
+      if (groupBrands.has(currentBrand.toLowerCase())) continue;
+
+      groupBrands.add(currentBrand.toLowerCase());
+      processedGroups.add(currentBrand.toLowerCase());
+
+      // Add related brands to queue
+      const related = brandsMapping[currentBrand] || [];
+      queue.push(...related);
+    }
+
+    // Choose a representative brand for this group
+    // (using the first brand alphabetically for consistency)
+    const representativeBrand = Array.from(groupBrands).sort()[0];
+
+    // Map all brands in group to the representative brand
+    groupBrands.forEach((groupBrand) => {
+      normalizedGroups.set(groupBrand, representativeBrand);
+    });
+  }
+
+  return normalizedGroups;
+}
+
+// Update assignBrandIfKnown to use normalized groups
 export async function assignBrandIfKnown(
   countryCode: countryCodes,
   source: sources,
   job?: Job
 ) {
-  const context = { scope: "assignBrandIfKnown" } as ContextType;
   const brandsMapping = await getBrandsMapping();
+  const normalizedGroups = normalizeBrandGroups(brandsMapping);
   const versionKey = "assignBrandIfKnown";
   let products = await getPharmacyItems(countryCode, source, versionKey, false);
 
-  // Create a set of all known brands from brandsMapping
-  const knownBrands = new Set<string>();
-  Object.entries(brandsMapping).forEach(([brand, relatedBrands]) => {
-    knownBrands.add(brand.toLowerCase());
-    relatedBrands.forEach((b) => knownBrands.add(b.toLowerCase()));
-  });
-
   for (let product of products) {
     if (product.m_id) continue;
-
-    // Check if product is a generic product that shouldn't have a brand
-    if (
-      brandRules.genericProducts?.some((generic) =>
-        product.title.toLowerCase().startsWith(generic.toLowerCase())
-      )
-    ) {
-      console.log(`${product.title} -> [generic product]`);
-      continue;
-    }
 
     let matchedBrands = [];
 
@@ -259,8 +283,13 @@ export async function assignBrandIfKnown(
       });
     }
 
-    // Use the first matched brand (or null if none matched)
-    const brand = matchedBrands.length ? matchedBrands[0] : null;
+    // Get the matched brand
+    let brand = matchedBrands.length ? matchedBrands[0] : null;
+
+    // If we found a brand, normalize it to the group representative
+    if (brand) {
+      brand = normalizedGroups.get(brand.toLowerCase()) || brand;
+    }
 
     console.log(`${product.title} -> ${brand || undefined}`);
     const sourceId = product.source_id;
