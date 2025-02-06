@@ -1,11 +1,12 @@
 import { Job } from "bullmq"
-import { countryCodes, dbServers, EngineType } from "../config/enums"
+import { countryCodes } from "../config/enums"
 import { ContextType } from "../libs/logger"
-import { jsonOrStringForDb, jsonOrStringToJson, stringOrNullForDb, stringToHash } from "../utils"
+import { stringToHash } from "../utils"
 import _ from "lodash"
 import { sources } from "../sites/sources"
 import items from "./../../pharmacyItems.json"
 import connections from "./../../brandConnections.json"
+import { isValidBrandName, normalizeBrand } from "../utils/validate-brands"
 
 type BrandsMapping = {
     [key: string]: string[]
@@ -64,13 +65,22 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
     const brandMap = new Map<string, Set<string>>()
 
     brandConnections.forEach(({ manufacturer_p1, manufacturers_p2 }) => {
-        const brand1 = manufacturer_p1.toLowerCase()
+        let brand1 = manufacturer_p1.toLowerCase()
+         brand1 =  normalizeBrand(brand1)  /// we are cleaning the brand
+        const isValid  = isValidBrandName(brand1)  ///Here we are validating the brand
+        if(isValid === false)
+            return
+
         const brands2 = manufacturers_p2.toLowerCase()
         const brand2Array = brands2.split(";").map((b) => b.trim())
         if (!brandMap.has(brand1)) {
             brandMap.set(brand1, new Set())
         }
         brand2Array.forEach((brand2) => {
+            brand2 =  normalizeBrand(brand1) /// we are cleaning the brand
+            const isValid  = isValidBrandName(brand2) ///Here we are validating the brand
+            if(isValid === false)
+                return
             if (!brandMap.has(brand2)) {
                 brandMap.set(brand2, new Set())
             }
@@ -84,6 +94,7 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
 
     brandMap.forEach((_, brand) => {
         const relatedBrands = getRelatedBrands(brandMap, brand)
+       
         flatMap.set(brand, relatedBrands)
     })
 
