@@ -12,3 +12,8 @@ token.json
 !.env.example
 matching
 misc/
+.env
+.gitignore
+brandConnections.json
+brandsMapping.json
+pharmacyItems.json
