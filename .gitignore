@@ -12,3 +12,4 @@ token.json
 !.env.example
 matching
 misc/
+*.js

@@ -1,187 +1,245 @@
-import { Job } from "bullmq"
-import { countryCodes, dbServers, EngineType } from "../config/enums"
-import { ContextType } from "../libs/logger"
-import { jsonOrStringForDb, jsonOrStringToJson, stringOrNullForDb, stringToHash } from "../utils"
-import _ from "lodash"
-import { sources } from "../sites/sources"
-import items from "./../../pharmacyItems.json"
-import connections from "./../../brandConnections.json"
+import { Job } from "bullmq";
+import { countryCodes, dbServers, EngineType } from "../config/enums";
+import { ContextType } from "../libs/logger";
+import { replaceBabeWithTilde, stringToHash } from "../utils";
+import _ from "lodash";
+import { sources } from "../sites/sources";
+import items from "../../data/pharmacyItems.json";
+import connections from "../../data/brandConnections.json";
+import brands from "../../data/brandsMapping.json";
+import { promises as fs } from "fs";
+import path from "path";
 
 type BrandsMapping = {
-    [key: string]: string[]
+  [key: string]: string[];
+};
+
+// Loads brand mappings by creating and normalizing brand relationships
+async function loadBrandsMapping(): Promise<BrandsMapping> {
+  const brandMap = createBrandMapping(connections);
+  return normalizeBrandsMapping(brandMap);
 }
 
-export async function getBrandsMapping(): Promise<BrandsMapping> {
-    //     const query = `
-    //     SELECT
-    //     LOWER(p1.manufacturer) manufacturer_p1
-    //     , LOWER(GROUP_CONCAT(DISTINCT p2.manufacturer ORDER BY p2.manufacturer SEPARATOR ';')) AS manufacturers_p2
-    // FROM
-    //     property_matchingvalidation v
-    // INNER JOIN
-    //     property_pharmacy p1 ON v.m_source = p1.source
-    //     AND v.m_source_id = p1.source_id
-    //     AND v.m_country_code = p1.country_code
-    //     AND p1.newest = true
-    // INNER JOIN
-    //     property_pharmacy p2 ON v.c_source = p2.source
-    //     AND v.c_source_id = p2.source_id
-    //     AND v.c_country_code = p2.country_code
-    //     AND p2.newest = true
-    // WHERE
-    //     v.m_source = 'AZT'
-    //     AND v.engine_type = '${EngineType.Barcode}'
-    //     and p1.manufacturer is not null
-    //     and p2.manufacturer is not null
-    //     and p1.manufacturer not in ('kita', 'nera', 'cits')
-    //     and p2.manufacturer not in ('kita', 'nera', 'cits')
-    // GROUP BY
-    //     p1.manufacturer
-    //     `
-    //     const brandConnections = await executeQueryAndGetResponse(dbServers.pharmacy, query)
-    // For this test day purposes exported the necessary object
-    const brandConnections = connections
+/**
+ * Creates a map of brand relationships from raw connections data.
+ *
+ * @param {any} connections - The raw connections data containing manufacturer mappings
+ * @returns {Map<string, Set<string>>} - A map of brand names and their related brands
+ */
+function createBrandMapping(connections: any): Map<string, Set<string>> {
+  const brandMap = new Map<string, Set<string>>();
 
-    const getRelatedBrands = (map: Map<string, Set<string>>, brand: string): Set<string> => {
-        const relatedBrands = new Set<string>()
-        const queue = [brand]
-        while (queue.length > 0) {
-            const current = queue.pop()!
-            if (map.has(current)) {
-                const brands = map.get(current)!
-                for (const b of brands) {
-                    if (!relatedBrands.has(b)) {
-                        relatedBrands.add(b)
-                        queue.push(b)
-                    }
-                }
-            }
-        }
-        return relatedBrands
+  connections.forEach(({ manufacturer_p1, manufacturers_p2 }) => {
+    const brand1 = manufacturer_p1.toLowerCase();
+    const brand2Array = manufacturers_p2
+      .toLowerCase()
+      .split(";")
+      .map((b) => b.trim());
+
+    if (!brandMap.has(brand1)) {
+      brandMap.set(brand1, new Set());
     }
 
-    // Create a map to track brand relationships
-    const brandMap = new Map<string, Set<string>>()
+    brand2Array.forEach((brand2) => {
+      if (!brandMap.has(brand2)) {
+        brandMap.set(brand2, new Set());
+      }
+      brandMap.get(brand1)!.add(brand2);
+      brandMap.get(brand2)!.add(brand1);
+    });
+  });
 
-    brandConnections.forEach(({ manufacturer_p1, manufacturers_p2 }) => {
-        const brand1 = manufacturer_p1.toLowerCase()
-        const brands2 = manufacturers_p2.toLowerCase()
-        const brand2Array = brands2.split(";").map((b) => b.trim())
-        if (!brandMap.has(brand1)) {
-            brandMap.set(brand1, new Set())
-        }
-        brand2Array.forEach((brand2) => {
-            if (!brandMap.has(brand2)) {
-                brandMap.set(brand2, new Set())
-            }
-            brandMap.get(brand1)!.add(brand2)
-            brandMap.get(brand2)!.add(brand1)
-        })
-    })
-
-    // Build the final flat map
-    const flatMap = new Map<string, Set<string>>()
-
-    brandMap.forEach((_, brand) => {
-        const relatedBrands = getRelatedBrands(brandMap, brand)
-        flatMap.set(brand, relatedBrands)
-    })
-
-    // Convert the flat map to an object for easier usage
-    const flatMapObject: Record<string, string[]> = {}
-
-    flatMap.forEach((relatedBrands, brand) => {
-        flatMapObject[brand] = Array.from(relatedBrands)
-    })
-
-    return flatMapObject
+  return brandMap;
 }
 
-async function getPharmacyItems(countryCode: countryCodes, source: sources, versionKey: string, mustExist = true) {
-    //     let query = `
-    //     SELECT
-    //     p.url, p.removed_timestamp, p.title, p.source_id
-    //     , p.manufacturer
-    //     , map.source_id m_id
-    //     , map.source
-    //     , map.country_code
-    //     , map.meta
-    // FROM
-    //     property_pharmacy p
-    // left join pharmacy_mapping map on p.source_id = map.source_id and p.source = map.source and p.country_code = map.country_code
-    // WHERE
-    //     p.newest = TRUE
-    //     and p.country_code = '${countryCode}'
-    //     and p.source = '${source}'
-    //     and p.removed_timestamp is null
-    //     and (p.manufacturer is null or p.manufacturer in ('nera', 'kita', 'cits'))
-    //     ORDER BY p.removed_timestamp IS NULL DESC, p.removed_timestamp DESC
-    //     `
-    //     let products = await executeQueryAndGetResponse(dbServers.pharmacy, query)
-    //     for (let product of products) {
-    //         product.meta = jsonOrStringToJson(product.meta)
-    //     }
+// Task - 2
+/**
+ * Normalizes brand mapping and associates brand names to the canonical form.
+ * The canonical name is chosen as the shortest name among related brands.
+ *
+ * @param {Map<string, Set<string>>} brandMap - The raw brand mapping
+ * @returns {BrandsMapping} - A structured mapping of canonical brand names and their variations
+ */
+function normalizeBrandsMapping(
+  brandMap: Map<string, Set<string>>
+): BrandsMapping {
+  const normalizedBrands: BrandsMapping = {};
 
-    //     let finalProducts = products.filter((product) => (!mustExist || product.m_id) && !product.meta[versionKey])
-    const finalProducts = items
+  for (const [brand, relatedBrands] of brandMap.entries()) {
+    const canonicalName = [brand, ...Array.from(relatedBrands)].reduce(
+      (shortest, current) =>
+        current.length < shortest.length ? current : shortest,
+      brand
+    );
 
-    return finalProducts
-}
-
-export function checkBrandIsSeparateTerm(input: string, brand: string): boolean {
-    // Escape any special characters in the brand name for use in a regular expression
-    const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-
-    // Check if the brand is at the beginning or end of the string
-    const atBeginningOrEnd = new RegExp(
-        `^(?:${escapedBrand}\\s|.*\\s${escapedBrand}\\s.*|.*\\s${escapedBrand})$`,
-        "i"
-    ).test(input)
-
-    // Check if the brand is a separate term in the string
-    const separateTerm = new RegExp(`\\b${escapedBrand}\\b`, "i").test(input)
-
-    // The brand should be at the beginning, end, or a separate term
-    return atBeginningOrEnd || separateTerm
-}
-
-export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
-    const context = { scope: "assignBrandIfKnown" } as ContextType
-
-    const brandsMapping = await getBrandsMapping()
-
-    const versionKey = "assignBrandIfKnown"
-    let products = await getPharmacyItems(countryCode, source, versionKey, false)
-    let counter = 0
-    for (let product of products) {
-        counter++
-
-        if (product.m_id) {
-            // Already exists in the mapping table, probably no need to update
-            continue
-        }
-
-        let matchedBrands = []
-        for (const brandKey in brandsMapping) {
-            const relatedBrands = brandsMapping[brandKey]
-            for (const brand of relatedBrands) {
-                if (matchedBrands.includes(brand)) {
-                    continue
-                }
-                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
-                if (isBrandMatch) {
-                    matchedBrands.push(brand)
-                }
-            }
-        }
-        console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
-        const sourceId = product.source_id
-        const meta = { matchedBrands }
-        const brand = matchedBrands.length ? matchedBrands[0] : null
-
-        const key = `${source}_${countryCode}_${sourceId}`
-        const uuid = stringToHash(key)
-
-        // Then brand is inserted into product mapping table
+    if (!normalizedBrands[canonicalName]) {
+      normalizedBrands[canonicalName] = [];
     }
+
+    const uniqueBrands = new Set([
+      ...normalizedBrands[canonicalName],
+      brand,
+      ...Array.from(relatedBrands),
+    ]);
+    normalizedBrands[canonicalName] = Array.from(uniqueBrands);
+  }
+  return normalizedBrands;
+}
+
+// Fetch pharmacy items based on country and source
+async function fetchPharmacyItems(
+  countryCode: countryCodes,
+  source: sources,
+  versionKey: string,
+  mustExist = true
+) {
+  return items; // Returned directly as no transformation is applied
+}
+
+/**
+ * Checks whether a given brand is a separate term in the already-normalized input string.
+ *
+ * @param {string} normalizedInput - The normalized product title
+ * @param {string} brand - The brand name to check
+ * @returns {boolean} - True if the brand appears as a separate term, otherwise false
+ */
+function isBrandSeparateTerm(normalizedInput: string, brand: string): boolean {
+  const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  const atBeginningOrEnd = new RegExp(
+    `^(?:${escapedBrand}\\s|.*\\s${escapedBrand}\\s.*|.*\\s${escapedBrand})$`,
+    "i"
+  ).test(normalizedInput);
+  const separateTerm = new RegExp(`\\b${escapedBrand}\\b`, "i").test(
+    normalizedInput
+  );
+
+  return atBeginningOrEnd || separateTerm;
+}
+
+/**
+ * Assigns a brand to each product if it belongs to a known brand, then writes results to a file.
+ *
+ * @param {countryCodes} [countryCode] - Optional country code filter
+ * @param {sources} [source] - Optional source filter
+ * @param {Job} [job] - Optional BullMQ job reference
+ */
+export async function assignBrandIfKnown(
+  countryCode?: countryCodes,
+  source?: sources,
+  job?: Job
+) {
+  console.time("assignBrandIfKnown");
+
+  const brandsMapping = await loadBrandsMapping();
+  const versionKey = "assignBrandIfKnown";
+  const products = await fetchPharmacyItems(
+    countryCode,
+    source,
+    versionKey,
+    false
+  );
+
+  const outputFilePath = path.resolve(__dirname, "../../data/products.txt");
+
+  // Remove the file before populating it
+  try {
+    await fs.unlink(outputFilePath);
+  } catch (error) {
+    console.error("File not found! File will be created now.");
+  }
+
+  for (const product of products) {
+    if (product.m_id) continue;
+
+    const matchedBrands = findMatchingBrands(product.title, brandsMapping);
+
+    // Sort matched brands by their occurrence in the title
+    if (matchedBrands.length > 1) {
+      matchedBrands.sort(
+        (a, b) =>
+          product.title.toLowerCase().indexOf(a.toLowerCase()) -
+          product.title.toLowerCase().indexOf(b.toLowerCase())
+      );
+    }
+
+    // Write results to the file
+    await fs.appendFile(
+      outputFilePath,
+      `${product.title} -> ${
+        matchedBrands.length > 0 ? _.uniq(matchedBrands) : "No Brand"
+      }\n`,
+      "utf-8"
+    );
+
+    const sourceId = product.source_id;
+    const meta = { matchedBrands };
+    const brand = matchedBrands.length ? matchedBrands[0] : null;
+    const key = `${source}_${countryCode}_${sourceId}`;
+    const uuid = stringToHash(key);
+  }
+
+  console.timeEnd("assignBrandIfKnown");
+}
+
+// Task - 1
+/**
+ * Finds all matching brands for a given product title using the brands mapping.
+ *
+ * TODO: brands edge case logic that needs to be incorporated here:
+ * 1. Babē = Babe
+ * 2. Ignore BIO, NEB
+ * 3. RICH, RFF, flex, ultra, gum, beauty, orto, free, 112, kin, happy has to be in the front
+ * 4. heel, contour, nero, rsv in front or 2nd word
+ * 5. If >1 brands matched, prioritize matching beginning
+ * 6. HAPPY needs to be matched capitalized
+ */
+function findMatchingBrands(
+  title: string,
+  brandsMapping: BrandsMapping
+): string[] {
+  const matchedBrands: string[] = [];
+  const inputNormalized = replaceBabeWithTilde(title); // Normalize title here
+
+  for (const [canonicalBrand, relatedBrands] of Object.entries(brandsMapping)) {
+    for (const brand of relatedBrands) {
+      if (matchedBrands.includes(brand)) continue;
+
+      let isBrandMatch = isBrandSeparateTerm(inputNormalized, brand);
+
+      // Handle edge cases based on brand logic
+      if (["bio", "neb"].includes(brand.toLowerCase())) continue;
+      if (
+        [
+          "rich",
+          "rff",
+          "flex",
+          "ultra",
+          "gum",
+          "beauty",
+          "orto",
+          "free",
+          "112",
+          "kin",
+          "happy",
+        ].includes(brand.toLowerCase())
+      ) {
+        isBrandMatch &&= title.toLowerCase().startsWith(brand.toLowerCase());
+      }
+      if (["heel", "contour", "nero", "rsv"].includes(brand.toLowerCase())) {
+        const words = title.toLowerCase().split(" ");
+        isBrandMatch &&=
+          words[0] === brand.toLowerCase() || words[1] === brand.toLowerCase();
+      }
+      if (brand.toLowerCase() === "happy") {
+        isBrandMatch &&= title.includes("HAPPY");
+      }
+
+      if (isBrandMatch) {
+        matchedBrands.push(brand);
+      }
+    }
+  }
+
+  return matchedBrands;
 }
