@@ -11,6 +11,12 @@ type BrandsMapping = {
     [key: string]: string[]
 }
 
+// Validation rules
+const ignoreBrandRules = new Set<string>(["bio","neb"])
+const atTheFrontOrSecondRules = new Set<string>(["heel", " contour", " nero", " rsv"])
+const atTheFrontRules = new Set<string>(["rich", " rff", " flex", " ultra", " gum", " beauty", " orto", " free", " 112", " kin", "happy"])
+const caseSensitiveRules = new Set<string>(["HAPPY"])
+
 export async function getBrandsMapping(): Promise<BrandsMapping> {
     //     const query = `
     //     SELECT
@@ -42,11 +48,13 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
     // For this test day purposes exported the necessary object
     const brandConnections = connections
 
-    const getRelatedBrands = (map: Map<string, Set<string>>, brand: string): Set<string> => {
+    const getRelatedBrands = (map: Map<string, Set<string>>, brand: string, visitedBrand: Set<string>): Set<string> => {
         const relatedBrands = new Set<string>()
         const queue = [brand]
         while (queue.length > 0) {
             const current = queue.pop()!
+            if (visitedBrand.has(current)) continue
+            visitedBrand.add(current)
             if (map.has(current)) {
                 const brands = map.get(current)!
                 for (const b of brands) {
@@ -79,12 +87,16 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
         })
     })
 
-    // Build the final flat map
+    // Build the final flat map, merge all similar brands together.
     const flatMap = new Map<string, Set<string>>()
 
+    // Using set as it has a O(1) read
+    const visitedBrand = new Set<string>()
     brandMap.forEach((_, brand) => {
-        const relatedBrands = getRelatedBrands(brandMap, brand)
-        flatMap.set(brand, relatedBrands)
+        if (!visitedBrand.has(brand)) {
+            const relatedBrands = getRelatedBrands(brandMap, brand, visitedBrand)
+            flatMap.set(brand, relatedBrands)
+        }
     })
 
     // Convert the flat map to an object for easier usage
@@ -129,22 +141,25 @@ async function getPharmacyItems(countryCode: countryCodes, source: sources, vers
 }
 
 export function checkIfBrandMatched(input: string, brand: string): number {
-    let brandLowerCase = brand.toLowerCase()
+    const brandLowerCase = brand.toLowerCase()
+    const notMatched = -1;
 
-    let ignoreRules = new Set<string>(["bio","neb"])
-    if(ignoreRules.has(brandLowerCase)) return -1
-
-    //HAPPY should be matched Capitalized, and HAPPY should be first
-    if (brandLowerCase === "happy") {
-        let match = /HAPPY/.exec(input)
-        return match !== null ? match.index : -1
-    }
+    // Fastest fail rule
+    if(ignoreBrandRules.has(brandLowerCase)) return notMatched
 
     //Normalize input, Ref: https://stackoverflow.com/a/45053429
     let normalizedInput = _.deburr(input.normalize("NFKD"))
 
+    caseSensitiveRules.forEach((value) => {
+        {
+            if (value.toLowerCase() === brandLowerCase) {
+                let match = new RegExp(value).exec(normalizedInput)
+                return match ? match.index : notMatched
+            }
+        }
+    })
+
     // Check if the brand is in atTheFrontRules, then it must satisfy the rule
-    let atTheFrontRules = new Set<string>(["rich", " rff", " flex", " ultra", " gum", " beauty", " orto", " free", " 112", " kin", "happy"])
     if ( atTheFrontRules.has(brandLowerCase) ) {
         if (normalizedInput.toLowerCase().startsWith(brandLowerCase) ) return 0
     }
@@ -153,10 +168,9 @@ export function checkIfBrandMatched(input: string, brand: string): number {
     const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 
     // Check if the brand is in atTheFrontOrSecondRules, then it must satisfy the rule
-    let atTheFrontOrSecondRules = new Set<string>(["heel", " contour", " nero", " rsv"])
     if (atTheFrontOrSecondRules.has(brandLowerCase)) {
         let match = new RegExp(`^(?:${escapedBrand}\\b|\\w+\\s+${escapedBrand}\\b)`, 'i').exec(normalizedInput);
-        return match !== null ? match.index : -1
+        return match ? match.index : notMatched
     }
 
     // Check if the brand is at the beginning or end of the string
@@ -164,39 +178,32 @@ export function checkIfBrandMatched(input: string, brand: string): number {
         `^(?:${escapedBrand}\\s|.*\\s${escapedBrand}\\s.*|.*\\s${escapedBrand})$`,
         "i"
     ).exec(normalizedInput);
-    const atBeginningOrEnd = match !== null ? match.index : -1
+    const atBeginningOrEnd = match ? match.index : notMatched
 
     // Check if the brand is a separate term in the string
     match = new RegExp(`\\b${escapedBrand}\\b`, "i").exec(normalizedInput);
-    const separateTerm = match !== null ? match.index : -1
+    const separateTerm = match ? match.index : notMatched
 
     // The brand should be at the beginning, end, or a separate term
-    if (atBeginningOrEnd === -1 && separateTerm === -1) return -1;
-    if (atBeginningOrEnd === -1) return separateTerm;
-    if (separateTerm === -1) return atBeginningOrEnd;
+    if (atBeginningOrEnd === separateTerm) return atBeginningOrEnd;
+    if (atBeginningOrEnd === notMatched) return separateTerm;
+    if (separateTerm === notMatched) return atBeginningOrEnd;
     return Math.min(atBeginningOrEnd, separateTerm);
 }
 
-function matchBrandsByProduct(brandsMapping: BrandsMapping, product: any): string[] {
+function matchBrandsByProduct(brandsMapping: BrandsMapping, product: any, visitAllRelatedBrands: boolean): string[] {
     let matchedBrands = []
-    // to check already visited brands, using set as O(1) read
-    let visitedBrands = new Set<string>
-
     for (const brandKey in brandsMapping) {
         const relatedBrands = brandsMapping[brandKey]
         for (const brand of relatedBrands) {
-            // No need to revisit the same brand twice, this solves a huge performance issue in the original code
-            if (visitedBrands.has(brand)) {
-                continue
-            }
-            visitedBrands.add(brand)
             const matchedIndex = checkIfBrandMatched(product.title, brand)
             if (matchedIndex > -1) {
-                matchedBrands.push({brand,matchedIndex})
+                matchedBrands.push({brandKey,matchedIndex})
+                if(!visitAllRelatedBrands) break
             }
         }
     }
-    return matchedBrands.sort((a, b) => a.matchedIndex - b.matchedIndex).map(item => item.brand)
+    return matchedBrands.sort((a, b) => a.matchedIndex - b.matchedIndex).map(item => item.brandKey)
 }
 
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
@@ -207,6 +214,7 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
     const versionKey = "assignBrandIfKnown"
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
     let counter = 0
+    let visitAllRelatedBrands;
     for (let product of products) {
         counter++
 
@@ -215,11 +223,14 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
             continue
         }
 
-        let matchedBrands = matchBrandsByProduct(brandsMapping, product);
+        // Do we need to visit all related brands if already a match found?
+        // I had some confusion so lets make it a parameter, if we need just change visitAllRelatedBrands to true here.
+        let matchedBrands = matchBrandsByProduct(brandsMapping, product, visitAllRelatedBrands = false);
         // console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
+        // values will be unique by default now
         console.log(`${product.title} -> ${matchedBrands}`)
         const sourceId = product.source_id
-        const meta = { matchedBrands }
+        const meta = {matchedBrands}
         const brand = matchedBrands.length ? matchedBrands[0] : null
 
         const key = `${source}_${countryCode}_${sourceId}`
