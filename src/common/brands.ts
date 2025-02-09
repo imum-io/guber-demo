@@ -169,26 +169,20 @@ export function checkIfBrandMatched(input: string, brand: string): number {
 
     // Check if the brand is in atTheFrontOrSecondRules, then it must satisfy the rule
     if (atTheFrontOrSecondRules.has(brandLowerCase)) {
-        let match = new RegExp(`^(?:${escapedBrand}\\b|\\w+\\s+${escapedBrand}\\b)`, 'i').exec(normalizedInput);
-        return match ? match.index : notMatched
+        const regex = new RegExp(`^(?:${escapedBrand}\\b|(\\w+)\\s+${escapedBrand}\\b)`, 'i');
+        const match = regex.exec(normalizedInput);
+        if (match) {
+            // If the first group (preceding word) exists, adjust the index
+            return match[1]
+                ? match.index + match[1].length + 1 // +1 for the space after the word
+                : match.index; // Brand is at the start
+        }
+        return notMatched
     }
 
-    // Check if the brand is at the beginning or end of the string
-    let match = new RegExp(
-        `^(?:${escapedBrand}\\s|.*\\s${escapedBrand}\\s.*|.*\\s${escapedBrand})$`,
-        "i"
-    ).exec(normalizedInput);
-    const atBeginningOrEnd = match ? match.index : notMatched
-
-    // Check if the brand is a separate term in the string
-    match = new RegExp(`\\b${escapedBrand}\\b`, "i").exec(normalizedInput);
-    const separateTerm = match ? match.index : notMatched
-
-    // The brand should be at the beginning, end, or a separate term
-    if (atBeginningOrEnd === separateTerm) return atBeginningOrEnd;
-    if (atBeginningOrEnd === notMatched) return separateTerm;
-    if (separateTerm === notMatched) return atBeginningOrEnd;
-    return Math.min(atBeginningOrEnd, separateTerm);
+    // Check if the brand matches at any other place
+    let match = new RegExp(`\\b${escapedBrand}\\b`, "i").exec(normalizedInput);
+    return  match ? match.index : notMatched
 }
 
 function matchBrandsByProduct(brandsMapping: BrandsMapping, product: any, visitAllRelatedBrands: boolean): string[] {
@@ -203,7 +197,7 @@ function matchBrandsByProduct(brandsMapping: BrandsMapping, product: any, visitA
             }
         }
     }
-    return matchedBrands.sort((a, b) => a.matchedIndex - b.matchedIndex).map(item => item.brandKey)
+    return matchedBrands.sort((a, b) => a.matchedIndex - b.matchedIndex).map(brand => brand.brandKey)
 }
 
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
@@ -215,6 +209,7 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
     let counter = 0
     let visitAllRelatedBrands;
+
     for (let product of products) {
         counter++
 
@@ -230,7 +225,7 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         // values will be unique by default now
         console.log(`${product.title} -> ${matchedBrands}`)
         const sourceId = product.source_id
-        const meta = {matchedBrands}
+        const meta = { matchedBrands }
         const brand = matchedBrands.length ? matchedBrands[0] : null
 
         const key = `${source}_${countryCode}_${sourceId}`
