@@ -13,6 +13,7 @@ import axios, { AxiosResponse } from "axios";
 import { sources } from "./sites/sources";
 import momentTz from "moment-timezone";
 import { v5 as uuidv5 } from "uuid";
+import { contains } from "cheerio/lib/static";
 const he = require("he");
 let pathPrefix = "../data/";
 // TODO: remove unnecessary features
@@ -684,6 +685,16 @@ function createCustomError(errorObject) {
   return customError;
 }
 
+function removeDiacritics(str) {
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function replaceBabeWithTilde(str) {
+  if (str.includes("BABĒ") || str.includes("Babé") || str.includes("babē"))
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  else return str;
+}
+
 export {
   stringOrNullForDb,
   arrayToCSV,
@@ -741,4 +752,6 @@ export {
   decodeHtml,
   createCustomError,
   stringToHash,
+  removeDiacritics,
+  replaceBabeWithTilde,
 };

@@ -1,11 +1,9 @@
 // import { sources } from "src"
 
-import { assignBrandIfKnown } from "./common/brands"
-import { countryCodes } from "./config/enums"
-import { sources } from "./sites/sources"
+import { assignBrandIfKnown } from "./common/brands";
 
 export async function runTest() {
-    await assignBrandIfKnown(countryCodes.lt, sources.APO)
+  await assignBrandIfKnown();
 }
 
-runTest()
+runTest();
