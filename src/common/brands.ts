@@ -1,187 +1,156 @@
-import { Job } from "bullmq"
-import { countryCodes, dbServers, EngineType } from "../config/enums"
-import { ContextType } from "../libs/logger"
-import { jsonOrStringForDb, jsonOrStringToJson, stringOrNullForDb, stringToHash } from "../utils"
-import _ from "lodash"
-import { sources } from "../sites/sources"
-import items from "./../../pharmacyItems.json"
-import connections from "./../../brandConnections.json"
+import { Job } from "bullmq";
+import { countryCodes } from "../config/enums";
+import { ContextType } from "../libs/logger";
+import { jsonOrStringForDb, stringToHash } from "../utils";
+import _ from "lodash";
+import items from "../db/pharmacyItems.json";
+import connections from "../db/brandConnections.json";
+import { sources } from "../sites/sources";
+import {
+  findBrandInTitle,
+  normalizeBrand,
+  validateBrandPosition,
+} from "./brand-utils";
 
-type BrandsMapping = {
-    [key: string]: string[]
+type BrandsMapping = Record<string, string[]>;
+
+/**
+ * TrieNode class for Trie data structure.
+ */
+class TrieNode {
+  children: Record<string, TrieNode> = {};
+  isEndOfWord: boolean = false;
+  brand: string | null = null; // Store the complete brand string
 }
 
-export async function getBrandsMapping(): Promise<BrandsMapping> {
-    //     const query = `
-    //     SELECT
-    //     LOWER(p1.manufacturer) manufacturer_p1
-    //     , LOWER(GROUP_CONCAT(DISTINCT p2.manufacturer ORDER BY p2.manufacturer SEPARATOR ';')) AS manufacturers_p2
-    // FROM
-    //     property_matchingvalidation v
-    // INNER JOIN
-    //     property_pharmacy p1 ON v.m_source = p1.source
-    //     AND v.m_source_id = p1.source_id
-    //     AND v.m_country_code = p1.country_code
-    //     AND p1.newest = true
-    // INNER JOIN
-    //     property_pharmacy p2 ON v.c_source = p2.source
-    //     AND v.c_source_id = p2.source_id
-    //     AND v.c_country_code = p2.country_code
-    //     AND p2.newest = true
-    // WHERE
-    //     v.m_source = 'AZT'
-    //     AND v.engine_type = '${EngineType.Barcode}'
-    //     and p1.manufacturer is not null
-    //     and p2.manufacturer is not null
-    //     and p1.manufacturer not in ('kita', 'nera', 'cits')
-    //     and p2.manufacturer not in ('kita', 'nera', 'cits')
-    // GROUP BY
-    //     p1.manufacturer
-    //     `
-    //     const brandConnections = await executeQueryAndGetResponse(dbServers.pharmacy, query)
-    // For this test day purposes exported the necessary object
-    const brandConnections = connections
+/**
+ * Trie data structure for efficient brand matching.
+ */
+class Trie {
+  root: TrieNode = new TrieNode();
 
-    const getRelatedBrands = (map: Map<string, Set<string>>, brand: string): Set<string> => {
-        const relatedBrands = new Set<string>()
-        const queue = [brand]
-        while (queue.length > 0) {
-            const current = queue.pop()!
-            if (map.has(current)) {
-                const brands = map.get(current)!
-                for (const b of brands) {
-                    if (!relatedBrands.has(b)) {
-                        relatedBrands.add(b)
-                        queue.push(b)
-                    }
-                }
-            }
+  /**
+   * `insert` inserts a brand into the Trie.
+   * @param word The brand to insert.
+   */
+  insert(word: string) {
+    let node = this.root;
+    for (const char of word) {
+      if (!node.children[char]) {
+        node.children[char] = new TrieNode();
+      }
+      node = node.children[char];
+    }
+    node.isEndOfWord = true;
+    node.brand = word; // Store the complete word at the end node
+  }
+
+  /**
+   * `search` finds all brands that are prefixes of the input title.
+   * @param title The title to search for brands in.
+   * @returns An array of matching brands.
+   */
+  search(title: string): string[] {
+    const matches: string[] = [];
+    let node = this.root;
+    let currentWord = "";
+
+    for (const char of title) {
+      if (node.children[char]) {
+        currentWord += char;
+        node = node.children[char];
+        if (node.isEndOfWord && node.brand) {
+          matches.push(node.brand); // Retrieve the complete brand
         }
-        return relatedBrands
+      } else {
+        break;
+      }
+    }
+    return matches;
+  }
+}
+
+/**
+ * `createBrandGroups` creates a brand groups.
+ * @param connections The brand connections from JSON.
+ * @returns A map of canonical brands to lists of associated brands.
+ */
+function createBrandGroups(connections: any[]): BrandsMapping {
+  const brandMap = new Map<string, Set<string>>();
+
+  connections.forEach(({ manufacturer_p1, manufacturers_p2 }) => {
+    const brand1 = normalizeBrand(manufacturer_p1);
+    const brands2 = manufacturers_p2.split(";").map((b) => normalizeBrand(b));
+
+    if (!brandMap.has(brand1)) {
+      brandMap.set(brand1, new Set());
+    }
+    brands2.forEach((brand2) => {
+      if (!brandMap.has(brand2)) {
+        brandMap.set(brand2, new Set());
+      }
+      brandMap.get(brand1)!.add(brand2);
+      brandMap.get(brand2)!.add(brand1);
+    });
+  });
+
+  const brandGroups: Record<string, string[]> = {};
+  brandMap.forEach((relatedBrands, brand) => {
+    brandGroups[brand] = Array.from(relatedBrands);
+  });
+
+  return brandGroups;
+}
+
+/**
+ * `assignBrandIfKnown` uses brandGroups to assign canonical brands.
+ * @param countryCode The country code for the products being processed.
+ * @param source The source of the product data.
+ * @param job Optional job object for BullMQ integration.
+ */
+export async function assignBrandIfKnown(
+  countryCode: countryCodes,
+  source: sources,
+  job?: Job
+) {
+  const context: ContextType = { scope: "assignBrandIfKnown" } as ContextType;
+
+  try {
+    const brandGroups = createBrandGroups(connections);
+    const products = items.filter((item) => !item.m_id);
+
+    // Build the Trie
+    const trie = new Trie();
+    for (const brand in brandGroups) {
+      trie.insert(brand);
     }
 
-    // Create a map to track brand relationships
-    const brandMap = new Map<string, Set<string>>()
+    for (const product of products) {
+      const title = product.title.trim();
+      const normalizedTitle = normalizeBrand(title);
+      // Search the trie for brands matching the prefix of normalizedTitle
+      const matches = trie.search(normalizedTitle);
+      const validatedMatches = matches.filter((brand) =>
+        findBrandInTitle(title, brand)
+      );
 
-    brandConnections.forEach(({ manufacturer_p1, manufacturers_p2 }) => {
-        const brand1 = manufacturer_p1.toLowerCase()
-        const brands2 = manufacturers_p2.toLowerCase()
-        const brand2Array = brands2.split(";").map((b) => b.trim())
-        if (!brandMap.has(brand1)) {
-            brandMap.set(brand1, new Set())
-        }
-        brand2Array.forEach((brand2) => {
-            if (!brandMap.has(brand2)) {
-                brandMap.set(brand2, new Set())
-            }
-            brandMap.get(brand1)!.add(brand2)
-            brandMap.get(brand2)!.add(brand1)
-        })
-    })
+      // Apply priority rules
+      const sortedMatches = validatedMatches.sort((a, b) => {
+        const aPos = title.toLowerCase().indexOf(a.toLowerCase());
+        const bPos = title.toLowerCase().indexOf(b.toLowerCase());
+        return aPos - bPos; // Prioritize earlier matches
+      });
 
-    // Build the final flat map
-    const flatMap = new Map<string, Set<string>>()
+      if (sortedMatches.length > 0) {
+        const assignedBrand = sortedMatches[0];
+        console.log(`${title} -> ${assignedBrand}`);
 
-    brandMap.forEach((_, brand) => {
-        const relatedBrands = getRelatedBrands(brandMap, brand)
-        flatMap.set(brand, relatedBrands)
-    })
-
-    // Convert the flat map to an object for easier usage
-    const flatMapObject: Record<string, string[]> = {}
-
-    flatMap.forEach((relatedBrands, brand) => {
-        flatMapObject[brand] = Array.from(relatedBrands)
-    })
-
-    return flatMapObject
-}
-
-async function getPharmacyItems(countryCode: countryCodes, source: sources, versionKey: string, mustExist = true) {
-    //     let query = `
-    //     SELECT
-    //     p.url, p.removed_timestamp, p.title, p.source_id
-    //     , p.manufacturer
-    //     , map.source_id m_id
-    //     , map.source
-    //     , map.country_code
-    //     , map.meta
-    // FROM
-    //     property_pharmacy p
-    // left join pharmacy_mapping map on p.source_id = map.source_id and p.source = map.source and p.country_code = map.country_code
-    // WHERE
-    //     p.newest = TRUE
-    //     and p.country_code = '${countryCode}'
-    //     and p.source = '${source}'
-    //     and p.removed_timestamp is null
-    //     and (p.manufacturer is null or p.manufacturer in ('nera', 'kita', 'cits'))
-    //     ORDER BY p.removed_timestamp IS NULL DESC, p.removed_timestamp DESC
-    //     `
-    //     let products = await executeQueryAndGetResponse(dbServers.pharmacy, query)
-    //     for (let product of products) {
-    //         product.meta = jsonOrStringToJson(product.meta)
-    //     }
-
-    //     let finalProducts = products.filter((product) => (!mustExist || product.m_id) && !product.meta[versionKey])
-    const finalProducts = items
-
-    return finalProducts
-}
-
-export function checkBrandIsSeparateTerm(input: string, brand: string): boolean {
-    // Escape any special characters in the brand name for use in a regular expression
-    const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-
-    // Check if the brand is at the beginning or end of the string
-    const atBeginningOrEnd = new RegExp(
-        `^(?:${escapedBrand}\\s|.*\\s${escapedBrand}\\s.*|.*\\s${escapedBrand})$`,
-        "i"
-    ).test(input)
-
-    // Check if the brand is a separate term in the string
-    const separateTerm = new RegExp(`\\b${escapedBrand}\\b`, "i").test(input)
-
-    // The brand should be at the beginning, end, or a separate term
-    return atBeginningOrEnd || separateTerm
-}
-
-export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
-    const context = { scope: "assignBrandIfKnown" } as ContextType
-
-    const brandsMapping = await getBrandsMapping()
-
-    const versionKey = "assignBrandIfKnown"
-    let products = await getPharmacyItems(countryCode, source, versionKey, false)
-    let counter = 0
-    for (let product of products) {
-        counter++
-
-        if (product.m_id) {
-            // Already exists in the mapping table, probably no need to update
-            continue
-        }
-
-        let matchedBrands = []
-        for (const brandKey in brandsMapping) {
-            const relatedBrands = brandsMapping[brandKey]
-            for (const brand of relatedBrands) {
-                if (matchedBrands.includes(brand)) {
-                    continue
-                }
-                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
-                if (isBrandMatch) {
-                    matchedBrands.push(brand)
-                }
-            }
-        }
-        console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
-        const sourceId = product.source_id
-        const meta = { matchedBrands }
-        const brand = matchedBrands.length ? matchedBrands[0] : null
-
-        const key = `${source}_${countryCode}_${sourceId}`
-        const uuid = stringToHash(key)
-
-        // Then brand is inserted into product mapping table
+        // TODO: Implement actual database update (replace with your DB logic)
+        // await updateBrandMapping(product, assignedBrand);
+      }
     }
+  } catch (error) {
+    console.error("Brand assignment failed:", error);
+    throw error;
+  }
 }
