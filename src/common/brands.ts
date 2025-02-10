@@ -145,6 +145,56 @@ export function checkBrandIsSeparateTerm(input: string, brand: string): boolean 
     return atBeginningOrEnd || separateTerm
 }
 
+function getUniqueBrands(brandsMapping: BrandsMapping): Set<string> {
+    const uniqueBrands = new Set<string>();
+
+    for (const relatedBrands of Object.values(brandsMapping)) {
+        for (const brand of relatedBrands) {
+            uniqueBrands.add(brand);
+        }
+    }
+
+    return uniqueBrands;
+}
+
+function getBrandRepresentatives(brands: Set<string>, brandsMapping: BrandsMapping) {
+    let visited = new Set<string>()
+    let brandRepresentative: Record<string, string> = {}
+    
+    function bfs(startBrand: string) {
+        let queue: string[] = [startBrand]
+        let component: string[] = []
+        visited.add(startBrand)
+
+        while (queue.length > 0) {
+            let brand = queue.shift()!
+            component.push(brand)
+            let neighbors = brandsMapping[brand]
+            for (let neighbor of neighbors || []) {
+                if (!visited.has(neighbor)) {
+                    visited.add(neighbor)
+                    queue.push(neighbor)
+                }
+            }
+        }
+
+        return component
+    }
+
+    for (let brand of brands) {
+        if (!visited.has(brand)) {
+            const component = bfs(brand)
+            const representativeBrand = component[0] // Choose the first brand as the representative
+
+            for (const brandInComponent of component) {
+                brandRepresentative[brandInComponent] = representativeBrand
+            }
+        }
+    }
+
+    return brandRepresentative
+}
+
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
     const context = { scope: "assignBrandIfKnown" } as ContextType
 
@@ -153,6 +203,9 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
     const versionKey = "assignBrandIfKnown"
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
     let counter = 0
+    let brands = getUniqueBrands(brandsMapping)
+    let brandRepresentative: Record<string, string> = getBrandRepresentatives(brands, brandsMapping)
+    
     for (let product of products) {
         counter++
 
@@ -162,23 +215,22 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         }
 
         let matchedBrands = []
-        for (const brandKey in brandsMapping) {
-            const relatedBrands = brandsMapping[brandKey]
-            for (const brand of relatedBrands) {
-                if (matchedBrands.includes(brand)) {
-                    continue
-                }
-                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
-                if (isBrandMatch) {
-                    matchedBrands.push(brand)
-                }
+        for(let currentBrand of brands) {
+            if (matchedBrands.includes(currentBrand)) {
+                continue
+            }
+            const isBrandMatch = checkBrandIsSeparateTerm(product.title, currentBrand)
+            if (isBrandMatch) {
+                matchedBrands.push(currentBrand)
             }
         }
+
         console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
         const sourceId = product.source_id
         const meta = { matchedBrands }
-        const brand = matchedBrands.length ? matchedBrands[0] : null
-
+        const brand = matchedBrands.length ? brandRepresentative[ matchedBrands[0] ] : null
+        //console.log(`${product.title} -> ${brand}`)
+        
         const key = `${source}_${countryCode}_${sourceId}`
         const uuid = stringToHash(key)
 
