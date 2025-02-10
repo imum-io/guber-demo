@@ -150,6 +150,23 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
 
     const brandsMapping = await getBrandsMapping()
 
+    //Grouping of related brands to the smallest brand name
+    function determineGroupedBrand(brands: string[]): string {
+        //  Prioritize the shortest brand name.
+        return brands.reduce((a, b) => (a.length <= b.length ? a : b));
+      }
+    
+    const groupedBrand: { [brand: string]: string } = {};
+    
+    for (const brandKey in brandsMapping) {
+      const relatedBrands = brandsMapping[brandKey];
+      const canonicalBrand = determineGroupedBrand(relatedBrands);
+    
+      for (const brand of relatedBrands) {
+        groupedBrand[brand] = canonicalBrand;
+      }
+    }
+
     const versionKey = "assignBrandIfKnown"
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
     let counter = 0
@@ -162,20 +179,105 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         }
 
         let matchedBrands = []
+        const productTitle = product.title;
+        const updatedProductTitle = productTitle.replace(/Babē/gi, "babe"); //replace all Babē with babe initially
+
         for (const brandKey in brandsMapping) {
             const relatedBrands = brandsMapping[brandKey]
             for (const brand of relatedBrands) {
                 if (matchedBrands.includes(brand)) {
                     continue
                 }
-                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
+                const currentBrand = brand;
+
+                const updatedBrand = currentBrand.replace(/Babē/gi, "babe");
+
+                const excludeBioNeb = /^(BIO|NEB)$/i;
+                if (excludeBioNeb.test(updatedBrand)) {
+                  continue; // Skip to the next brand
+                }
+
+                // RICH, RFF, flex, ultra, gum, beauty, orto, free, 112, kin, happy has to be in the front
+                const brandsMustBeFirstRegex =
+                  /^(RICH|RFF|flex|ultra|gum|beauty|orto|free|112|kin|happy)\b/i;
+
+                // the brand name also needs to be either RICH|RFF|flex|ultra|gum|beauty|orto|free|112|kin|happy
+                const mustBeFirstBrandName =
+                  /^(RICH|RFF|flex|ultra|gum|beauty|orto|free|112|kin|happy)$/i;
+
+                //Here if it is valid brand which is needed to be in the first, continue with that
+                if (
+                  mustBeFirstBrandName.test(updatedBrand) &&
+                  !brandsMustBeFirstRegex.test(updatedProductTitle)
+                ) {
+                  continue; // Skip to the next brand if not at the beginning
+                }
+
+                // heel, contour, nero, rsv in front or 2nd word
+                const brandsMustBeFirstOrSecondRegex =
+                  /^(heel|contour|nero|rsv)\b|^\w+\s+(heel|contour|nero|rsv)\b/i;
+
+                // the brand name also needs to be either  heel|contour|nero|rsv
+                const mustBeFirstOrSecondBrandName =
+                  /^(heel|contour|nero|rsv)$/i;
+
+                if (
+                  mustBeFirstOrSecondBrandName.test(updatedBrand) &&
+                  !brandsMustBeFirstOrSecondRegex.test(updatedProductTitle)
+                ) {
+                  continue; // Skip if not first or second word
+                }
+
+                // HAPPY has to be matched capitalized
+                const happyRegex = /\bHAPPY\b/;
+                const happyBrandRegex = /^(HAPPY)$/i;
+
+                if (
+                  happyBrandRegex.test(updatedBrand) &&
+                  !happyRegex.test(updatedProductTitle)
+                ) {
+                  continue; // Skip if not first or second word
+                }
+
+                const isBrandMatch = checkBrandIsSeparateTerm(
+                  updatedProductTitle,
+                  updatedBrand
+                );
+
                 if (isBrandMatch) {
                     matchedBrands.push(brand)
                 }
             }
         }
-        console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
+        
+        //Prioritized the first brand matching beginning, if > 1 brands matched
+        if (matchedBrands.length > 1) {
+            matchedBrands.sort((a, b) => {
+              const updatedA = a.replace(/Babē/gi, "babe"); //replace all Babē with babe for the brand name if there is any
+              const updatedB = b.replace(/Babē/gi, "babe");
+              const regexA = new RegExp(`\\b${updatedA}\\b`, "i");
+              const regexB = new RegExp(`\\b${updatedB}\\b`, "i");
+              const matchA = updatedProductTitle.match(regexA);
+              const matchB = updatedProductTitle.match(regexB);
+              if (matchA && matchB) {
+                return matchA.index - matchB.index;
+              } else if (matchA) {
+                return -1;
+              } else if (matchB) {
+                return 1;
+              } else {
+                return 0;
+              }
+            });
+        }
+
+        //the first brand of the array is the one that is matched first in the title
+        //console.log(`${product.title} -> ${matchedBrands.length > 0 ? matchedBrands[0] : ""}`);
         const sourceId = product.source_id
+
+        const canonicalMatchedBrands = matchedBrands.length > 0 ? groupedBrand[matchedBrands[0]] : "";
+        console.log(`${product.title} -> ${canonicalMatchedBrands}`); // showed the smallest brand from the brand group
+
         const meta = { matchedBrands }
         const brand = matchedBrands.length ? matchedBrands[0] : null
 
