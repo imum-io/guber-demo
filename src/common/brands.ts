@@ -12,34 +12,6 @@ type BrandsMapping = {
 }
 
 export async function getBrandsMapping(): Promise<BrandsMapping> {
-    //     const query = `
-    //     SELECT
-    //     LOWER(p1.manufacturer) manufacturer_p1
-    //     , LOWER(GROUP_CONCAT(DISTINCT p2.manufacturer ORDER BY p2.manufacturer SEPARATOR ';')) AS manufacturers_p2
-    // FROM
-    //     property_matchingvalidation v
-    // INNER JOIN
-    //     property_pharmacy p1 ON v.m_source = p1.source
-    //     AND v.m_source_id = p1.source_id
-    //     AND v.m_country_code = p1.country_code
-    //     AND p1.newest = true
-    // INNER JOIN
-    //     property_pharmacy p2 ON v.c_source = p2.source
-    //     AND v.c_source_id = p2.source_id
-    //     AND v.c_country_code = p2.country_code
-    //     AND p2.newest = true
-    // WHERE
-    //     v.m_source = 'AZT'
-    //     AND v.engine_type = '${EngineType.Barcode}'
-    //     and p1.manufacturer is not null
-    //     and p2.manufacturer is not null
-    //     and p1.manufacturer not in ('kita', 'nera', 'cits')
-    //     and p2.manufacturer not in ('kita', 'nera', 'cits')
-    // GROUP BY
-    //     p1.manufacturer
-    //     `
-    //     const brandConnections = await executeQueryAndGetResponse(dbServers.pharmacy, query)
-    // For this test day purposes exported the necessary object
     const brandConnections = connections
 
     const getRelatedBrands = (map: Map<string, Set<string>>, brand: string): Set<string> => {
@@ -98,31 +70,6 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
 }
 
 async function getPharmacyItems(countryCode: countryCodes, source: sources, versionKey: string, mustExist = true) {
-    //     let query = `
-    //     SELECT
-    //     p.url, p.removed_timestamp, p.title, p.source_id
-    //     , p.manufacturer
-    //     , map.source_id m_id
-    //     , map.source
-    //     , map.country_code
-    //     , map.meta
-    // FROM
-    //     property_pharmacy p
-    // left join pharmacy_mapping map on p.source_id = map.source_id and p.source = map.source and p.country_code = map.country_code
-    // WHERE
-    //     p.newest = TRUE
-    //     and p.country_code = '${countryCode}'
-    //     and p.source = '${source}'
-    //     and p.removed_timestamp is null
-    //     and (p.manufacturer is null or p.manufacturer in ('nera', 'kita', 'cits'))
-    //     ORDER BY p.removed_timestamp IS NULL DESC, p.removed_timestamp DESC
-    //     `
-    //     let products = await executeQueryAndGetResponse(dbServers.pharmacy, query)
-    //     for (let product of products) {
-    //         product.meta = jsonOrStringToJson(product.meta)
-    //     }
-
-    //     let finalProducts = products.filter((product) => (!mustExist || product.m_id) && !product.meta[versionKey])
     const finalProducts = items
 
     return finalProducts
@@ -168,9 +115,43 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
                 if (matchedBrands.includes(brand)) {
                     continue
                 }
+                // Convert title to lowercase for consistent comparisons
+                const lowerTitle = product.title.toLowerCase()
+                const lowerBrand = brand.toLowerCase()
+
+                // Handle Babē = Babe normalization
+                const normalizedBrand = lowerBrand === "babē" ? "babe" : lowerBrand
+
+                // Ignore unwanted brand names
+                if (["bio", "neb"].includes(normalizedBrand)) {
+                    continue
+                }
+
+                // Ensure specific words appear at the beginning of the title
+                const mustBeFirst = ["rich", "rff", "flex", "ultra", "gum", "beauty", "orto", "free", "112", "kin", "happy"]
+                if (mustBeFirst.includes(normalizedBrand) && !lowerTitle.startsWith(normalizedBrand)) {
+                    continue
+                }
+
+                // Ensure certain words appear in front or second
+                const mustBeFirstOrSecond = ["heel", "contour", "nero", "rsv"]
+                const titleWords = lowerTitle.split(/\s+/)
+                if (mustBeFirstOrSecond.includes(normalizedBrand) && !(titleWords[0] === normalizedBrand || titleWords[1] === normalizedBrand)) {
+                    continue
+                }
                 const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
                 if (isBrandMatch) {
                     matchedBrands.push(brand)
+                }
+            }
+        }
+
+        // Ensure consistent brand assignment for groups
+        if (matchedBrands.length > 1) {
+            for (const b of matchedBrands) {
+                if (brandsMapping[b]) {
+                    matchedBrands = [brandsMapping[b][0]]
+                    break
                 }
             }
         }

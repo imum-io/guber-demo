@@ -12,3 +12,5 @@ token.json
 !.env.example
 matching
 misc/
+pharmacyItems.json
+brandConnections.json
