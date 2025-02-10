@@ -115,9 +115,43 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
                 if (matchedBrands.includes(brand)) {
                     continue
                 }
+                // Convert title to lowercase for consistent comparisons
+                const lowerTitle = product.title.toLowerCase()
+                const lowerBrand = brand.toLowerCase()
+
+                // Handle Babē = Babe normalization
+                const normalizedBrand = lowerBrand === "babē" ? "babe" : lowerBrand
+
+                // Ignore unwanted brand names
+                if (["bio", "neb"].includes(normalizedBrand)) {
+                    continue
+                }
+
+                // Ensure specific words appear at the beginning of the title
+                const mustBeFirst = ["rich", "rff", "flex", "ultra", "gum", "beauty", "orto", "free", "112", "kin", "happy"]
+                if (mustBeFirst.includes(normalizedBrand) && !lowerTitle.startsWith(normalizedBrand)) {
+                    continue
+                }
+
+                // Ensure certain words appear in front or second
+                const mustBeFirstOrSecond = ["heel", "contour", "nero", "rsv"]
+                const titleWords = lowerTitle.split(/\s+/)
+                if (mustBeFirstOrSecond.includes(normalizedBrand) && !(titleWords[0] === normalizedBrand || titleWords[1] === normalizedBrand)) {
+                    continue
+                }
                 const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
                 if (isBrandMatch) {
                     matchedBrands.push(brand)
+                }
+            }
+        }
+
+        // Ensure consistent brand assignment for groups
+        if (matchedBrands.length > 1) {
+            for (const b of matchedBrands) {
+                if (brandsMapping[b]) {
+                    matchedBrands = [brandsMapping[b][0]]
+                    break
                 }
             }
         }
