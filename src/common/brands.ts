@@ -11,152 +11,203 @@ import _ from "lodash";
 import { sources } from "../sites/sources";
 import items from "./../../pharmacyItems.json";
 import connections from "./../../brandConnections.json";
+//json file
+const jsonfile = require('jsonfile')
+const fs = require('fs')
 
 type BrandsMapping = {
   [key: string]: string[];
 };
 
-export async function getBrandsMapping(): Promise<BrandsMapping> {
-  //     const query = `
-  //     SELECT
-  //     LOWER(p1.manufacturer) manufacturer_p1
-  //     , LOWER(GROUP_CONCAT(DISTINCT p2.manufacturer ORDER BY p2.manufacturer SEPARATOR ';')) AS manufacturers_p2
-  // FROM
-  //     property_matchingvalidation v
-  // INNER JOIN
-  //     property_pharmacy p1 ON v.m_source = p1.source
-  //     AND v.m_source_id = p1.source_id
-  //     AND v.m_country_code = p1.country_code
-  //     AND p1.newest = true
-  // INNER JOIN
-  //     property_pharmacy p2 ON v.c_source = p2.source
-  //     AND v.c_source_id = p2.source_id
-  //     AND v.c_country_code = p2.country_code
-  //     AND p2.newest = true
-  // WHERE
-  //     v.m_source = 'AZT'
-  //     AND v.engine_type = '${EngineType.Barcode}'
-  //     and p1.manufacturer is not null
-  //     and p2.manufacturer is not null
-  //     and p1.manufacturer not in ('kita', 'nera', 'cits')
-  //     and p2.manufacturer not in ('kita', 'nera', 'cits')
-  // GROUP BY
-  //     p1.manufacturer
-  //     `
-  //     const brandConnections = await executeQueryAndGetResponse(dbServers.pharmacy, query)
-  // For this test day purposes exported the necessary object
+// export async function getBrandsMapping(): Promise<BrandsMapping> {
+//   //     const query = `
+//   //     SELECT
+//   //     LOWER(p1.manufacturer) manufacturer_p1
+//   //     , LOWER(GROUP_CONCAT(DISTINCT p2.manufacturer ORDER BY p2.manufacturer SEPARATOR ';')) AS manufacturers_p2
+//   // FROM
+//   //     property_matchingvalidation v
+//   // INNER JOIN
+//   //     property_pharmacy p1 ON v.m_source = p1.source
+//   //     AND v.m_source_id = p1.source_id
+//   //     AND v.m_country_code = p1.country_code
+//   //     AND p1.newest = true
+//   // INNER JOIN
+//   //     property_pharmacy p2 ON v.c_source = p2.source
+//   //     AND v.c_source_id = p2.source_id
+//   //     AND v.c_country_code = p2.country_code
+//   //     AND p2.newest = true
+//   // WHERE
+//   //     v.m_source = 'AZT'
+//   //     AND v.engine_type = '${EngineType.Barcode}'
+//   //     and p1.manufacturer is not null
+//   //     and p2.manufacturer is not null
+//   //     and p1.manufacturer not in ('kita', 'nera', 'cits')
+//   //     and p2.manufacturer not in ('kita', 'nera', 'cits')
+//   // GROUP BY
+//   //     p1.manufacturer
+//   //     `
+//   //     const brandConnections = await executeQueryAndGetResponse(dbServers.pharmacy, query)
+//   // For this test day purposes exported the necessary object
+//   const brandConnections = connections;
+
+//   const getRelatedBrands = (
+//     map: Map<string, Set<string>>,
+//     brand: string
+//   ): Set<string> => {
+//     console.log(400, "brand", brand);
+//     //console.log(500, { map });
+
+//     const relatedBrands = new Set<string>();
+//     const queue = [brand];
+//     console.log(401, "queue ", queue);
+//     while (queue.length > 0) {
+//       console.log(402, "queue ", queue.length);
+
+//       const current = queue.pop()!;
+//       console.log(403, "current ", current);
+//       if (map.has(current)) {
+//         const brands = map.get(current)!;
+//         console.log(404, "brands ", brands);
+//         for (const b of brands) {
+//           if (!relatedBrands.has(b)) {
+//             relatedBrands.add(b);
+//             queue.push(b);
+//           }
+//         }
+//       }
+//     }
+//     // console.log(405, "relatedBrands ", relatedBrands);
+
+//     return relatedBrands;
+//   };
+
+//   // Create a map to track brand relationships
+//   const brandMap = new Map<string, Set<string>>();
+
+//   // Add brand relationships to the map initially
+//   // after set brandMap then we will be able to use getRelatedBrands
+//   brandConnections.forEach(({ manufacturer_p1, manufacturers_p2 }) => {
+//     const brand1 = manufacturer_p1.toLowerCase();
+//     const brands2 = manufacturers_p2.toLowerCase();
+//     const brand2Array = brands2.split(";").map((b) => b.trim());
+//     // Add the current brand to the map
+//     if (!brandMap.has(brand1)) {
+//       brandMap.set(brand1, new Set());
+//     }
+//     // Add the related brands to the map
+//     brand2Array.forEach((brand2) => {
+//       if (!brandMap.has(brand2)) {
+//         brandMap.set(brand2, new Set());
+//       }
+//       // Add the relationship to the map
+//       brandMap.get(brand1)!.add(brand2);
+//       // Add the reverse relationship to the map
+//       brandMap.get(brand2)!.add(brand1);
+//     });
+//   });
+
+//   // Build the final flat map
+//   const flatMap = new Map<string, Set<string>>();
+
+//   brandMap.forEach((_, brand) => {
+//     const relatedBrands = getRelatedBrands(brandMap, brand);
+//     flatMap.set(brand, relatedBrands);
+//   });
+
+//   // Convert the flat map to an object for easier usage
+//   const flatMapObject: Record<string, string[]> = {};
+
+//   // console.log({ flatMap });
+//   // Map(2867) {
+//   //   '112' => Set(1) { '112' },
+//   //   '3chenes' => Set(4) {
+//   //     '3c pharma laboratoires',
+//   //     'les 3 chenes',
+//   //     '3chenes',
+//   //     'color&soin'
+//   //   },
+//   //   '3c pharma laboratoires' => Set(4) {
+//   //     '3chenes',
+//   //     '3c pharma laboratoires',
+//   //     'les 3 chenes',
+//   //     'color&soin'
+//   //   },
+
+//   flatMap.forEach((relatedBrands, brand) => {
+//     flatMapObject[brand] = Array.from(relatedBrands);
+//   });
+//   console.log({ flatMapObject });
+//   // {
+//   //   '112': [ '112' ],
+//   //   '911': [ '911' ],
+//   //   '3chenes': [
+//   //     '3c pharma laboratoires',
+//   //     'les 3 chenes',
+//   //     '3chenes',
+//   //     'color&soin'
+//   //   ],
+//   //   '3c pharma laboratoires': [
+//   //     '3chenes',
+//   //     '3c pharma laboratoires',
+//   //     'les 3 chenes',
+//   //     'color&soin'
+//   //   ],
+//   //   'les 3 chenes': [
+//   //     '3chenes',
+//   //     'color&soin',
+//   //     'les 3 chenes',
+//   //     '3c pharma laboratoires'
+//   //   ],
+//   // }
+
+//   return flatMapObject;
+// }
+
+
+
+export async function getBrandsMapping(): Promise<Record<string, string>> {
   const brandConnections = connections;
-
-  const getRelatedBrands = (
-    map: Map<string, Set<string>>,
-    brand: string
-  ): Set<string> => {
-    console.log(400, "brand", brand);
-    //console.log(500, { map });
-
-    const relatedBrands = new Set<string>();
-    const queue = [brand];
-    console.log(401, "queue ", queue);
-    while (queue.length > 0) {
-      console.log(402, "queue ", queue.length);
-
-      const current = queue.pop()!;
-      console.log(403, "current ", current);
-      if (map.has(current)) {
-        const brands = map.get(current)!;
-        console.log(404, "brands ", brands);
-        for (const b of brands) {
-          if (!relatedBrands.has(b)) {
-            relatedBrands.add(b);
-            queue.push(b);
-          }
-        }
-      }
-    }
-    console.log(405, "relatedBrands ", relatedBrands);
-
-    return relatedBrands;
-  };
-
-  // Create a map to track brand relationships
   const brandMap = new Map<string, Set<string>>();
 
-  // Add brand relationships to the map initially
-  // after set brandMap then we will be able to use getRelatedBrands
+  // Build initial brand relationships
   brandConnections.forEach(({ manufacturer_p1, manufacturers_p2 }) => {
     const brand1 = manufacturer_p1.toLowerCase();
-    const brands2 = manufacturers_p2.toLowerCase();
-    const brand2Array = brands2.split(";").map((b) => b.trim());
-    // Add the current brand to the map
+    const brand2Array = manufacturers_p2.toLowerCase().split(";").map((b) => b.trim());
+    
     if (!brandMap.has(brand1)) {
       brandMap.set(brand1, new Set());
     }
-    // Add the related brands to the map
+
     brand2Array.forEach((brand2) => {
       if (!brandMap.has(brand2)) {
         brandMap.set(brand2, new Set());
       }
-      // Add the relationship to the map
       brandMap.get(brand1)!.add(brand2);
-      // Add the reverse relationship to the map
       brandMap.get(brand2)!.add(brand1);
     });
   });
 
-  // Build the final flat map
-  const flatMap = new Map<string, Set<string>>();
+  // Helper function to determine a single brand per group
+  const getRepresentativeBrand = (brands: Set<string>) => {
+    return [...brands].sort()[0]; // Always pick the first in alphabetical order
+  };
 
-  brandMap.forEach((_, brand) => {
-    const relatedBrands = getRelatedBrands(brandMap, brand);
-    flatMap.set(brand, relatedBrands);
+  // Flatten and normalize brand groups
+  const flatMap = new Map<string, string>();
+
+  brandMap.forEach((relatedBrands, brand) => {
+    const fullSet = new Set<string>(relatedBrands);
+    fullSet.add(brand);
+    const representativeBrand = getRepresentativeBrand(fullSet);
+    fullSet.forEach((b) => flatMap.set(b, representativeBrand));
   });
 
-  // Convert the flat map to an object for easier usage
-  const flatMapObject: Record<string, string[]> = {};
-
-  // console.log({ flatMap });
-  // Map(2867) {
-  //   '112' => Set(1) { '112' },
-  //   '3chenes' => Set(4) {
-  //     '3c pharma laboratoires',
-  //     'les 3 chenes',
-  //     '3chenes',
-  //     'color&soin'
-  //   },
-  //   '3c pharma laboratoires' => Set(4) {
-  //     '3chenes',
-  //     '3c pharma laboratoires',
-  //     'les 3 chenes',
-  //     'color&soin'
-  //   },
-
-  flatMap.forEach((relatedBrands, brand) => {
-    flatMapObject[brand] = Array.from(relatedBrands);
+  // Convert mapping to object
+  const flatMapObject: Record<string, string> = {};
+  flatMap.forEach((repBrand, brand) => {
+    flatMapObject[brand] = repBrand;
   });
-  console.log({ flatMapObject });
-  // {
-  //   '112': [ '112' ],
-  //   '911': [ '911' ],
-  //   '3chenes': [
-  //     '3c pharma laboratoires',
-  //     'les 3 chenes',
-  //     '3chenes',
-  //     'color&soin'
-  //   ],
-  //   '3c pharma laboratoires': [
-  //     '3chenes',
-  //     '3c pharma laboratoires',
-  //     'les 3 chenes',
-  //     'color&soin'
-  //   ],
-  //   'les 3 chenes': [
-  //     '3chenes',
-  //     'color&soin',
-  //     'les 3 chenes',
-  //     '3c pharma laboratoires'
-  //   ],
-  // }
-
+  
   return flatMapObject;
 }
 
@@ -221,9 +272,17 @@ export async function assignBrandIfKnown(
   source: sources,
   job?: Job
 ) {
+ 
   const context = { scope: "assignBrandIfKnown" } as ContextType;
 
   const brandsMapping = await getBrandsMapping();
+ 
+  const file = './update_data.json'
+  jsonfile.writeFileSync(file, brandsMapping)
+
+// return
+
+  
   // {
   //   '112': [ '112' ],
   //   '911': [ '911' ],
@@ -247,12 +306,14 @@ export async function assignBrandIfKnown(
   let counterExisting = 0;
   let obj: any = {};
   let arr: any = [];
+  let updateProducts: any = [];
   for (let product of products) {
     counter++;
 
     if (product.m_id) {
       counterExisting++;
       // Already exists in the mapping table, probably no need to update
+      updateProducts.push(product);
       continue;
     }
 
@@ -274,7 +335,14 @@ export async function assignBrandIfKnown(
         // checkBrandIsSeparateTerm will check if the brand is at the beginning or end of the string or contains the brand
         const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand);
         if (isBrandMatch) {
-          matchedBrands.push(brand);
+
+          // After confirming the match, validate the brand using the brandValidation method
+          const validBrand = brandValidation(product.title);
+          if (validBrand) {
+            matchedBrands.push(validBrand);  // Add only valid brands based on brandValidation logic
+          }
+
+          // matchedBrands.push(brand);
         }
       }
     }
@@ -292,135 +360,145 @@ export async function assignBrandIfKnown(
     // await updatePharmacyMapping(key, uuid, source, sourceId, countryCode, brand, meta, job, context);
 
     // Then brand is inserted into product mapping table
+    updateProducts.push({...product, m_id: product.source_id, source, country_code: countryCode, meta});
   }
+
+  const pharmacyItemsFile = './update_data_pharmacyItems.json'
+  jsonfile.writeFileSync(pharmacyItemsFile, updateProducts)
 
   if (products.length == counter) {
     console.log("100 All items processed ", counter);
     console.log("101 All items counterExisting ", counterExisting);
   }
 
-  console.table(obj);
+  // console.table(obj);
   console.log("Meta Table");
-  console.log("%j", arr);
+  //console.log("%j", arr);
 }
+
+
+// export async function assignBrandIfKnown(
+//   countryCode: countryCodes,
+//   source: sources,
+//   job?: Job
+// ) {
+//   const brandsMapping = await getBrandsMapping();
+//   const products = await getPharmacyItems(countryCode, source, "assignBrandIfKnown", false);
+
+//   for (let product of products) {
+//     if (product.m_id) continue;
+
+//     let matchedBrand: string | null = null;
+//     for (const [brandKey, representativeBrand] of Object.entries(brandsMapping)) {
+//       if (checkBrandIsSeparateTerm(product.title, brandKey)) {
+//         matchedBrand = representativeBrand;
+//         break;
+//       }
+//     }
+
+//     console.log(`${product.title} -> ${matchedBrand}`);
+//   }
+// }
+// export async function assignBrandIfKnown(
+//   countryCode: countryCodes,
+//   source: sources,
+//   job?: Job
+// ) {
+//   const brandsMapping = await getBrandsMapping();
+//   const products = await getPharmacyItems(countryCode, source, "assignBrandIfKnown", false);
+
+//   for (let product of products) {
+//     if (product.m_id) continue;
+
+//     let matchedBrand: string | null = null;
+//     for (const [brandKey, representativeBrand] of Object.entries(brandsMapping)) {
+//       if (checkBrandIsSeparateTerm(product.title, brandKey)) {
+//         matchedBrand = representativeBrand;
+//         break;
+//       }
+//     }
+
+//     console.log(`${product.title} -> ${matchedBrand}`);
+//   }
+// }
 
 // modify
 
-const areSame = (str1: string, str2: string) => {
-  // ignore for  HAPPY
-  return str1.localeCompare(str2, undefined, { sensitivity: "base" }) === 0;
-};
-// ignore BIO, NEB
+const brandValidation = (input) => {
+  if (!input || typeof input !== "string") return null;
 
-const areSimilar = (str1: string) => {
-  if (str1.includes("BIO") || str1.includes("NEB")) {
-    return false;
+  // Normalize Babē => Babe
+  input = input.replace(/\bBabē\b/gi, "Babe");
+
+  // Ignore BIO, NEB (case-insensitive)
+  if (/\b(BIO|NEB)\b/i.test(input)) return null;
+
+  // Priority brands (must be at the beginning)
+  const priorityBrands = ["EXTRA","RICH", "RFF", "flex", "ultra", "gum", "beauty", "orto", "free", "112", "kin", "happy"];
+  // Secondary brands (must be in the first or second word position)
+  const secondaryBrands = ["heel", "contour", "nero", "rsv"];
+
+  const words = input.split(/\s+/); // Split input into words
+
+  // 1. Check if a priority brand is at the beginning (ensures "happy" only works in front)
+  if (priorityBrands.includes(words[0])) {
+    return words[0];
   }
-  return true;
-  // return str1.includes("HAPPY");
-};
-//  RICH, RFF, flex, ultra, gum, beauty, orto, free, 112, kin, happy has to be in the front
 
-const areDifferent = (input: string) => {
-  const requiredBrands = [
-    "RICH",
-    "RFF",
-    "flex",
-    "ultra",
-    "gum",
-    "beauty",
-    "orto",
-    "free",
-    "112",
-    "kin",
-  ];
-  const pattern = new RegExp(`^(happy|${requiredBrands.join("|")})\\b`, "i");
+  // 2. Check if a secondary brand is in the first or second word position
+  if (words.length > 1) {
+    if (secondaryBrands.includes(words[0])) {
+      return words[0]; // Return if secondary brand is at the first position
+    }
+    if (secondaryBrands.includes(words[1])) {
+      return words[1]; // Return if secondary brand is at the second position
+    }
+  }
 
-  // Test function
+  // 3. Ensure "HAPPY" is matched only when fully capitalized anywhere in the string
+  if (/\bHAPPY\b/.test(input)) return "HAPPY";
 
-  if (input.startsWith("happy")) return true; // Case-sensitive check for "happy"
-  return pattern.test(input);
+  return null; // If no valid brand matches the conditions
 };
 
-// fronOrSecound word
 
-const fronOrSecound = (input: string) => {
-  const requiredWords = ["heel", "contour", "nero", "rsv"];
-  const pattern = new RegExp(
-    `^(\\b${requiredWords.join("\\b|\\b")}\\b|\\S+\\s+\\b${requiredWords.join(
-      "\\b|\\b"
-    )}\\b)`,
-    "i"
-  );
 
-  // Test function
-  const checkPosition = (input) => pattern.test(input);
+console.log(brandValidation("test happy cream ultra free")); 
+// ❌ null (because "happy" is not in the front)
 
-  if (checkPosition(input)) return true;
-  return false;
-};
+console.log(brandValidation("happy cream ultra free")); 
+// ✅ "happy" (because "happy" is in front)
 
-//  if >1 brands matched, prioritize matching beginning
+console.log(brandValidation("HAPPY cream ultra free")); 
+// ✅ "HAPPY" (fully capitalized match)
 
-const prioritizeBeginning = (input: any) => {
-  const requiredBrands = [
-    "RICH",
-    "RFF",
-    "flex",
-    "ultra",
-    "gum",
-    "beauty",
-    "orto",
-    "free",
-    "112",
-    "kin",
-    "happy",
-  ];
-  const brandRegex = new RegExp(`\\b(${requiredBrands.join("|")})\\b`, "gi"); // Case-insensitive except for "happy"
+console.log(brandValidation("ultra shampoo rich flex")); 
+// ✅ "ultra" (priority brand at the beginning)
 
-  // Function to prioritize first occurrence
-  // const prioritizeMatchAtStart = (input) => {
-  const matches = input.match(brandRegex) || []; // Find all matches
+console.log(brandValidation("rsv gum shampoo")); 
+// ✅ "heel" (first word match)
 
-  if (matches.length === 0) return null; // No match
+console.log(brandValidation("test heel gum shampoo")); 
+// ✅ "heel" (second word match)
 
-  // Check if any match is at the beginning
-  const firstWord = input.split(/\s+/)[0]; // Get the first word
-  if (matches.includes(firstWord)) return firstWord; // Prioritize first-word match
+console.log(brandValidation("Babē skin care")); 
+// ✅ "Babe" (normalized Babē => Babe)
 
-  return matches[0]; // Otherwise, return the first detected match
-  // };
-};
+console.log(brandValidation("BIO rich shampoo")); 
+// ❌ null (BIO is ignored)
 
-// HAPPY needs to be matched capitalized
+console.log(brandValidation("NEB ultra shampoo")); 
+// ❌ null (NEB is ignored)
 
-// const matchCapitalized = (input: string) => {
-//   const pattern = new RegExp("\\bHAPPY\\b", "i");
-//   return pattern.test(input);
-// };
+console.log(brandValidation("rich heel nero")); 
+// ✅ "rich" (priority brand at the beginning)
+console.log(brandValidation("RICH heel nero")); 
 
-const matchCapitalized = (input: any) => {
-  const requiredBrands = [
-    "RICH",
-    "RFF",
-    "flex",
-    "ultra",
-    "gum",
-    "beauty",
-    "orto",
-    "free",
-    "112",
-    "kin",
-  ];
-  const brandRegex = new RegExp(`\\b(${requiredBrands.join("|")})\\b`, "gi"); // Case-insensitive for all except "HAPPY"
+console.log(brandValidation("nero heel gum")); 
+// ✅ "nero" (secondary brand in second position)
 
-  const matches = input.match(brandRegex) || []; // Find all case-insensitive matches
-  const happyMatch = input.includes("HAPPY") ? "HAPPY" : null; // Ensure "HAPPY" is matched exactly
+console.log(brandValidation("kin ultra shampoo")); 
+// ✅ "kin" (priority brand in front)
 
-  // Prioritize beginning match
-  const firstWord = input.split(/\s+/)[0]; // Get first word
-  if (matches.includes(firstWord)) return firstWord; // Return if it's at the beginning
-  if (happyMatch && input.startsWith("HAPPY")) return "HAPPY"; // Ensure HAPPY is prioritized if at the start
-
-  return happyMatch || matches[0] || null; // Prioritize HAPPY if found, else first match
-};
+console.log(brandValidation("112 beauty orto")); 
+// ✅ "112" (priority brand in front)
