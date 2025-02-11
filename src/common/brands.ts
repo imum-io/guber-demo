@@ -159,84 +159,102 @@ export async function assignBrandIfKnown(
 ) {
   const context = { scope: "assignBrandIfKnown" } as ContextType;
 
-  let brandsMapping: BrandsMapping = await getBrandsMapping();
-  //brandsMapping = brandsMapping.length > 0 ? brandsMapping : {};
+  try {
+    //console.time("Parallel 1 Execution");
+    //let brandsMapping: BrandsMapping = await getBrandsMapping();
+    //brandsMapping = brandsMapping.length > 0 ? brandsMapping : {};
 
-  // Write the brandsMapping object to a JSON file as initial
-  const file = "./update_filter_brand_data.json";
-  jsonfile.writeFileSync(file, brandsMapping);
+    // Write the brandsMapping object to a JSON file as initial
+    const versionKey = "assignBrandIfKnown";
+    //let products = await getPharmacyItems(countryCode, source, versionKey, false);
+    //console.timeEnd("Parallel 1 Execution");
 
-  const versionKey = "assignBrandIfKnown";
-  let products = await getPharmacyItems(countryCode, source, versionKey, false);
-  let counter = 0;
+    console.time("Parallel 2 Execution");
+    // Parallel 1 Execution: 12.873ms // if we fetch from db seperate then need to time consider
+    // Parallel 2 Execution: 5.618ms // // if we fetch from db Parallel then need to time consider
 
-  // added update product data to update_data_pharmacyItems.json for check
-  let updateProducts: any = [];
+    const [brandsMapping, products] = await Promise.all([
+      getBrandsMapping(),
+      getPharmacyItems(countryCode, source, versionKey, false),
+    ]);
+    console.timeEnd("Parallel 2 Execution");
 
-  // added initial product data to old_product_data.json for test
-  const oldProductDataFile = "./old_product_data.json";
-  jsonfile.writeFileSync(oldProductDataFile, products);
+    const file = "./update_filter_brand_data.json";
+    jsonfile.writeFileSync(file, brandsMapping);
 
-  // Loop through each product and assign a brand
-  for (let product of products) {
-    counter++;
+    let counter = 0;
 
-    if (product.m_id) {
-      // Already exists in the mapping table, probably no need to update
-      updateProducts.push(product);
-      continue;
-    }
+    // added update product data to update_data_pharmacyItems.json for check
+    let updateProducts: any = [];
 
-    let matchedBrands = []; // brand list as array
-    for (const brandKey in brandsMapping) {
-      const relatedBrands = brandsMapping[brandKey];
-      // '3chenes': [
-      // '3c pharma laboratoires',
-      // 'les 3 chenes',
-      // '3chenes',
-      // 'color&soin'
-      // ],
-      for (const brand of relatedBrands) {
-        // brand: 3c pharma laboratoires
-        if (matchedBrands.includes(brand)) {
-          continue;
-        }
-        // title: BD DISCARDIT 2ML, 2 DALIŲ ŠVIRKŠTAS SU ADATA (BD, JAV
-        // checkBrandIsSeparateTerm will check if the brand is at the beginning or end of the string or contains the brand
-        const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand);
-        if (isBrandMatch) {
-          // After confirming the match, validate the brand using the brandValidation method
-          const validBrand = brandValidation(product.title);
-          if (validBrand && !matchedBrands.includes(validBrand)) {
-            matchedBrands.push(validBrand); // Add only valid brands based on brandValidation logic
+    // added initial product data to old_product_data.json for test
+    const oldProductDataFile = "./old_product_data.json";
+    jsonfile.writeFileSync(oldProductDataFile, products);
+
+    // Loop through each product and assign a brand
+    for (let product of products) {
+      counter++;
+
+      if (product.m_id) {
+        // Already exists in the mapping table, probably no need to update
+        // if we don't need to update the existing product then skip updateProducts push prduct
+        updateProducts.push(product);
+        continue;
+      }
+
+      let matchedBrands = []; // brand list as array
+      for (const brandKey in brandsMapping) {
+        const relatedBrands = brandsMapping[brandKey];
+        // '3chenes': [
+        // '3c pharma laboratoires',
+        // 'les 3 chenes',
+        // '3chenes',
+        // 'color&soin'
+        // ],
+        for (const brand of relatedBrands) {
+          // brand: 3c pharma laboratoires
+          if (matchedBrands.includes(brand)) {
+            continue;
           }
+          // title: BD DISCARDIT 2ML, 2 DALIŲ ŠVIRKŠTAS SU ADATA (BD, JAV
+          // checkBrandIsSeparateTerm will check if the brand is at the beginning or end of the string or contains the brand
+          const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand);
+          if (isBrandMatch) {
+            // After confirming the match, validate the brand using the brandValidation method
+            const validBrand = brandValidation(product.title);
+            if (validBrand && !matchedBrands.includes(validBrand)) {
+              matchedBrands.push(validBrand); // Add only valid brands based on brandValidation logic
+            }
 
-          // matchedBrands.push(brand);
+            // matchedBrands.push(brand);
+          }
         }
       }
+      // arr.push(matchedBrands);
+      console.log(`${product.title} -> ${_.uniq(matchedBrands)}`);
+      const sourceId = product.source_id;
+      const meta = { matchedBrands };
+      const brand = matchedBrands.length ? matchedBrands[0] : null;
+
+      const key = `${source}_${countryCode}_${sourceId}`;
+      const uuid = stringToHash(key);
+
+      // Then brand is inserted into product mapping table
+      // Then brand is inserted into product mapping table
+      updateProducts.push({
+        ...product,
+        m_id: product.source_id,
+        source,
+        country_code: countryCode,
+        meta,
+      });
     }
-    // arr.push(matchedBrands);
-    console.log(`${product.title} -> ${_.uniq(matchedBrands)}`);
-    const sourceId = product.source_id;
-    const meta = { matchedBrands };
-    const brand = matchedBrands.length ? matchedBrands[0] : null;
 
-    const key = `${source}_${countryCode}_${sourceId}`;
-    const uuid = stringToHash(key);
-
-    // Then brand is inserted into product mapping table
-    // Then brand is inserted into product mapping table
-    updateProducts.push({
-      ...product,
-      m_id: product.source_id,
-      source,
-      country_code: countryCode,
-      meta,
-    });
+    const pharmacyItemsFile = "./update_product_data.json";
+    jsonfile.writeFileSync(pharmacyItemsFile, updateProducts);
+  } catch (e) {
+    console.error(e);
   }
-
-  const pharmacyItemsFile = "./update_product_data.json";
-  jsonfile.writeFileSync(pharmacyItemsFile, updateProducts);
 }
 
 // modify
