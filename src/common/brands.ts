@@ -12,8 +12,7 @@ import { sources } from "../sites/sources";
 import items from "./../../pharmacyItems.json";
 import connections from "./../../brandConnections.json";
 //json file
-const jsonfile = require('jsonfile')
-const fs = require('fs')
+const jsonfile = require("jsonfile");
 
 type BrandsMapping = {
   [key: string]: string[];
@@ -163,17 +162,47 @@ type BrandsMapping = {
 //   return flatMapObject;
 // }
 
-
-
 export async function getBrandsMapping(): Promise<Record<string, string>> {
+  //   //     const query = `
+  //   //     SELECT
+  //   //     LOWER(p1.manufacturer) manufacturer_p1
+  //   //     , LOWER(GROUP_CONCAT(DISTINCT p2.manufacturer ORDER BY p2.manufacturer SEPARATOR ';')) AS manufacturers_p2
+  //   // FROM
+  //   //     property_matchingvalidation v
+  //   // INNER JOIN
+  //   //     property_pharmacy p1 ON v.m_source = p1.source
+  //   //     AND v.m_source_id = p1.source_id
+  //   //     AND v.m_country_code = p1.country_code
+  //   //     AND p1.newest = true
+  //   // INNER JOIN
+  //   //     property_pharmacy p2 ON v.c_source = p2.source
+  //   //     AND v.c_source_id = p2.source_id
+  //   //     AND v.c_country_code = p2.country_code
+  //   //     AND p2.newest = true
+  //   // WHERE
+  //   //     v.m_source = 'AZT'
+  //   //     AND v.engine_type = '${EngineType.Barcode}'
+  //   //     and p1.manufacturer is not null
+  //   //     and p2.manufacturer is not null
+  //   //     and p1.manufacturer not in ('kita', 'nera', 'cits')
+  //   //     and p2.manufacturer not in ('kita', 'nera', 'cits')
+  //   // GROUP BY
+  //   //     p1.manufacturer
+  //   //     `
+  //   //     const brandConnections = await executeQueryAndGetResponse(dbServers.pharmacy, query)
+  //   // For this test day purposes exported the necessary object
+
   const brandConnections = connections;
   const brandMap = new Map<string, Set<string>>();
 
   // Build initial brand relationships
   brandConnections.forEach(({ manufacturer_p1, manufacturers_p2 }) => {
     const brand1 = manufacturer_p1.toLowerCase();
-    const brand2Array = manufacturers_p2.toLowerCase().split(";").map((b) => b.trim());
-    
+    const brand2Array = manufacturers_p2
+      .toLowerCase()
+      .split(";")
+      .map((b) => b.trim());
+
     if (!brandMap.has(brand1)) {
       brandMap.set(brand1, new Set());
     }
@@ -207,7 +236,7 @@ export async function getBrandsMapping(): Promise<Record<string, string>> {
   flatMap.forEach((repBrand, brand) => {
     flatMapObject[brand] = repBrand;
   });
-  
+
   return flatMapObject;
 }
 
@@ -272,46 +301,21 @@ export async function assignBrandIfKnown(
   source: sources,
   job?: Job
 ) {
- 
   const context = { scope: "assignBrandIfKnown" } as ContextType;
 
   const brandsMapping = await getBrandsMapping();
- 
-  const file = './update_data.json'
-  jsonfile.writeFileSync(file, brandsMapping)
 
-// return
-
-  
-  // {
-  //   '112': [ '112' ],
-  //   '911': [ '911' ],
-  //   '3chenes': [
-  //     '3c pharma laboratoires',
-  //     'les 3 chenes',
-  //     '3chenes',
-  //     'color&soin'
-  //   ],
-  //   '3c pharma laboratoires': [
-  //     '3chenes',
-  //     '3c pharma laboratoires',
-  //     'les 3 chenes',
-  //     'color&soin'
-  //   ],
-  // }
+  const file = "./update_data.json";
+  jsonfile.writeFileSync(file, brandsMapping);
 
   const versionKey = "assignBrandIfKnown";
   let products = await getPharmacyItems(countryCode, source, versionKey, false);
   let counter = 0;
-  let counterExisting = 0;
-  let obj: any = {};
-  let arr: any = [];
   let updateProducts: any = [];
   for (let product of products) {
     counter++;
 
     if (product.m_id) {
-      counterExisting++;
       // Already exists in the mapping table, probably no need to update
       updateProducts.push(product);
       continue;
@@ -335,18 +339,17 @@ export async function assignBrandIfKnown(
         // checkBrandIsSeparateTerm will check if the brand is at the beginning or end of the string or contains the brand
         const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand);
         if (isBrandMatch) {
-
           // After confirming the match, validate the brand using the brandValidation method
           const validBrand = brandValidation(product.title);
-          if (validBrand) {
-            matchedBrands.push(validBrand);  // Add only valid brands based on brandValidation logic
+          if (validBrand && !matchedBrands.includes(validBrand)) {
+            matchedBrands.push(validBrand); // Add only valid brands based on brandValidation logic
           }
 
           // matchedBrands.push(brand);
         }
       }
     }
-    arr.push(matchedBrands);
+    // arr.push(matchedBrands);
     console.log(`${product.title} -> ${_.uniq(matchedBrands)}`);
     const sourceId = product.source_id;
     const meta = { matchedBrands };
@@ -355,27 +358,20 @@ export async function assignBrandIfKnown(
     const key = `${source}_${countryCode}_${sourceId}`;
     const uuid = stringToHash(key);
 
-    // Update pharmacy_mapping table
-    // obj[key] = { uuid, source, sourceId, countryCode, brand, matchedBrands };
-    // await updatePharmacyMapping(key, uuid, source, sourceId, countryCode, brand, meta, job, context);
-
     // Then brand is inserted into product mapping table
-    updateProducts.push({...product, m_id: product.source_id, source, country_code: countryCode, meta});
+    // Then brand is inserted into product mapping table
+    updateProducts.push({
+      ...product,
+      m_id: product.source_id,
+      source,
+      country_code: countryCode,
+      meta,
+    });
   }
 
-  const pharmacyItemsFile = './update_data_pharmacyItems.json'
-  jsonfile.writeFileSync(pharmacyItemsFile, updateProducts)
-
-  if (products.length == counter) {
-    console.log("100 All items processed ", counter);
-    console.log("101 All items counterExisting ", counterExisting);
-  }
-
-  // console.table(obj);
-  console.log("Meta Table");
-  //console.log("%j", arr);
+  const pharmacyItemsFile = "./update_data_pharmacyItems.json";
+  jsonfile.writeFileSync(pharmacyItemsFile, updateProducts);
 }
-
 
 // export async function assignBrandIfKnown(
 //   countryCode: countryCodes,
@@ -434,7 +430,20 @@ const brandValidation = (input) => {
   if (/\b(BIO|NEB)\b/i.test(input)) return null;
 
   // Priority brands (must be at the beginning)
-  const priorityBrands = ["EXTRA","RICH", "RFF", "flex", "ultra", "gum", "beauty", "orto", "free", "112", "kin", "happy"];
+  const priorityBrands = [
+    "EXTRA",
+    "RICH",
+    "RFF",
+    "flex",
+    "ultra",
+    "gum",
+    "beauty",
+    "orto",
+    "free",
+    "112",
+    "kin",
+    "happy",
+  ];
   // Secondary brands (must be in the first or second word position)
   const secondaryBrands = ["heel", "contour", "nero", "rsv"];
 
@@ -461,44 +470,42 @@ const brandValidation = (input) => {
   return null; // If no valid brand matches the conditions
 };
 
+console.log(brandValidation("test happy cream ultra free"));
+// null (because "happy" is not in the front)
 
+console.log(brandValidation("happy cream ultra free"));
+//  "happy" (because "happy" is in front)
 
-console.log(brandValidation("test happy cream ultra free")); 
-// ❌ null (because "happy" is not in the front)
+console.log(brandValidation("HAPPY cream ultra free"));
+//  "HAPPY" (fully capitalized match)
 
-console.log(brandValidation("happy cream ultra free")); 
-// ✅ "happy" (because "happy" is in front)
+console.log(brandValidation("ultra shampoo rich flex"));
+//  "ultra" (priority brand at the beginning)
 
-console.log(brandValidation("HAPPY cream ultra free")); 
-// ✅ "HAPPY" (fully capitalized match)
+console.log(brandValidation("rsv gum shampoo"));
+//  "heel" (first word match)
 
-console.log(brandValidation("ultra shampoo rich flex")); 
-// ✅ "ultra" (priority brand at the beginning)
+console.log(brandValidation("test heel gum shampoo"));
+//  "heel" (second word match)
 
-console.log(brandValidation("rsv gum shampoo")); 
-// ✅ "heel" (first word match)
+console.log(brandValidation("Babē skin care"));
+//  "Babe" (normalized Babē => Babe)
 
-console.log(brandValidation("test heel gum shampoo")); 
-// ✅ "heel" (second word match)
+console.log(brandValidation("BIO rich shampoo"));
+//  null (BIO is ignored)
 
-console.log(brandValidation("Babē skin care")); 
-// ✅ "Babe" (normalized Babē => Babe)
+console.log(brandValidation("NEB ultra shampoo"));
+// null (NEB is ignored)
 
-console.log(brandValidation("BIO rich shampoo")); 
-// ❌ null (BIO is ignored)
+console.log(brandValidation("rich heel nero"));
+//  "rich" (priority brand at the beginning)
+console.log(brandValidation("RICH heel nero"));
 
-console.log(brandValidation("NEB ultra shampoo")); 
-// ❌ null (NEB is ignored)
+console.log(brandValidation("nero heel gum"));
+//  "nero" (secondary brand in second position)
 
-console.log(brandValidation("rich heel nero")); 
-// ✅ "rich" (priority brand at the beginning)
-console.log(brandValidation("RICH heel nero")); 
+console.log(brandValidation("kin ultra shampoo"));
+//  "kin" (priority brand in front)
 
-console.log(brandValidation("nero heel gum")); 
-// ✅ "nero" (secondary brand in second position)
-
-console.log(brandValidation("kin ultra shampoo")); 
-// ✅ "kin" (priority brand in front)
-
-console.log(brandValidation("112 beauty orto")); 
-// ✅ "112" (priority brand in front)
+console.log(brandValidation("112 beauty orto"));
+//  "112" (priority brand in front)
