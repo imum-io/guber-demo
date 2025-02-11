@@ -6,6 +6,7 @@ import _ from "lodash"
 import { sources } from "../sites/sources"
 import items from "./../../pharmacyItems.json"
 import connections from "./../../brandConnections.json"
+import { FRONT_OR_SECOND_BRANDS, IGNORE_BRANDS, MUST_BE_FIRST } from "./constant"
 
 type BrandsMapping = {
     [key: string]: string[]
@@ -67,15 +68,19 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
         const brand1 = manufacturer_p1.toLowerCase()
         const brands2 = manufacturers_p2.toLowerCase()
         const brand2Array = brands2.split(";").map((b) => b.trim())
-        if (!brandMap.has(brand1)) {
-            brandMap.set(brand1, new Set())
+
+        const norBrand1 = normalizeBrand(brand1)
+
+        if (!brandMap.has(norBrand1)) {
+          brandMap.set(norBrand1, new Set());
         }
         brand2Array.forEach((brand2) => {
-            if (!brandMap.has(brand2)) {
-                brandMap.set(brand2, new Set())
+            const norBrand2 = normalizeBrand(brand2)
+            if (!brandMap.has(norBrand2)) {
+              brandMap.set(norBrand2, new Set());
             }
-            brandMap.get(brand1)!.add(brand2)
-            brandMap.get(brand2)!.add(brand1)
+            brandMap.get(norBrand1)!.add(norBrand2);
+            brandMap.get(norBrand2)!.add(norBrand1);
         })
     })
 
@@ -93,7 +98,7 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
     flatMap.forEach((relatedBrands, brand) => {
         flatMapObject[brand] = Array.from(relatedBrands)
     })
-
+  
     return flatMapObject
 }
 
@@ -128,22 +133,45 @@ async function getPharmacyItems(countryCode: countryCodes, source: sources, vers
     return finalProducts
 }
 
-export function checkBrandIsSeparateTerm(input: string, brand: string): boolean {
-    // Escape any special characters in the brand name for use in a regular expression
-    const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-
-    // Check if the brand is at the beginning or end of the string
-    const atBeginningOrEnd = new RegExp(
-        `^(?:${escapedBrand}\\s|.*\\s${escapedBrand}\\s.*|.*\\s${escapedBrand})$`,
-        "i"
-    ).test(input)
-
-    // Check if the brand is a separate term in the string
-    const separateTerm = new RegExp(`\\b${escapedBrand}\\b`, "i").test(input)
-
-    // The brand should be at the beginning, end, or a separate term
-    return atBeginningOrEnd || separateTerm
+export function normalizeBrand(brand: string): string {
+  return brand.replace(/[^\w\s]/gi, "");
 }
+
+export function checkBrandIsSeparateTerm(input: string, brand: string): boolean {
+
+  // Escape any special characters in the brand name for use in a regular expression
+  const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  // Check if the brand is at the beginning or end of the string
+  const atBeginningOrEnd = new RegExp(
+    `^(?:${escapedBrand}\\s|.*\\s${escapedBrand}\\s.*|.*\\s${escapedBrand})$`,
+    "i"
+  ).test(input);
+
+  // Check if the brand is a separate term in the string
+  const separateTerm = new RegExp(`\\b${escapedBrand}\\b`, "i").test(input);
+
+  // The brand should be at the beginning, end, or a separate term
+  return atBeginningOrEnd || separateTerm;
+}
+
+export const isBrandValidOnFirst = (brand:string) => {
+  return MUST_BE_FIRST.some((item) => brand.startsWith(item));
+};
+
+
+export const isBrandValidOnFirstOrSecond = (brand: string) => {
+   const words = brand.split(/\s+/); 
+   return FRONT_OR_SECOND_BRANDS.some(
+     (item) => words[0] === item || words[1] === item
+   );
+};
+
+
+export const isMustMatchCapitalAndEqual = (brand: string) => {
+  return MUST_BE_FIRST.some((item) => brand === item);
+};
+
 
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
     const context = { scope: "assignBrandIfKnown" } as ContextType
@@ -165,16 +193,52 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         for (const brandKey in brandsMapping) {
             const relatedBrands = brandsMapping[brandKey]
             for (const brand of relatedBrands) {
-                if (matchedBrands.includes(brand)) {
-                    continue
-                }
-                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
-                if (isBrandMatch) {
-                    matchedBrands.push(brand)
-                }
+              const normalizedBrand = normalizeBrand(brand);
+
+              if (IGNORE_BRANDS.includes(normalizedBrand)) {
+                continue;
+              }
+
+              if (matchedBrands.includes(normalizedBrand)) {
+                continue;
+              }
+
+              if (!isBrandValidOnFirst(normalizedBrand)) {
+                continue;
+              }
+
+              if (!isBrandValidOnFirstOrSecond(normalizedBrand)) {
+                continue;
+              }
+
+              if (!isMustMatchCapitalAndEqual(normalizedBrand)) {
+                continue;
+              }
+
+              const isBrandMatch = checkBrandIsSeparateTerm(
+                product.title,
+                brand
+              );
+              if (isBrandMatch) {
+                matchedBrands.push(brand);
+              }
             }
         }
-        console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
+      
+        matchedBrands.sort((a, b) => {
+          const indexA = product.title.toLowerCase().indexOf(a.toLowerCase());
+          const indexB = product.title.toLowerCase().indexOf(b.toLowerCase());
+
+          // If a brand is not found, push it to the end
+          if (indexA === -1) return 1;
+          if (indexB === -1) return -1;
+
+          // Sort by position in the title (earlier = higher priority)
+          return indexA - indexB;
+        });
+
+      
+        // console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
         const sourceId = product.source_id
         const meta = { matchedBrands }
         const brand = matchedBrands.length ? matchedBrands[0] : null
