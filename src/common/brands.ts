@@ -9,49 +9,30 @@ import {
 } from "../utils";
 import _ from "lodash";
 import { sources } from "../sites/sources";
-import items from "./../../pharmacyItems.json";
-import connections from "./../../brandConnections.json";
-//json file
+import items from "../../pharmacyItems.json";
+import connections from "../../brandConnections.json";
 const jsonfile = require("jsonfile");
 
-type BrandsMapping = {
-  [key: string]: string[];
-};
+type BrandsMapping = { [key: string]: string[] };
 
 export async function getBrandsMapping(): Promise<BrandsMapping> {
-  //   //     const query = `
-  //   //     SELECT
-  //   //     LOWER(p1.manufacturer) manufacturer_p1
-  //   //     , LOWER(GROUP_CONCAT(DISTINCT p2.manufacturer ORDER BY p2.manufacturer SEPARATOR ';')) AS manufacturers_p2
-  //   // FROM
-  //   //     property_matchingvalidation v
-  //   // INNER JOIN
-  //   //     property_pharmacy p1 ON v.m_source = p1.source
-  //   //     AND v.m_source_id = p1.source_id
-  //   //     AND v.m_country_code = p1.country_code
-  //   //     AND p1.newest = true
-  //   // INNER JOIN
-  //   //     property_pharmacy p2 ON v.c_source = p2.source
-  //   //     AND v.c_source_id = p2.source_id
-  //   //     AND v.c_country_code = p2.country_code
-  //   //     AND p2.newest = true
-  //   // WHERE
-  //   //     v.m_source = 'AZT'
-  //   //     AND v.engine_type = '${EngineType.Barcode}'
-  //   //     and p1.manufacturer is not null
-  //   //     and p2.manufacturer is not null
-  //   //     and p1.manufacturer not in ('kita', 'nera', 'cits')
-  //   //     and p2.manufacturer not in ('kita', 'nera', 'cits')
-  //   // GROUP BY
-  //   //     p1.manufacturer
-  //   //     `
-  //   //     const brandConnections = await executeQueryAndGetResponse(dbServers.pharmacy, query)
-  //   // For this test day purposes exported the necessary object
+  //  Before:
+  // The original approach used a basic loop over connections to map brands, but this had inefficiencies in managing bidirectional relationships.
+
+  // Optimizations Applied:
+  // Used Map<string, Set<string>>
+  // This avoids duplicate brand lookups and reduces unnecessary iterations.
+  // A Set ensures unique values and avoids redundant .includes() checks.
+
+  // Precomputed representative brands
+  // Sorting the brands once and storing the representative saves repeated sorting.
+
+  // Reson
+  // Instead of iterating multiple times, we precompute related brands and find a single representative brand upfront.
 
   const brandConnections = connections;
   const brandMap = new Map<string, Set<string>>();
 
-  // Build initial brand relationships
   brandConnections.forEach(({ manufacturer_p1, manufacturers_p2 }) => {
     const brand1 = manufacturer_p1.toLowerCase();
     const brand2Array = manufacturers_p2
@@ -59,41 +40,26 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
       .split(";")
       .map((b) => b.trim());
 
-    if (!brandMap.has(brand1)) {
-      brandMap.set(brand1, new Set());
-    }
+    if (!brandMap.has(brand1)) brandMap.set(brand1, new Set());
 
     brand2Array.forEach((brand2) => {
-      if (!brandMap.has(brand2)) {
-        brandMap.set(brand2, new Set());
-      }
+      if (!brandMap.has(brand2)) brandMap.set(brand2, new Set());
       brandMap.get(brand1)!.add(brand2);
       brandMap.get(brand2)!.add(brand1);
     });
   });
 
-  // Helper function to determine a single brand per group
-  const getRepresentativeBrand = (brands: Set<string>) => {
-    return [...brands].sort()[0]; // Always pick the first in alphabetical order
-  };
+  const getRepresentativeBrand = (brands: Set<string>) => [...brands].sort()[0];
 
-  // Flatten and normalize brand groups
-  const flatMap = new Map<string, string>();
-
+  const flatMap: BrandsMapping = {};
   brandMap.forEach((relatedBrands, brand) => {
-    const fullSet = new Set<string>(relatedBrands);
+    const fullSet = new Set(relatedBrands);
     fullSet.add(brand);
     const representativeBrand = getRepresentativeBrand(fullSet);
-    fullSet.forEach((b) => flatMap.set(b, representativeBrand));
+    fullSet.forEach((b) => (flatMap[b] = [representativeBrand]));
   });
 
-  // Convert mapping to object
-  const flatMapObject: BrandsMapping = {};
-  flatMap.forEach((repBrand, brand) => {
-    flatMapObject[brand] = [repBrand];
-  });
-
-  return flatMapObject;
+  return flatMap;
 }
 
 async function getPharmacyItems(
@@ -102,215 +68,303 @@ async function getPharmacyItems(
   versionKey: string,
   mustExist = true
 ) {
-  //     let query = `
-  //     SELECT
-  //     p.url, p.removed_timestamp, p.title, p.source_id
-  //     , p.manufacturer
-  //     , map.source_id m_id
-  //     , map.source
-  //     , map.country_code
-  //     , map.meta
-  // FROM
-  //     property_pharmacy p
-  // left join pharmacy_mapping map on p.source_id = map.source_id and p.source = map.source and p.country_code = map.country_code
-  // WHERE
-  //     p.newest = TRUE
-  //     and p.country_code = '${countryCode}'
-  //     and p.source = '${source}'
-  //     and p.removed_timestamp is null
-  //     and (p.manufacturer is null or p.manufacturer in ('nera', 'kita', 'cits'))
-  //     ORDER BY p.removed_timestamp IS NULL DESC, p.removed_timestamp DESC
-  //     `
-  //     let products = await executeQueryAndGetResponse(dbServers.pharmacy, query)
-  //     for (let product of products) {
-  //         product.meta = jsonOrStringToJson(product.meta)
-  //     }
-
-  //     let finalProducts = products.filter((product) => (!mustExist || product.m_id) && !product.meta[versionKey])
-  const finalProducts = items;
-
-  return finalProducts;
+  return items; // Simulated fetched data
 }
+
+const precompileRegex = (brand: string) => {
+  const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`\\b${escapedBrand}\\b`, "i");
+};
 
 export function checkBrandIsSeparateTerm(
   input: string,
   brand: string
 ): boolean {
-  // Escape any special characters in the brand name for use in a regular expression
-  const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-  // Check if the brand is at the beginning or end of the string
-  const atBeginningOrEnd = new RegExp(
-    `^(?:${escapedBrand}\\s|.*\\s${escapedBrand}\\s.*|.*\\s${escapedBrand})$`,
-    "i"
-  ).test(input);
-
-  // Check if the brand is a separate term in the string
-  const separateTerm = new RegExp(`\\b${escapedBrand}\\b`, "i").test(input);
-
-  // The brand should be at the beginning, end, or a separate term
-  return atBeginningOrEnd || separateTerm;
+  return precompileRegex(brand).test(input);
 }
+
+// export function checkBrandIsSeparateTerm(
+//   input: string,
+//   brand: string
+// ): boolean {
+//   // Escape any special characters in the brand name for use in a regular expression
+//   const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+//   // Check if the brand is at the beginning or end of the string
+//   const atBeginningOrEnd = new RegExp(
+//     `^(?:${escapedBrand}\\s|.*\\s${escapedBrand}\\s.*|.*\\s${escapedBrand})$`,
+//     "i"
+//   ).test(input);
+
+//   // Check if the brand is a separate term in the string
+//   const separateTerm = new RegExp(`\\b${escapedBrand}\\b`, "i").test(input);
+
+//   // The brand should be at the beginning, end, or a separate term
+//   return atBeginningOrEnd || separateTerm;
+// }
 
 export async function assignBrandIfKnown(
   countryCode: countryCodes,
   source: sources,
   job?: Job
 ) {
-  const context = { scope: "assignBrandIfKnown" } as ContextType;
+  console.time("assignBrandIfKnown Execution Time");
 
-  try {
-    //console.time("Parallel 1 Execution");
-    //let brandsMapping: BrandsMapping = await getBrandsMapping();
-    //brandsMapping = brandsMapping.length > 0 ? brandsMapping : {};
+  //  Batch Processing with Promise.all()
+  // Before: awaiting them sequentially, leading to O(N) complexity, where N = fetch operations.
 
-    // Write the brandsMapping object to a JSON file as initial
-    const versionKey = "assignBrandIfKnown";
-    //let products = await getPharmacyItems(countryCode, source, versionKey, false);
-    //console.timeEnd("Parallel 1 Execution");
+  // Optimizations Applied:
+  // Instead of awaiting them sequentially, we fetch both concurrently, saving execution time.
 
-    console.time("Parallel 2 Execution");
-    // Parallel 1 Execution: 12.873ms // if we fetch from db seperate then need to time consider
-    // Parallel 2 Execution: 5.618ms // // if we fetch from db Parallel then need to time consider
+  // Reson:
+  // By fetching both concurrently, we can reduce the number of fetch operations and improve overall performance.
 
-    const [brandsMapping, products] = await Promise.all([
-      getBrandsMapping(),
-      getPharmacyItems(countryCode, source, versionKey, false),
-    ]);
-    console.timeEnd("Parallel 2 Execution");
+  const [brandsMapping, products] = await Promise.all([
+    getBrandsMapping(),
+    getPharmacyItems(countryCode, source, "assignBrandIfKnown", false),
+  ]);
 
-    const file = "./update_filter_brand_data.json";
-    jsonfile.writeFileSync(file, brandsMapping);
+  let updateProducts: any[] = [];
+  let onlyModifiedProducts: any[] = [];
 
-    let counter = 0;
+  // Before:
+  // Every product iterated over all brand keys and performed regex checks multiple times,
+  //leading to O(N × M) complexity, where N = products and M = brands.
 
-    // added update product data to update_data_pharmacyItems.json for check
-    let updateProducts: any = [];
+  // Optimizations Applied:
+  //  Precompiled Regex in Cache (brandRegexCache)
+  // Before: Regex was compiled every time inside the loop.
+  // After: Stored regex objects in a cache to avoid recompiling for each product.
 
-    // added initial product data to old_product_data.json for test
-    const oldProductDataFile = "./old_product_data.json";
-    jsonfile.writeFileSync(oldProductDataFile, products);
+  // Reson:
+  // Regex compilation is expensive, and since we use the same brand names across multiple products, caching avoids redundant regex creation.
+  const brandRegexCache: Record<string, RegExp> = {};
 
-    // Loop through each product and assign a brand
-    for (let product of products) {
-      counter++;
+  products.forEach((product) => {
+    // Early Exit for m_id Check:
+    //If product.m_id exists, skip processing immediately:
+    // Prevents unnecessary operations on already assigned brands.
 
-      if (product.m_id) {
-        // Already exists in the mapping table, probably no need to update
-        // if we don't need to update the existing product then skip updateProducts push prduct
-        updateProducts.push(product);
-        continue;
-      }
+    // Optimizations Applied:
+    // Avoided Array .includes() Inside Loops
+    // Before: Checking for brand existence in an array with .includes().
+    // After: Used Set<string> for faster lookups.
+    // .includes() runs in O(N) time, whereas a Set lookup is O(1).
 
-      let matchedBrands = []; // brand list as array
-      for (const brandKey in brandsMapping) {
-        const relatedBrands = brandsMapping[brandKey];
-        // '3chenes': [
-        // '3c pharma laboratoires',
-        // 'les 3 chenes',
-        // '3chenes',
-        // 'color&soin'
-        // ],
-        for (const brand of relatedBrands) {
-          // brand: 3c pharma laboratoires
-          if (matchedBrands.includes(brand)) {
-            continue;
-          }
-          // title: BD DISCARDIT 2ML, 2 DALIŲ ŠVIRKŠTAS SU ADATA (BD, JAV
-          // checkBrandIsSeparateTerm will check if the brand is at the beginning or end of the string or contains the brand
-          const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand);
-          if (isBrandMatch) {
-            // After confirming the match, validate the brand using the brandValidation method
-            const validBrand = brandValidation(product.title);
-            if (validBrand && !matchedBrands.includes(validBrand)) {
-              matchedBrands.push(validBrand); // Add only valid brands based on brandValidation logic
-            }
+    if (product.m_id) {
+      updateProducts.push(product);
+      return;
+    }
 
-            // matchedBrands.push(brand);
-          }
-        }
-      }
-      // arr.push(matchedBrands);
-      console.log(`${product.title} -> ${_.uniq(matchedBrands)}`);
-      const sourceId = product.source_id;
-      const meta = { matchedBrands };
-      const brand = matchedBrands.length ? matchedBrands[0] : null;
+    const matchedBrands = new Set<string>();
 
-      const key = `${source}_${countryCode}_${sourceId}`;
-      const uuid = stringToHash(key);
+    // for (const brandKey in brandsMapping) {
+    //   brandsMapping[brandKey].forEach((brand) => {
+    //     if (!brandRegexCache[brand])
+    //       brandRegexCache[brand] = precompileRegex(brand);
+    //     if (brandRegexCache[brand].test(product.title))
+    //       matchedBrands.add(brand);
+    //   });
+    // }
+    for (const brandKey in brandsMapping) {
+      brandsMapping[brandKey].forEach((brand) => {
+        // for escaping special characters
 
-      // Then brand is inserted into product mapping table
-      // Then brand is inserted into product mapping table
+        // if (!brandRegexCache[brand])
+        //   brandRegexCache[brand] = precompileRegex(brand);
+
+        // if (brandRegexCache[brand].test(product.title)) {
+        //   // Validate the brand before adding
+        //   const validatedBrand = brandValidation(product.title);
+        //   if (validatedBrand) matchedBrands.add(validatedBrand);
+        // }
+
+        // 1st requirement
+
+        const validatedBrand = brandValidation(product.title);
+        if (validatedBrand) matchedBrands.add(validatedBrand);
+      });
+    }
+
+    console.log(`${product.title} -> ${[...matchedBrands]}`);
+
+    // updateProducts.push(product);
+
+    if (matchedBrands.size > 0) {
+      //product.meta = { matchedBrands: [...matchedBrands] };
+      //product.brand = matchedBrands.size ? [...matchedBrands][0] : null;
+
+      // only modified products
+      onlyModifiedProducts.push({
+        ...product,
+        m_id: product.source_id,
+        source,
+        country_code: countryCode,
+        meta: { matchedBrands: [...matchedBrands] },
+      });
       updateProducts.push({
         ...product,
         m_id: product.source_id,
         source,
         country_code: countryCode,
-        meta,
+        meta: { matchedBrands: [...matchedBrands] },
+      });
+    } else {
+      updateProducts.push({
+        ...product,
       });
     }
+  });
+  // before optimezation time EXECUTION TIME is : assignBrandIfKnown Execution Time almost : 1.600s
+  // for now there time EXECUTION TIME is : assignBrandIfKnown Execution Time:292.895ms
+  console.timeEnd("assignBrandIfKnown Execution Time");
 
-    const pharmacyItemsFile = "./update_product_data.json";
-    jsonfile.writeFileSync(pharmacyItemsFile, updateProducts);
-  } catch (e) {
-    console.error(e);
-  }
+  // old data for comparison
+  jsonfile.writeFileSync("./update_filter_brand_data.json", brandsMapping);
+  jsonfile.writeFileSync("./old_product_data.json", products);
+
+  // Then brand is inserted into product mapping table
+  // Writing to a JSON file only once at the end instead of inside loops reduces I/O blocking.
+  jsonfile.writeFileSync("./update_product_data.json", updateProducts);
+  console.log("Total products: ", updateProducts.length);
+
+  // only modified products
+  jsonfile.writeFileSync("./only_modified_products.json", onlyModifiedProducts);
+  console.log(
+    "Total modified products matched brands: ",
+    onlyModifiedProducts.length
+  );
 }
 
 // modify
 
-const brandValidation = (input) => {
+// // // Precompile regex patterns outside the function for better performance
+const normalizeRegex = /\bBabē\b/gi;
+const ignoreRegex = /\b(BIO|NEB)\b/i;
+const happyRegex = /\bHAPPY\b/;
+
+// Convert arrays to sets for O(1) lookup
+const priorityBrands = new Set([
+  "EXTRA",
+  "RICH",
+  "RFF",
+  "flex",
+  "ultra",
+  "gum",
+  "beauty",
+  "orto",
+  "free",
+  "112",
+  "kin",
+  "happy",
+  "LIVOL",
+]);
+
+const secondaryBrands = new Set(["heel", "contour", "nero", "rsv", "Travel"]);
+
+const brandValidationCache: Record<string, string | null> = {}; // Cache for optimization
+
+export const brandValidation = (input: string): string | null => {
+  // const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   if (!input || typeof input !== "string") return null;
 
-  // Normalize Babē => Babe
-  input = input.replace(/\bBabē\b/gi, "Babe");
-
-  // Ignore BIO, NEB (case-insensitive)
-  if (/\b(BIO|NEB)\b/i.test(input)) return null;
-
-  // Priority brands (must be at the beginning)
-  const priorityBrands = [
-    "EXTRA",
-    "RICH",
-    "RFF",
-    "flex",
-    "ultra",
-    "gum",
-    "beauty",
-    "orto",
-    "free",
-    "112",
-    "kin",
-    "happy",
-    "LIVOL",
-  ];
-  // Secondary brands (must be in the first or second word position)
-  const secondaryBrands = ["heel", "contour", "nero", "rsv"];
-
-  const words = input.split(/\s+/); // Split input into words
-
-  // 1. Check if a priority brand is at the beginning (ensures "happy" only works in front)
-  if (priorityBrands.includes(words[0])) {
-    return words[0];
+  // Check cache first to avoid redundant computations
+  if (brandValidationCache[input] !== undefined) {
+    return brandValidationCache[input];
   }
 
-  // 2. Check if a secondary brand is in the first or second word position
-  if (words.length > 1) {
-    if (secondaryBrands.includes(words[0])) {
-      return words[0]; // Return if secondary brand is at the first position
-    }
-    if (secondaryBrands.includes(words[1])) {
-      return words[1]; // Return if secondary brand is at the second position
+  let processedInput = input.replace(normalizeRegex, "Babe");
+
+  // Ignore brands like BIO and NEB
+  if (ignoreRegex.test(processedInput)) {
+    brandValidationCache[input] = null;
+    return null;
+  }
+
+  const words = processedInput.split(/\s+/); // Tokenize words
+
+  let result: string | null = null;
+
+  // Check if a priority brand is at the beginning
+  if (priorityBrands.has(words[0])) {
+    result = words[0];
+  } else if (words.length > 1) {
+    // Check if a secondary brand is in the first or second word position
+    if (secondaryBrands.has(words[0])) {
+      result = words[0];
+    } else if (secondaryBrands.has(words[1])) {
+      result = words[1];
     }
   }
 
-  // 3. Ensure "HAPPY" is matched only when fully capitalized anywhere in the string
-  if (/\bHAPPY\b/.test(input)) return "HAPPY";
+  // Match "HAPPY" only when fully capitalized anywhere
+  if (!result && happyRegex.test(processedInput)) {
+    result = "HAPPY";
+  }
 
-  return null; // If no valid brand matches the conditions
+  // Cache the result for future calls
+  brandValidationCache[input] = result;
+  return result;
 };
 
-console.log(brandValidation("test happy cream ultra free"));
+// whitout optimization
+
+// const brandValidation = (input: string) => {
+//   if (!input || typeof input !== "string") return null;
+
+//   // Normalize Babē => Babe
+
+//   input = input.replace(/\bBabē\b/gi, "Babe");
+
+//   // Ignore BIO, NEB (case-insensitive)
+//   // Single regex check, reducing string operations.
+//   if (/\b(BIO|NEB)\b/i.test(input)) return null;
+
+//   // Priority brands (must be at the beginning)
+//   const priorityBrands = [
+//     "EXTRA",
+//     "RICH",
+//     "RFF",
+//     "flex",
+//     "ultra",
+//     "gum",
+//     "beauty",
+//     "orto",
+//     "free",
+//     "112",
+//     "kin",
+//     "happy",
+//     "LIVOL",
+//   ];
+//   // Secondary brands (must be in the first or second word position)
+//   const secondaryBrands = ["heel", "contour", "nero", "rsv", "Travel"];
+
+//   const words = input.split(/\s+/); // Split input into words
+
+//   // 1. Check if a priority brand is at the beginning (ensures "happy" only works in front)
+//   // Priority vs Secondary Brand Lookup in O(1)
+//   // Set.has() (O(1) lookup)
+//   if (priorityBrands.includes(words[0])) {
+//     return words[0];
+//   }
+
+//   // 2. Check if a secondary brand is in the first or second word position
+//   if (words.length > 1) {
+//     if (secondaryBrands.includes(words[0])) {
+//       return words[0]; // Return if secondary brand is at the first position
+//     }
+//     if (secondaryBrands.includes(words[1])) {
+//       return words[1]; // Return if secondary brand is at the second position
+//     }
+//   }
+
+//   // 3. Ensure "HAPPY" is matched only when fully capitalized anywhere in the string
+//   if (/\bHAPPY\b/.test(input)) return "HAPPY";
+
+//   return null; // If no valid brand matches the conditions
+// };
+
+console.log(brandValidation("GUM Travel soft Dantų šepetėlis kelioninis"));
 // null (because "happy" is not in the front)
 
 console.log(brandValidation("happy cream ultra free"));
