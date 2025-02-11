@@ -160,33 +160,18 @@ export async function assignBrandIfKnown(
 
     // for (const brandKey in brandsMapping) {
     //   brandsMapping[brandKey].forEach((brand) => {
-    //     if (!brandRegexCache[brand])
-    //       brandRegexCache[brand] = precompileRegex(brand);
-    //     if (brandRegexCache[brand].test(product.title))
-    //       matchedBrands.add(brand);
+
+    //     // 1st requirement
+
+    //     const validatedBrand = brandValidation(product.title);
+    //     if (validatedBrand) matchedBrands.add(validatedBrand);
     //   });
     // }
-    for (const brandKey in brandsMapping) {
-      brandsMapping[brandKey].forEach((brand) => {
-        // for escaping special characters
 
-        // if (!brandRegexCache[brand])
-        //   brandRegexCache[brand] = precompileRegex(brand);
+    const validatedBrand = brandValidation(product.title);
+    if (validatedBrand) matchedBrands.add(validatedBrand);
 
-        // if (brandRegexCache[brand].test(product.title)) {
-        //   // Validate the brand before adding
-        //   const validatedBrand = brandValidation(product.title);
-        //   if (validatedBrand) matchedBrands.add(validatedBrand);
-        // }
-
-        // 1st requirement
-
-        const validatedBrand = brandValidation(product.title);
-        if (validatedBrand) matchedBrands.add(validatedBrand);
-      });
-    }
-
-    console.log(`${product.title} -> ${[...matchedBrands]}`);
+    //console.log(`${product.title} -> ${[...matchedBrands]} \n`);
 
     // updateProducts.push(product);
 
@@ -215,8 +200,17 @@ export async function assignBrandIfKnown(
       });
     }
   });
-  // before optimezation time EXECUTION TIME is : assignBrandIfKnown Execution Time almost : 1.600s
-  // for now there time EXECUTION TIME is : assignBrandIfKnown Execution Time:292.895ms
+
+  
+// Before optimization, the execution time was measured as:
+// Existing System assignBrandIfKnown Execution Time: 22.151 seconds.
+
+// After optimization, the execution time has been reduced to:
+// Current assignBrandIfKnown Execution Time: 8.808 milliseconds.
+
+
+  console.log("\n----------------------------\n");
+
   console.timeEnd("assignBrandIfKnown Execution Time");
 
   // old data for comparison
@@ -226,19 +220,25 @@ export async function assignBrandIfKnown(
   // Then brand is inserted into product mapping table
   // Writing to a JSON file only once at the end instead of inside loops reduces I/O blocking.
   jsonfile.writeFileSync("./update_product_data.json", updateProducts);
+
+  console.log("\n----------------------------\n");
+  
   console.log("Total products: ", updateProducts.length);
 
+  console.log("\n----------------------------\n");
   // only modified products
   jsonfile.writeFileSync("./only_modified_products.json", onlyModifiedProducts);
   console.log(
     "Total modified products matched brands: ",
     onlyModifiedProducts.length
   );
+  console.log("\n----------------------------\n");
 }
 
 // modify
 
-// // // Precompile regex patterns outside the function for better performance
+
+// Precompile regex patterns outside the function for better performance
 const normalizeRegex = /\bBabē\b/gi;
 const ignoreRegex = /\b(BIO|NEB)\b/i;
 const happyRegex = /\bHAPPY\b/;
@@ -257,23 +257,22 @@ const priorityBrands = new Set([
   "112",
   "kin",
   "happy",
-  "LIVOL",
 ]);
 
-const secondaryBrands = new Set(["heel", "contour", "nero", "rsv", "Travel"]);
+const secondaryBrands = new Set(["heel", "contour", "nero", "rsv"]);
 
 const brandValidationCache: Record<string, string | null> = {}; // Cache for optimization
 
 export const brandValidation = (input: string): string | null => {
-  // const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   if (!input || typeof input !== "string") return null;
+
+  let processedInput = input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
   // Check cache first to avoid redundant computations
   if (brandValidationCache[input] !== undefined) {
     return brandValidationCache[input];
   }
-
-  let processedInput = input.replace(normalizeRegex, "Babe");
+  processedInput = input.replace(normalizeRegex, "Babe");
 
   // Ignore brands like BIO and NEB
   if (ignoreRegex.test(processedInput)) {
@@ -307,99 +306,4 @@ export const brandValidation = (input: string): string | null => {
   return result;
 };
 
-// whitout optimization
-
-// const brandValidation = (input: string) => {
-//   if (!input || typeof input !== "string") return null;
-
-//   // Normalize Babē => Babe
-
-//   input = input.replace(/\bBabē\b/gi, "Babe");
-
-//   // Ignore BIO, NEB (case-insensitive)
-//   // Single regex check, reducing string operations.
-//   if (/\b(BIO|NEB)\b/i.test(input)) return null;
-
-//   // Priority brands (must be at the beginning)
-//   const priorityBrands = [
-//     "EXTRA",
-//     "RICH",
-//     "RFF",
-//     "flex",
-//     "ultra",
-//     "gum",
-//     "beauty",
-//     "orto",
-//     "free",
-//     "112",
-//     "kin",
-//     "happy",
-//     "LIVOL",
-//   ];
-//   // Secondary brands (must be in the first or second word position)
-//   const secondaryBrands = ["heel", "contour", "nero", "rsv", "Travel"];
-
-//   const words = input.split(/\s+/); // Split input into words
-
-//   // 1. Check if a priority brand is at the beginning (ensures "happy" only works in front)
-//   // Priority vs Secondary Brand Lookup in O(1)
-//   // Set.has() (O(1) lookup)
-//   if (priorityBrands.includes(words[0])) {
-//     return words[0];
-//   }
-
-//   // 2. Check if a secondary brand is in the first or second word position
-//   if (words.length > 1) {
-//     if (secondaryBrands.includes(words[0])) {
-//       return words[0]; // Return if secondary brand is at the first position
-//     }
-//     if (secondaryBrands.includes(words[1])) {
-//       return words[1]; // Return if secondary brand is at the second position
-//     }
-//   }
-
-//   // 3. Ensure "HAPPY" is matched only when fully capitalized anywhere in the string
-//   if (/\bHAPPY\b/.test(input)) return "HAPPY";
-
-//   return null; // If no valid brand matches the conditions
-// };
-
-console.log(brandValidation("GUM Travel soft Dantų šepetėlis kelioninis"));
-// null (because "happy" is not in the front)
-
-console.log(brandValidation("happy cream ultra free"));
-//  "happy" (because "happy" is in front)
-
-console.log(brandValidation("HAPPY cream ultra free"));
-//  "HAPPY" (fully capitalized match)
-
-console.log(brandValidation("ultra shampoo rich flex"));
-//  "ultra" (priority brand at the beginning)
-
-console.log(brandValidation("rsv gum shampoo"));
-//  "heel" (first word match)
-
-console.log(brandValidation("test heel gum shampoo"));
-//  "heel" (second word match)
-
-console.log(brandValidation("Babē skin care"));
-//  "Babe" (normalized Babē => Babe)
-
-console.log(brandValidation("BIO rich shampoo"));
-//  null (BIO is ignored)
-
-console.log(brandValidation("NEB ultra shampoo"));
-// null (NEB is ignored)
-
-console.log(brandValidation("rich heel nero"));
-//  "rich" (priority brand at the beginning)
-console.log(brandValidation("RICH heel nero"));
-
-console.log(brandValidation("nero heel gum"));
-//  "nero" (secondary brand in second position)
-
-console.log(brandValidation("kin ultra shampoo"));
-//  "kin" (priority brand in front)
-
-console.log(brandValidation("112 beauty orto"));
-//  "112" (priority brand in front)
+console.log("\n----------------------------\n");
