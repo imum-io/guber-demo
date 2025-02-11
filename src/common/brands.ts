@@ -18,151 +18,7 @@ type BrandsMapping = {
   [key: string]: string[];
 };
 
-// export async function getBrandsMapping(): Promise<BrandsMapping> {
-//   //     const query = `
-//   //     SELECT
-//   //     LOWER(p1.manufacturer) manufacturer_p1
-//   //     , LOWER(GROUP_CONCAT(DISTINCT p2.manufacturer ORDER BY p2.manufacturer SEPARATOR ';')) AS manufacturers_p2
-//   // FROM
-//   //     property_matchingvalidation v
-//   // INNER JOIN
-//   //     property_pharmacy p1 ON v.m_source = p1.source
-//   //     AND v.m_source_id = p1.source_id
-//   //     AND v.m_country_code = p1.country_code
-//   //     AND p1.newest = true
-//   // INNER JOIN
-//   //     property_pharmacy p2 ON v.c_source = p2.source
-//   //     AND v.c_source_id = p2.source_id
-//   //     AND v.c_country_code = p2.country_code
-//   //     AND p2.newest = true
-//   // WHERE
-//   //     v.m_source = 'AZT'
-//   //     AND v.engine_type = '${EngineType.Barcode}'
-//   //     and p1.manufacturer is not null
-//   //     and p2.manufacturer is not null
-//   //     and p1.manufacturer not in ('kita', 'nera', 'cits')
-//   //     and p2.manufacturer not in ('kita', 'nera', 'cits')
-//   // GROUP BY
-//   //     p1.manufacturer
-//   //     `
-//   //     const brandConnections = await executeQueryAndGetResponse(dbServers.pharmacy, query)
-//   // For this test day purposes exported the necessary object
-//   const brandConnections = connections;
-
-//   const getRelatedBrands = (
-//     map: Map<string, Set<string>>,
-//     brand: string
-//   ): Set<string> => {
-//     console.log(400, "brand", brand);
-//     //console.log(500, { map });
-
-//     const relatedBrands = new Set<string>();
-//     const queue = [brand];
-//     console.log(401, "queue ", queue);
-//     while (queue.length > 0) {
-//       console.log(402, "queue ", queue.length);
-
-//       const current = queue.pop()!;
-//       console.log(403, "current ", current);
-//       if (map.has(current)) {
-//         const brands = map.get(current)!;
-//         console.log(404, "brands ", brands);
-//         for (const b of brands) {
-//           if (!relatedBrands.has(b)) {
-//             relatedBrands.add(b);
-//             queue.push(b);
-//           }
-//         }
-//       }
-//     }
-//     // console.log(405, "relatedBrands ", relatedBrands);
-
-//     return relatedBrands;
-//   };
-
-//   // Create a map to track brand relationships
-//   const brandMap = new Map<string, Set<string>>();
-
-//   // Add brand relationships to the map initially
-//   // after set brandMap then we will be able to use getRelatedBrands
-//   brandConnections.forEach(({ manufacturer_p1, manufacturers_p2 }) => {
-//     const brand1 = manufacturer_p1.toLowerCase();
-//     const brands2 = manufacturers_p2.toLowerCase();
-//     const brand2Array = brands2.split(";").map((b) => b.trim());
-//     // Add the current brand to the map
-//     if (!brandMap.has(brand1)) {
-//       brandMap.set(brand1, new Set());
-//     }
-//     // Add the related brands to the map
-//     brand2Array.forEach((brand2) => {
-//       if (!brandMap.has(brand2)) {
-//         brandMap.set(brand2, new Set());
-//       }
-//       // Add the relationship to the map
-//       brandMap.get(brand1)!.add(brand2);
-//       // Add the reverse relationship to the map
-//       brandMap.get(brand2)!.add(brand1);
-//     });
-//   });
-
-//   // Build the final flat map
-//   const flatMap = new Map<string, Set<string>>();
-
-//   brandMap.forEach((_, brand) => {
-//     const relatedBrands = getRelatedBrands(brandMap, brand);
-//     flatMap.set(brand, relatedBrands);
-//   });
-
-//   // Convert the flat map to an object for easier usage
-//   const flatMapObject: Record<string, string[]> = {};
-
-//   // console.log({ flatMap });
-//   // Map(2867) {
-//   //   '112' => Set(1) { '112' },
-//   //   '3chenes' => Set(4) {
-//   //     '3c pharma laboratoires',
-//   //     'les 3 chenes',
-//   //     '3chenes',
-//   //     'color&soin'
-//   //   },
-//   //   '3c pharma laboratoires' => Set(4) {
-//   //     '3chenes',
-//   //     '3c pharma laboratoires',
-//   //     'les 3 chenes',
-//   //     'color&soin'
-//   //   },
-
-//   flatMap.forEach((relatedBrands, brand) => {
-//     flatMapObject[brand] = Array.from(relatedBrands);
-//   });
-//   console.log({ flatMapObject });
-//   // {
-//   //   '112': [ '112' ],
-//   //   '911': [ '911' ],
-//   //   '3chenes': [
-//   //     '3c pharma laboratoires',
-//   //     'les 3 chenes',
-//   //     '3chenes',
-//   //     'color&soin'
-//   //   ],
-//   //   '3c pharma laboratoires': [
-//   //     '3chenes',
-//   //     '3c pharma laboratoires',
-//   //     'les 3 chenes',
-//   //     'color&soin'
-//   //   ],
-//   //   'les 3 chenes': [
-//   //     '3chenes',
-//   //     'color&soin',
-//   //     'les 3 chenes',
-//   //     '3c pharma laboratoires'
-//   //   ],
-//   // }
-
-//   return flatMapObject;
-// }
-
-export async function getBrandsMapping(): Promise<Record<string, string>> {
+export async function getBrandsMapping(): Promise<BrandsMapping> {
   //   //     const query = `
   //   //     SELECT
   //   //     LOWER(p1.manufacturer) manufacturer_p1
@@ -232,9 +88,9 @@ export async function getBrandsMapping(): Promise<Record<string, string>> {
   });
 
   // Convert mapping to object
-  const flatMapObject: Record<string, string> = {};
+  const flatMapObject: BrandsMapping = {};
   flatMap.forEach((repBrand, brand) => {
-    flatMapObject[brand] = repBrand;
+    flatMapObject[brand] = [repBrand];
   });
 
   return flatMapObject;
@@ -303,15 +159,25 @@ export async function assignBrandIfKnown(
 ) {
   const context = { scope: "assignBrandIfKnown" } as ContextType;
 
-  const brandsMapping = await getBrandsMapping();
+  let brandsMapping: BrandsMapping = await getBrandsMapping();
+  //brandsMapping = brandsMapping.length > 0 ? brandsMapping : {};
 
-  const file = "./update_data.json";
+  // Write the brandsMapping object to a JSON file as initial
+  const file = "./update_filter_brand_data.json";
   jsonfile.writeFileSync(file, brandsMapping);
 
   const versionKey = "assignBrandIfKnown";
   let products = await getPharmacyItems(countryCode, source, versionKey, false);
   let counter = 0;
+
+  // added update product data to update_data_pharmacyItems.json for check
   let updateProducts: any = [];
+
+  // added initial product data to old_product_data.json for test
+  const oldProductDataFile = "./old_product_data.json";
+  jsonfile.writeFileSync(oldProductDataFile, products);
+
+  // Loop through each product and assign a brand
   for (let product of products) {
     counter++;
 
@@ -369,54 +235,9 @@ export async function assignBrandIfKnown(
     });
   }
 
-  const pharmacyItemsFile = "./update_data_pharmacyItems.json";
+  const pharmacyItemsFile = "./update_product_data.json";
   jsonfile.writeFileSync(pharmacyItemsFile, updateProducts);
 }
-
-// export async function assignBrandIfKnown(
-//   countryCode: countryCodes,
-//   source: sources,
-//   job?: Job
-// ) {
-//   const brandsMapping = await getBrandsMapping();
-//   const products = await getPharmacyItems(countryCode, source, "assignBrandIfKnown", false);
-
-//   for (let product of products) {
-//     if (product.m_id) continue;
-
-//     let matchedBrand: string | null = null;
-//     for (const [brandKey, representativeBrand] of Object.entries(brandsMapping)) {
-//       if (checkBrandIsSeparateTerm(product.title, brandKey)) {
-//         matchedBrand = representativeBrand;
-//         break;
-//       }
-//     }
-
-//     console.log(`${product.title} -> ${matchedBrand}`);
-//   }
-// }
-// export async function assignBrandIfKnown(
-//   countryCode: countryCodes,
-//   source: sources,
-//   job?: Job
-// ) {
-//   const brandsMapping = await getBrandsMapping();
-//   const products = await getPharmacyItems(countryCode, source, "assignBrandIfKnown", false);
-
-//   for (let product of products) {
-//     if (product.m_id) continue;
-
-//     let matchedBrand: string | null = null;
-//     for (const [brandKey, representativeBrand] of Object.entries(brandsMapping)) {
-//       if (checkBrandIsSeparateTerm(product.title, brandKey)) {
-//         matchedBrand = representativeBrand;
-//         break;
-//       }
-//     }
-
-//     console.log(`${product.title} -> ${matchedBrand}`);
-//   }
-// }
 
 // modify
 
@@ -443,6 +264,7 @@ const brandValidation = (input) => {
     "112",
     "kin",
     "happy",
+    "LIVOL",
   ];
   // Secondary brands (must be in the first or second word position)
   const secondaryBrands = ["heel", "contour", "nero", "rsv"];
