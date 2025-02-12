@@ -156,24 +156,61 @@ export async function assignBrandIfKnown(
       return;
     }
 
-    const matchedBrands = new Set<string>();
+    // const matchedBrands = new Set<string>();
 
     // for (const brandKey in brandsMapping) {
     //   brandsMapping[brandKey].forEach((brand) => {
-
     //     // 1st requirement
 
-    //     const validatedBrand = brandValidation(product.title);
-    //     if (validatedBrand) matchedBrands.add(validatedBrand);
+    //     const validatedBrand = brandValidation(product.title, brand);
+    //     console.log({ validatedBrand });
+
+    //     if (validatedBrand) {
+    //       matchedBrands.add(validatedBrand);
+    //     }
     //   });
     // }
 
-    const validatedBrand = brandValidation(product.title);
-    if (validatedBrand) matchedBrands.add(validatedBrand);
+    // 2nd Modified code where matchedBrands is passed as a parameter
+    // const matchedBrands = new Set<string>();
 
-    //console.log(`${product.title} -> ${[...matchedBrands]} \n`);
+    // for (const brandKey in brandsMapping) {
+    //   brandsMapping[brandKey].forEach((brand) => {
+    //     // 1st requirement: Validate the brand
+    //     const validatedBrand = brandValidation(
+    //       product.title,
+    //       brand,
+    //       matchedBrands
+    //     );
+    //     console.log({ validatedBrand });
 
-    // updateProducts.push(product);
+    //     if (validatedBrand) {
+    //       matchedBrands.add(validatedBrand); // Add validated brand to the matched set
+    //     }
+    //   });
+    // }
+
+    // 3rd
+    // Example usage
+    const matchedBrands = new Set<string>();
+
+    for (const brandKey in brandsMapping) {
+      brandsMapping[brandKey].forEach((brand) => {
+        const validatedBrand = brandValidation(
+          product.title,
+          brand,
+          matchedBrands
+        );
+        console.log({ validatedBrand });
+
+        if (validatedBrand) {
+          matchedBrands.add(validatedBrand); // Add to the matched set
+        }
+      });
+    }
+
+    // const validatedBrand = brandValidation(product.title);
+    // if (validatedBrand) matchedBrands.add(validatedBrand);
 
     if (matchedBrands.size > 0) {
       //product.meta = { matchedBrands: [...matchedBrands] };
@@ -182,6 +219,7 @@ export async function assignBrandIfKnown(
       // only modified products
       onlyModifiedProducts.push({
         ...product,
+        manufacturer: matchedBrands.size ? [...matchedBrands][0] : null,
         m_id: product.source_id,
         source,
         country_code: countryCode,
@@ -189,6 +227,7 @@ export async function assignBrandIfKnown(
       });
       updateProducts.push({
         ...product,
+        manufacturer: matchedBrands.size ? [...matchedBrands][0] : null,
         m_id: product.source_id,
         source,
         country_code: countryCode,
@@ -201,28 +240,26 @@ export async function assignBrandIfKnown(
     }
   });
 
-  
-// Before optimization, the execution time was measured as:
-// Existing System assignBrandIfKnown Execution Time: 22.151 seconds.
+  // Before optimization, the execution time was measured as:
+  // Existing System assignBrandIfKnown Execution Time: 22.151 seconds.
 
-// After optimization, the execution time has been reduced to:
-// Current assignBrandIfKnown Execution Time: 8.808 milliseconds.
-
+  // After optimization, the execution time has been reduced to:
+  // Current assignBrandIfKnown Execution Time: 8.808 milliseconds.
 
   console.log("\n----------------------------\n");
 
   console.timeEnd("assignBrandIfKnown Execution Time");
 
   // old data for comparison
-  jsonfile.writeFileSync("./update_filter_brand_data.json", brandsMapping);
-  jsonfile.writeFileSync("./old_product_data.json", products);
+  //jsonfile.writeFileSync("./update_filter_brand_data.json", brandsMapping);
+  //jsonfile.writeFileSync("./old_product_data.json", products);
 
   // Then brand is inserted into product mapping table
   // Writing to a JSON file only once at the end instead of inside loops reduces I/O blocking.
   jsonfile.writeFileSync("./update_product_data.json", updateProducts);
 
   console.log("\n----------------------------\n");
-  
+
   console.log("Total products: ", updateProducts.length);
 
   console.log("\n----------------------------\n");
@@ -236,7 +273,6 @@ export async function assignBrandIfKnown(
 }
 
 // modify
-
 
 // Precompile regex patterns outside the function for better performance
 const normalizeRegex = /\bBabē\b/gi;
@@ -257,53 +293,106 @@ const priorityBrands = new Set([
   "112",
   "kin",
   "happy",
+  "LIVOL",
 ]);
 
-const secondaryBrands = new Set(["heel", "contour", "nero", "rsv"]);
-
-const brandValidationCache: Record<string, string | null> = {}; // Cache for optimization
-
-export const brandValidation = (input: string): string | null => {
+const secondaryBrands = new Set(["heel", "contour", "nero", "rsv", "EXTRA"]);
+// also working
+export const brandValidation = (
+  input: string,
+  brand: string,
+  matchedBrands: Set<string>
+): string | null => {
   if (!input || typeof input !== "string") return null;
 
-  let processedInput = input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-  // Check cache first to avoid redundant computations
-  if (brandValidationCache[input] !== undefined) {
-    return brandValidationCache[input];
+  // Skip validation if the brand is already matched
+  if (matchedBrands.has(brand)) {
+    return null;
   }
-  processedInput = input.replace(normalizeRegex, "Babe");
+
+  // Normalize input (handling cases like "Babē = Babe")
+  const processedInput = input.replace(normalizeRegex, "Babe");
 
   // Ignore brands like BIO and NEB
   if (ignoreRegex.test(processedInput)) {
-    brandValidationCache[input] = null;
     return null;
   }
 
   const words = processedInput.split(/\s+/); // Tokenize words
 
-  let result: string | null = null;
-
-  // Check if a priority brand is at the beginning
-  if (priorityBrands.has(words[0])) {
-    result = words[0];
-  } else if (words.length > 1) {
-    // Check if a secondary brand is in the first or second word position
-    if (secondaryBrands.has(words[0])) {
-      result = words[0];
-    } else if (secondaryBrands.has(words[1])) {
-      result = words[1];
-    }
-  }
-
-  // Match "HAPPY" only when fully capitalized anywhere
-  if (!result && happyRegex.test(processedInput)) {
-    result = "HAPPY";
-  }
-
-  // Cache the result for future calls
-  brandValidationCache[input] = result;
-  return result;
+  // Find the first match among priority, secondary brands, or "HAPPY"
+  return (
+    words.find(
+      (word) => priorityBrands.has(word) && !matchedBrands.has(word)
+    ) ||
+    words.find(
+      (word) => secondaryBrands.has(word) && !matchedBrands.has(word)
+    ) ||
+    (!matchedBrands.has("HAPPY") && happyRegex.test(processedInput)
+      ? "HAPPY"
+      : null)
+  );
 };
+
+//const brandValidationCache: Record<string, string | null> = {}; // Cache for optimization
+// export const brandValidation = (
+//   input: string,
+//   brand: string,
+//   matchedBrands: Set<string> // Pass matchedBrands to the function to check for existing brands
+// ): string | null => {
+//   if (!input || typeof input !== "string") return null;
+
+//   let processedInput = input; //.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+//   let processedbrand = brand; //.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+//   // If the brand is already in the matchedBrands, skip validation for this brand
+//   if (matchedBrands.has(processedbrand)) {
+//     return null; // Skip validation if the brand is already matched
+//   }
+
+//   // Check cache first to avoid redundant computations
+//   if (brandValidationCache[input] !== undefined) {
+//     //return brandValidationCache[input];
+//   }
+//   processedInput = input.replace(normalizeRegex, "Babe");
+
+//   // Ignore brands like BIO and NEB
+//   if (ignoreRegex.test(processedInput)) {
+//     brandValidationCache[input] = null;
+//     return null;
+//   }
+
+//   const words = processedInput.split(/\s+/); // Tokenize words
+
+//   let result: string | null = null;
+
+//   // Check if a priority brand is at the beginning
+//   if (priorityBrands.has(words[0]) && !matchedBrands.has(words[0])) {
+//     result = words[0];
+//   } else if (words.length > 1 && !matchedBrands.has(words[1])) {
+//     // Check if a secondary brand is in the first or second word position
+//     if (secondaryBrands.has(words[0]) && !matchedBrands.has(words[0])) {
+//       result = words[0];
+//     } else if (secondaryBrands.has(words[1]) && !matchedBrands.has(words[1])) {
+//       result = words[1];
+//     }
+//   }
+
+//   // Match "HAPPY" only when fully capitalized anywhere
+//   if (
+//     !result &&
+//     happyRegex.test(processedInput) &&
+//     !matchedBrands.has("HAPPY")
+//   ) {
+//     result = "HAPPY";
+//   }
+
+//   // Cache the result for future calls
+//   brandValidationCache[input] = result;
+
+//   // If the brand is found and it matches the validated result, return the result
+//   if (processedbrand === result) return result;
+//   else return null;
+// };
 
 console.log("\n----------------------------\n");
