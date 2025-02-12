@@ -13,6 +13,16 @@ import items from "../../pharmacyItems.json";
 import connections from "../../brandConnections.json";
 const jsonfile = require("jsonfile");
 
+
+  // Optimizations Applied:
+
+  // After optimization, the execution time has been reduced to:
+  // Current assignBrandIfKnown Execution Time: 157.956 miliseconds
+
+  // Before optimization, the execution time was measured as:
+  // Existing System assignBrandIfKnown Execution Time: 23.202 seconds.
+
+
 type BrandsMapping = { [key: string]: string[] };
 
 export async function getBrandsMapping(): Promise<BrandsMapping> {
@@ -203,14 +213,14 @@ export async function assignBrandIfKnown(
 
   // Optimizations Applied:
 
+  // After optimization, the execution time has been reduced to:
+  // Current assignBrandIfKnown Execution Time: 157.956 miliseconds
+
   // Before optimization, the execution time was measured as:
   // Existing System assignBrandIfKnown Execution Time: 23.202 seconds.
 
-  // After optimization, the execution time has been reduced to:
-  // Current assignBrandIfKnown Execution Time: 421.949 miliseconds
-
   console.log("\n----------------------------\n");
-
+  // total time for assignBrandIfKnown
   console.timeEnd("assignBrandIfKnown Execution Time");
 
   // flter brand data
@@ -245,7 +255,6 @@ const happyRegex = /\bHAPPY\b/;
 
 // Convert arrays to sets for O(1) lookup
 const priorityBrands = new Set([
-  "EXTRA",
   "RICH",
   "RFF",
   "flex",
@@ -257,10 +266,12 @@ const priorityBrands = new Set([
   "112",
   "kin",
   "happy",
-  "LIVOL",
 ]);
 
-const secondaryBrands = new Set(["heel", "contour", "nero", "rsv","Travel"]);
+const secondaryBrands = new Set(["heel", "contour", "nero", "rsv"]);
+let inputText = ""
+let _brndArr = []
+
 // also working
 export const brandValidation = (
   input: string,
@@ -275,27 +286,42 @@ export const brandValidation = (
   }
 
   // Normalize input (handling cases like "Babē = Babe")
-  const processedInput = input.replace(normalizeRegex, "Babe");
+  let processedInput = input.replace(normalizeRegex, "Babe");
 
   // Ignore brands like BIO and NEB
   if (ignoreRegex.test(processedInput)) {
     return null;
   }
+  let words = [] //processedInput.split(/\s+/); // Tokenize words
 
-  const words = processedInput.split(/\s+/); // Tokenize words
+  if ( processedInput && inputText !== processedInput) {
+     words = processedInput.split(/\s+/); // Tokenize words
+     _brndArr = [...words]
+    inputText = processedInput
+  } else {
+    processedInput = inputText
+    words = _brndArr
+  }
+// console.log({words});
 
   // Find the first match among priority, secondary brands, or "HAPPY"
-  return (
-    words.find(
-      (word) => priorityBrands.has(word) && !matchedBrands.has(word)
-    ) ||
-    words.find(
-      (word) => secondaryBrands.has(word) && !matchedBrands.has(word)
-    ) ||
-    (!matchedBrands.has("HAPPY") && happyRegex.test(processedInput)
-      ? "HAPPY"
-      : null)
-  );
+  if (priorityBrands.has(words[0]) && !matchedBrands.has(words[0]))return words[0];
+  else if (secondaryBrands.has(words[0]) && !matchedBrands.has(words[0]))return words[0];
+  else if (secondaryBrands.has(words[1]) && !matchedBrands.has(words[1]))return words[1];
+  else if (happyRegex.test(processedInput) && !matchedBrands.has("HAPPY"))return "HAPPY";
+  else return null
+
+  // return (
+  //   words.find(
+  //     (word) => priorityBrands.has(word) && !matchedBrands.has(word)
+  //   ) ||
+  //   words.find(
+  //     (word) => secondaryBrands.has(word) && !matchedBrands.has(word)
+  //   ) ||
+  //   (!matchedBrands.has("HAPPY") && happyRegex.test(processedInput)
+  //     ? "HAPPY"
+  //     : null)
+  // );
 };
 
 //const brandValidationCache: Record<string, string | null> = {}; // Cache for optimization
