@@ -201,8 +201,6 @@ export async function assignBrandIfKnown(
           brand,
           matchedBrands
         );
-        console.log({ validatedBrand });
-
         if (validatedBrand) {
           matchedBrands.add(validatedBrand); // Add to the matched set
         }
@@ -213,10 +211,9 @@ export async function assignBrandIfKnown(
     // if (validatedBrand) matchedBrands.add(validatedBrand);
 
     if (matchedBrands.size > 0) {
-      //product.meta = { matchedBrands: [...matchedBrands] };
-      //product.brand = matchedBrands.size ? [...matchedBrands][0] : null;
-
       // only modified products
+      console.log({ matchedBrands });
+
       onlyModifiedProducts.push({
         ...product,
         manufacturer: matchedBrands.size ? [...matchedBrands][0] : null,
@@ -244,7 +241,7 @@ export async function assignBrandIfKnown(
   // Existing System assignBrandIfKnown Execution Time: 22.151 seconds.
 
   // After optimization, the execution time has been reduced to:
-  // Current assignBrandIfKnown Execution Time: 8.808 milliseconds.
+  // Current assignBrandIfKnown Execution Time: 7.255s.
 
   console.log("\n----------------------------\n");
 
