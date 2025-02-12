@@ -138,7 +138,7 @@ export async function assignBrandIfKnown(
 
   // Reson:
   // Regex compilation is expensive, and since we use the same brand names across multiple products, caching avoids redundant regex creation.
-  const brandRegexCache: Record<string, RegExp> = {};
+  //const brandRegexCache: Record<string, RegExp> = {};
 
   products.forEach((product) => {
     // Early Exit for m_id Check:
@@ -156,42 +156,6 @@ export async function assignBrandIfKnown(
       return;
     }
 
-    // const matchedBrands = new Set<string>();
-
-    // for (const brandKey in brandsMapping) {
-    //   brandsMapping[brandKey].forEach((brand) => {
-    //     // 1st requirement
-
-    //     const validatedBrand = brandValidation(product.title, brand);
-    //     console.log({ validatedBrand });
-
-    //     if (validatedBrand) {
-    //       matchedBrands.add(validatedBrand);
-    //     }
-    //   });
-    // }
-
-    // 2nd Modified code where matchedBrands is passed as a parameter
-    // const matchedBrands = new Set<string>();
-
-    // for (const brandKey in brandsMapping) {
-    //   brandsMapping[brandKey].forEach((brand) => {
-    //     // 1st requirement: Validate the brand
-    //     const validatedBrand = brandValidation(
-    //       product.title,
-    //       brand,
-    //       matchedBrands
-    //     );
-    //     console.log({ validatedBrand });
-
-    //     if (validatedBrand) {
-    //       matchedBrands.add(validatedBrand); // Add validated brand to the matched set
-    //     }
-    //   });
-    // }
-
-    // 3rd
-    // Example usage
     const matchedBrands = new Set<string>();
 
     for (const brandKey in brandsMapping) {
@@ -237,19 +201,22 @@ export async function assignBrandIfKnown(
     }
   });
 
+  // Optimizations Applied:
+
   // Before optimization, the execution time was measured as:
-  // Existing System assignBrandIfKnown Execution Time: 22.151 seconds.
+  // Existing System assignBrandIfKnown Execution Time: 23.202 seconds.
 
   // After optimization, the execution time has been reduced to:
-  // Current assignBrandIfKnown Execution Time: 7.255s.
+  // Current assignBrandIfKnown Execution Time: 421.949 miliseconds
 
   console.log("\n----------------------------\n");
 
   console.timeEnd("assignBrandIfKnown Execution Time");
 
+  // flter brand data
+  jsonfile.writeFileSync("./update_filter_brand_data.json", brandsMapping);
   // old data for comparison
-  //jsonfile.writeFileSync("./update_filter_brand_data.json", brandsMapping);
-  //jsonfile.writeFileSync("./old_product_data.json", products);
+  jsonfile.writeFileSync("./old_product_data.json", products);
 
   // Then brand is inserted into product mapping table
   // Writing to a JSON file only once at the end instead of inside loops reduces I/O blocking.
@@ -293,7 +260,7 @@ const priorityBrands = new Set([
   "LIVOL",
 ]);
 
-const secondaryBrands = new Set(["heel", "contour", "nero", "rsv", "EXTRA"]);
+const secondaryBrands = new Set(["heel", "contour", "nero", "rsv","Travel"]);
 // also working
 export const brandValidation = (
   input: string,
