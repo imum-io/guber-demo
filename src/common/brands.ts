@@ -4,12 +4,36 @@ import { ContextType } from "../libs/logger"
 import { jsonOrStringForDb, jsonOrStringToJson, stringOrNullForDb, stringToHash } from "../utils"
 import _ from "lodash"
 import { sources } from "../sites/sources"
-import items from "./../../pharmacyItems.json"
-import connections from "./../../brandConnections.json"
+import items from "../data/pharmacyItems.json"
+import connections from "../data/brandConnections.json"
+import brandsMap from "../data/brandsMapping.json"
 
 type BrandsMapping = {
     [key: string]: string[]
 }
+
+// First task - Rule 1: Brand name normalization mapping
+// Maps special brand name variations to their normalized form while preserving case
+const NORMALIZED_BRANDS = {
+    'Babē': 'Babe',
+    // Add other brand normalizations here
+}
+
+// First task - Rule 2: Brands to be ignored during matching
+// These brands are too generic or cause false positives
+const IGNORED_BRANDS = ['BIO', 'NEB']
+
+// First task - Rule 3: Brands that must appear as the first word in title
+// These brands are only valid if they appear at the start of the product title
+const MUST_BE_FIRST_WORD = ['RICH', 'RFF', 'flex', 'ultra', 'gum', 'beauty', 'orto', 'free', '112', 'kin', 'happy']
+
+// First task - Rule 4: Brands that must appear as first or second word
+// These brands are only valid if they appear at the start or as second word
+const MUST_BE_FIRST_OR_SECOND = ['heel', 'contour', 'nero', 'rsv']
+
+// First task - Rule 6: Brands that require exact case matching
+// These brands must match exactly with their uppercase version
+const CASE_SENSITIVE_BRANDS = ['HAPPY']
 
 export async function getBrandsMapping(): Promise<BrandsMapping> {
     //     const query = `
@@ -128,6 +152,7 @@ async function getPharmacyItems(countryCode: countryCodes, source: sources, vers
     return finalProducts
 }
 
+// SUGGESTIONS FOR IMPROVEMENT: Consider using a single RegExp with capture groups instead of two separate checks
 export function checkBrandIsSeparateTerm(input: string, brand: string): boolean {
     // Escape any special characters in the brand name for use in a regular expression
     const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
@@ -145,10 +170,81 @@ export function checkBrandIsSeparateTerm(input: string, brand: string): boolean 
     return atBeginningOrEnd || separateTerm
 }
 
+// Add this new helper function for case-preserving normalization
+function normalizePreservingCase(text: string, searchTerm: string, replacement: string): string {
+    // Create case-insensitive regex with capture for first letter
+    const regex = new RegExp(searchTerm, 'gi')
+
+    return text.replace(regex, (match) => {
+        // If original match was uppercase, make replacement uppercase
+        if (match === match.toUpperCase()) {
+            return replacement.toUpperCase()
+        }
+        // If original match was lowercase, make replacement lowercase
+        if (match === match.toLowerCase()) {
+            return replacement.toLowerCase()
+        }
+        // If original match was title case, make replacement title case
+        if (match[0] === match[0].toUpperCase()) {
+            return replacement.charAt(0).toUpperCase() + replacement.slice(1).toLowerCase()
+        }
+        return replacement
+    })
+}
+
+// First task: Brand validation rules
+// This function implements 4 validation rules:
+// 2. Ignore specific brands (BIO, NEB)
+// 3. Brands that must be the first word (RICH, RFF, flex, etc)
+// 4. Brands that must be first or second word (heel, contour, nero, rsv)
+// 6. Case-sensitive brand matching (HAPPY)
+export function validateBrandPosition(brand: string, title: string): boolean {
+    const words = title.split(/\s+/)
+    const lowerBrand = brand.toLowerCase()
+
+    // 2 NO LOGIC: Check IGNORED_BRANDS
+    if (IGNORED_BRANDS.includes(brand.toUpperCase())) {
+        return false
+    }
+
+    // 6 NO LOGIC: Check case-sensitive brands
+    if (CASE_SENSITIVE_BRANDS.includes(brand.toUpperCase()) && !title.includes(brand.toUpperCase())) {
+        return false
+    }
+
+    // 3 NO LOGIC: Check position requirements
+    if (MUST_BE_FIRST_WORD.includes(lowerBrand)) {
+        return words[0].toLowerCase() === lowerBrand
+    }
+
+    // 4 NO LOGIC: Check position requirements
+    if (MUST_BE_FIRST_OR_SECOND.includes(lowerBrand)) {
+        return words[0].toLowerCase() === lowerBrand || words[1]?.toLowerCase() === lowerBrand
+    }
+
+    return true
+}
+
+// Second task: Consistent brand group assignment
+export function getNormalizedBrandGroup(brand: string, brandsMapping: BrandsMapping): string {
+    // Get all related brands from the pre-computed mapping
+    const relatedBrands = brandsMapping[brand] || []
+
+    // If no related brands found, return the original brand
+    if (relatedBrands.length === 0) {
+        return brand
+    }
+
+    // Sort all brands alphabetically to ensure consistent selection
+    // Always take the first one as the canonical brand name
+    return [...relatedBrands, brand].sort((a, b) => a.localeCompare(b))[0]
+}
+
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
     const context = { scope: "assignBrandIfKnown" } as ContextType
 
-    const brandsMapping = await getBrandsMapping()
+    // const brandsMapping = await getBrandsMapping()
+    const brandsMapping = brandsMap
 
     const versionKey = "assignBrandIfKnown"
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
@@ -161,23 +257,46 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
             continue
         }
 
+        // 1 NO LOGIC: Normalize brand if needed
+        let normalizedTitle = product.title
+        for (const [searchTerm, replacement] of Object.entries(NORMALIZED_BRANDS)) {
+            normalizedTitle = normalizePreservingCase(normalizedTitle, searchTerm, replacement)
+        }
+
         let matchedBrands = []
         for (const brandKey in brandsMapping) {
             const relatedBrands = brandsMapping[brandKey]
-            for (const brand of relatedBrands) {
+            for (let brand of relatedBrands) {
                 if (matchedBrands.includes(brand)) {
                     continue
                 }
-                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
+
+                // Validate brand position using normalized title
+                if (!validateBrandPosition(brand, normalizedTitle)) {
+                    continue
+                }
+
+                const isBrandMatch = checkBrandIsSeparateTerm(normalizedTitle, brand)
                 if (isBrandMatch) {
                     matchedBrands.push(brand)
                 }
             }
         }
-        console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
+
+        // 5 NO LOGIC: Get the primary matched brand (first match without sorting by position)
+        const primaryBrand = matchedBrands.length ? matchedBrands[0] : null
+
+        // After finding matches, normalize to ensure consistent brand within group
+        const normalizedBrand = primaryBrand ? getNormalizedBrandGroup(primaryBrand, brandsMapping) : null
+
+        console.log(`${product.title} -> Original matches: ${_.uniq(matchedBrands)}, Primary brand: ${primaryBrand}, Normalized: ${normalizedBrand}`)
         const sourceId = product.source_id
-        const meta = { matchedBrands }
-        const brand = matchedBrands.length ? matchedBrands[0] : null
+        const meta = {
+            matchedBrands,
+            originalBrand: primaryBrand,  // The brand we initially matched
+            normalizedBrand              // The consistent brand for the group
+        }
+        const brand = normalizedBrand    // Use normalized brand for assignment
 
         const key = `${source}_${countryCode}_${sourceId}`
         const uuid = stringToHash(key)
