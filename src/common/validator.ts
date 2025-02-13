@@ -35,21 +35,20 @@ class Validator {
         const words = brand.split(" ")
         return words.indexOf(input)
     }
-    public ignoringBrand(brands: string[]){
-        return brands.filter(brand=> !this.ignoreWords.includes(this.makeLower(brand)))
+    public ignoringBrand(brand: string){
+        return this.ignoreWords.includes(this.makeLower(brand))
     }
-    public prioritizeBrands(brands: string[], title: string): string | null {
+    public prioritizeBrands(brand: string, title: string): string | null {
         const normalizedTitle = title.toLowerCase();
         const words = normalizedTitle.split(/\s+/);
     
-        for (const brand of brands) {
-            const normalizedBrand = this.makeLower(brand);
-            if (this.mustInFront.includes(normalizedBrand) && words[0] === normalizedBrand) {
-                return brand;
-            }
-            if (this.inSecWord.includes(normalizedBrand) && (words[0] === normalizedBrand || words[1] === normalizedBrand)) {
-                return brand;
-            }
+
+        const normalizedBrand = this.makeLower(brand);
+        if (this.mustInFront.includes(normalizedBrand) && words[0] === normalizedBrand) {
+            return brand;
+        }
+        if (this.inSecWord.includes(normalizedBrand) && (words[0] === normalizedBrand || words[1] === normalizedBrand)) {
+            return brand;
         }
         
         return null;
