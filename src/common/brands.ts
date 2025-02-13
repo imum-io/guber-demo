@@ -169,8 +169,8 @@ function getBrandRepresentatives(brands: Set<string>, brandsMapping: BrandsMappi
         while (queue.length > 0) {
             let brand = queue.shift()!
             component.push(brand)
-            let neighbors = brandsMapping[brand]
-            for (let neighbor of neighbors || []) {
+            let neighbors = brandsMapping[brand] || []
+            for (let neighbor of neighbors) {
                 if (!visited.has(neighbor)) {
                     visited.add(neighbor)
                     queue.push(neighbor)
@@ -193,6 +193,30 @@ function getBrandRepresentatives(brands: Set<string>, brandsMapping: BrandsMappi
     }
 
     return brandRepresentative
+}
+
+function isBrandValid(brand: string) : boolean {
+    let inValidKeyWords = ["BIO", "NEB"]
+    if(inValidKeyWords.includes(brand)) {
+        return false;
+    }
+
+    const validFrontWords = ["RICH", "RFF", "flex", "ultra", "gum", "beauty", "orto", "free", "112", "kin", "HAPPY"]
+
+    const validSecondWords = ["heel", "contour", "nero", "rsv"]
+
+    let words = brand.match(/\b\w+\b/g) || [];
+
+    if(words.length < 1) {
+        return false
+    }
+
+    if(!validFrontWords.includes(words[0])) {
+        return false
+    }
+    if(!validSecondWords.includes(words[1])) {
+        return false
+    }
 }
 
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
