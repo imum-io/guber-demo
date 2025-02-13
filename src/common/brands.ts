@@ -93,26 +93,6 @@ export function checkBrandIsSeparateTerm(
   return precompileRegex(brand).test(input);
 }
 
-// export function checkBrandIsSeparateTerm(
-//   input: string,
-//   brand: string
-// ): boolean {
-//   // Escape any special characters in the brand name for use in a regular expression
-//   const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-//   // Check if the brand is at the beginning or end of the string
-//   const atBeginningOrEnd = new RegExp(
-//     `^(?:${escapedBrand}\\s|.*\\s${escapedBrand}\\s.*|.*\\s${escapedBrand})$`,
-//     "i"
-//   ).test(input);
-
-//   // Check if the brand is a separate term in the string
-//   const separateTerm = new RegExp(`\\b${escapedBrand}\\b`, "i").test(input);
-
-//   // The brand should be at the beginning, end, or a separate term
-//   return atBeginningOrEnd || separateTerm;
-// }
-
 export async function assignBrandIfKnown(
   countryCode: countryCodes,
   source: sources,
@@ -180,9 +160,6 @@ export async function assignBrandIfKnown(
         }
       });
     }
-
-    // const validatedBrand = brandValidation(product.title);
-    // if (validatedBrand) matchedBrands.add(validatedBrand);
 
     if (matchedBrands.size > 0) {
       // only modified products
@@ -312,79 +289,6 @@ export const brandValidation = (
   else if (secondaryBrands.has(words[1]) && !matchedBrands.has(words[1]))return words[1];
   else if (happyRegex.test(processedInput) && !matchedBrands.has("HAPPY"))return "HAPPY";
   else return null
-
-  // return (
-  //   words.find(
-  //     (word) => priorityBrands.has(word) && !matchedBrands.has(word)
-  //   ) ||
-  //   words.find(
-  //     (word) => secondaryBrands.has(word) && !matchedBrands.has(word)
-  //   ) ||
-  //   (!matchedBrands.has("HAPPY") && happyRegex.test(processedInput)
-  //     ? "HAPPY"
-  //     : null)
-  // );
 };
-
-//const brandValidationCache: Record<string, string | null> = {}; // Cache for optimization
-// export const brandValidation = (
-//   input: string,
-//   brand: string,
-//   matchedBrands: Set<string> // Pass matchedBrands to the function to check for existing brands
-// ): string | null => {
-//   if (!input || typeof input !== "string") return null;
-
-//   let processedInput = input; //.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-//   let processedbrand = brand; //.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-//   // If the brand is already in the matchedBrands, skip validation for this brand
-//   if (matchedBrands.has(processedbrand)) {
-//     return null; // Skip validation if the brand is already matched
-//   }
-
-//   // Check cache first to avoid redundant computations
-//   if (brandValidationCache[input] !== undefined) {
-//     //return brandValidationCache[input];
-//   }
-//   processedInput = input.replace(normalizeRegex, "Babe");
-
-//   // Ignore brands like BIO and NEB
-//   if (ignoreRegex.test(processedInput)) {
-//     brandValidationCache[input] = null;
-//     return null;
-//   }
-
-//   const words = processedInput.split(/\s+/); // Tokenize words
-
-//   let result: string | null = null;
-
-//   // Check if a priority brand is at the beginning
-//   if (priorityBrands.has(words[0]) && !matchedBrands.has(words[0])) {
-//     result = words[0];
-//   } else if (words.length > 1 && !matchedBrands.has(words[1])) {
-//     // Check if a secondary brand is in the first or second word position
-//     if (secondaryBrands.has(words[0]) && !matchedBrands.has(words[0])) {
-//       result = words[0];
-//     } else if (secondaryBrands.has(words[1]) && !matchedBrands.has(words[1])) {
-//       result = words[1];
-//     }
-//   }
-
-//   // Match "HAPPY" only when fully capitalized anywhere
-//   if (
-//     !result &&
-//     happyRegex.test(processedInput) &&
-//     !matchedBrands.has("HAPPY")
-//   ) {
-//     result = "HAPPY";
-//   }
-
-//   // Cache the result for future calls
-//   brandValidationCache[input] = result;
-
-//   // If the brand is found and it matches the validated result, return the result
-//   if (processedbrand === result) return result;
-//   else return null;
-// };
 
 console.log("\n----------------------------\n");
