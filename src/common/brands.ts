@@ -135,7 +135,7 @@ export async function assignBrandIfKnown(
   ]);
 
   let updateProducts: any[] = [];
-  let onlyModifiedProducts: any[] = [];
+  let modifiedProductsOnly: any[] = [];
 
   // Before:
   // Every product iterated over all brand keys and performed regex checks multiple times,
@@ -188,7 +188,7 @@ export async function assignBrandIfKnown(
       // only modified products
       console.log({ matchedBrands });
 
-      onlyModifiedProducts.push({
+      modifiedProductsOnly.push({
         ...product,
         manufacturer: matchedBrands.size ? [...matchedBrands][0] : null,
         m_id: product.source_id,
@@ -238,10 +238,12 @@ export async function assignBrandIfKnown(
 
   console.log("\n----------------------------\n");
   // only modified products
-  jsonfile.writeFileSync("./only_modified_products.json", onlyModifiedProducts);
+  jsonfile.writeFileSync("./modified_products_only.json", modifiedProductsOnly);
+  console.log({modifiedProductsOnly});
+  
   console.log(
     "Total modified products matched brands: ",
-    onlyModifiedProducts.length
+    modifiedProductsOnly.length
   );
   console.log("\n----------------------------\n");
 }
