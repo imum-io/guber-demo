@@ -128,7 +128,7 @@ async function getPharmacyItems(countryCode: countryCodes, source: sources, vers
     return finalProducts
 }
 
-//If brand is matched, returns brands index as a word in the input's word-list; -1 otherwise
+//If brand is matched, returns brand's index as a word in the input's word-list; -1 otherwise
 export function getBrandMatchPosition(input: string, brand: string): number {
     let words: string[] = input.match(/\b\w+\b/g) || []
 
@@ -180,8 +180,8 @@ function getUniqueBrands(brandsMapping: BrandsMapping): Set<string> {
 }
 
 /*
-Fidning a single representative for every brand so that we can assign one representative
-for all brands that exist in the same component
+Finding a single representative for every brand so that we can assign one representative
+for all brands that exist in the same component / connected graph
 */
 function getBrandRepresentatives(brands: Set<string>, brandsMapping: BrandsMapping) {
     let visited = new Set<string>()
@@ -255,6 +255,8 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
                 continue
             }
             matchedBrands.push(currentBrand)
+            //The current matched brand exists before previously matched barnds in the product-title.
+            // So, update firstMatchPosition and matchedBrand
             if(brandMatchPosition < firstMatchPosition) {
                 firstMatchPosition = brandMatchPosition
                 matchedBrand = currentBrand
