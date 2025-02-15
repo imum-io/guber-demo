@@ -195,6 +195,13 @@ function getBrandRepresentatives(brands: Set<string>, brandsMapping: BrandsMappi
     return brandRepresentative
 }
 
+function processBrand(brand: string) : string {
+    brand = brand.replaceAll("Babē", "Babe");
+    brand = brand.replaceAll("BIO", "");
+    brand = brand.replaceAll("NEB", "");
+    return brand;
+}
+
 function isBrandValid(brand: string) : boolean {
     let inValidKeyWords = ["BIO", "NEB"]
     if(inValidKeyWords.includes(brand)) {
@@ -217,6 +224,17 @@ function isBrandValid(brand: string) : boolean {
     if(!validSecondWords.includes(words[1])) {
         return false
     }
+
+    let happyInstanes = brand.match(new RegExp("happy", "gi"));
+    if(happyInstanes !== null) {
+        for(let word of happyInstanes) {
+            if(word !== "HAPPY") {
+                return false
+            }
+        }
+    }
+    
+    return true;
 }
 
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
@@ -243,17 +261,23 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
             if (matchedBrands.includes(currentBrand)) {
                 continue
             }
-            const isBrandMatch = checkBrandIsSeparateTerm(product.title, currentBrand)
+            if(!isBrandValid(currentBrand)) {
+                continue
+            }
+            let processedBrand = processBrand(currentBrand)
+            const isBrandMatch = checkBrandIsSeparateTerm(product.title, processedBrand)
             if (isBrandMatch) {
                 matchedBrands.push(currentBrand)
             }
         }
 
-        console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
+        //console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
         const sourceId = product.source_id
         const meta = { matchedBrands }
         const brand = matchedBrands.length ? brandRepresentative[ matchedBrands[0] ] : null
-        //console.log(`${product.title} -> ${brand}`)
+        if(brand !== null) {
+            console.log(`${product.title} -> ${brand}`)
+        }
         
         const key = `${source}_${countryCode}_${sourceId}`
         const uuid = stringToHash(key)
