@@ -225,16 +225,26 @@ function isBrandValid(brand: string) : boolean {
         return false
     }
 
-    let happyInstanes = brand.match(new RegExp("happy", "gi"));
-    if(happyInstanes !== null) {
-        for(let word of happyInstanes) {
+    let happyInstances = brand.match(new RegExp("happy", "gi"));
+    if(happyInstances !== null) {
+        for(let word of happyInstances) {
             if(word !== "HAPPY") {
                 return false
             }
         }
     }
-    
+
     return true;
+}
+
+function getValidBrands(brands: Set<string>) : Set<string> {
+    let validBrands = new Set<string> ();
+    for(let brand of brands) {
+        if(isBrandValid(brand)) {
+            validBrands.add(brand)
+        }
+    }
+    return validBrands
 }
 
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
@@ -245,7 +255,9 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
     const versionKey = "assignBrandIfKnown"
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
     let counter = 0
-    let brands = getUniqueBrands(brandsMapping)
+    let uniqueBrands = getUniqueBrands(brandsMapping)
+    //validating and filtering the brands based on validation logic
+    let brands = getValidBrands(uniqueBrands)
     let brandRepresentative: Record<string, string> = getBrandRepresentatives(brands, brandsMapping)
     
     for (let product of products) {
