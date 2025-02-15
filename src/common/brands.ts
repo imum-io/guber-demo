@@ -128,21 +128,98 @@ async function getPharmacyItems(countryCode: countryCodes, source: sources, vers
     return finalProducts
 }
 
-export function checkBrandIsSeparateTerm(input: string, brand: string): boolean {
-    // Escape any special characters in the brand name for use in a regular expression
-    const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+//If brand is matched, returns brand's index as a word in the input's word-list; -1 otherwise
+export function getBrandMatchPosition(input: string, brand: string): number {
+    let words: string[] = input.match(/\b\w+\b/g) || []
 
-    // Check if the brand is at the beginning or end of the string
-    const atBeginningOrEnd = new RegExp(
-        `^(?:${escapedBrand}\\s|.*\\s${escapedBrand}\\s.*|.*\\s${escapedBrand})$`,
-        "i"
-    ).test(input)
+    if(words.length < 1) {
+        return -1
+    }
 
-    // Check if the brand is a separate term in the string
-    const separateTerm = new RegExp(`\\b${escapedBrand}\\b`, "i").test(input)
+    if(brand === "babe" || brand === "babē") {
+        let index = words.findIndex(word => word.toLowerCase() === "babe" || word.toLowerCase() === "babē")
+        return index
+    }
 
-    // The brand should be at the beginning, end, or a separate term
-    return atBeginningOrEnd || separateTerm
+    const forbiddenBrands = ["bio", "neb"];
+    if(forbiddenBrands.includes(brand)) {
+        return -1
+    }
+
+    const validBrandsForFront = [
+        "rich", "ref", "flex", "ultra", "gum", "beauty", "orto",
+        "free", "112", "kin", "happy", "heel", "contour", "nero","rsv"
+    ]
+    if(validBrandsForFront.includes(brand) && brand === words[0].toLowerCase()) {
+        return 0
+    }
+
+    const validBrandsAsSecondWord = ["heel", "contour", "nero", "rsv"]
+    if(validBrandsAsSecondWord.includes(brand) && words.length > 1 && brand === words[1].toLowerCase()) {
+        return 1
+    }
+
+    if(brand === "happy") {
+        let index = words.findIndex(word => word === "HAPPY")
+        return index
+    }
+    let index = words.findIndex(word => word.toLowerCase() === brand)
+    return index
+}
+
+function getUniqueBrands(brandsMapping: BrandsMapping): Set<string> {
+    const uniqueBrands = new Set<string>();
+
+    for (const relatedBrands of Object.values(brandsMapping)) {
+        for (const brand of relatedBrands) {
+            uniqueBrands.add(brand);
+        }
+    }
+
+    return uniqueBrands;
+}
+
+/*
+Finding a single representative for every brand so that we can assign one representative
+for all brands that exist in the same component / connected graph
+*/
+function getBrandRepresentatives(brands: Set<string>, brandsMapping: BrandsMapping) {
+    let visited = new Set<string>()
+    let brandRepresentative: Record<string, string> = {}
+    
+    function breadthFirstSearch(startBrand: string) {
+        let queue: string[] = [startBrand]
+        let component: string[] = []
+        visited.add(startBrand)
+
+        while (queue.length > 0) {
+            let brand = queue.shift()!
+            component.push(brand)
+            let neighbors = brandsMapping[brand] || []
+            for (let neighbor of neighbors) {
+                if (!visited.has(neighbor)) {
+                    visited.add(neighbor)
+                    queue.push(neighbor)
+                }
+            }
+        }
+
+        return component
+    }
+
+    for (let brand of brands) {
+        if (!visited.has(brand)) {
+            const component = breadthFirstSearch(brand)
+            // Choose the first brand as the representative
+            const representativeBrand = component[0]
+
+            for (const brandInComponent of component) {
+                brandRepresentative[brandInComponent] = representativeBrand
+            }
+        }
+    }
+
+    return brandRepresentative
 }
 
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
@@ -153,6 +230,10 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
     const versionKey = "assignBrandIfKnown"
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
     let counter = 0
+    //Finding unique brands so that we don't need to match same brand twice in a product title
+    let brands = getUniqueBrands(brandsMapping)
+    let brandRepresentative: Record<string, string> = getBrandRepresentatives(brands, brandsMapping)
+    
     for (let product of products) {
         counter++
 
@@ -161,24 +242,33 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
             continue
         }
 
-        let matchedBrands = []
-        for (const brandKey in brandsMapping) {
-            const relatedBrands = brandsMapping[brandKey]
-            for (const brand of relatedBrands) {
-                if (matchedBrands.includes(brand)) {
-                    continue
-                }
-                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
-                if (isBrandMatch) {
-                    matchedBrands.push(brand)
-                }
+        let matchedBrands = [];
+        //Used to find first brand match index in a word list of a product title
+        let firstMatchPosition = Number.MAX_SAFE_INTEGER
+        let matchedBrand = ""
+        for(let currentBrand of brands) {
+            if (matchedBrands.includes(currentBrand)) {
+                continue
+            }
+            let brandMatchPosition = getBrandMatchPosition(product.title, currentBrand)
+            if(brandMatchPosition == -1) {
+                continue
+            }
+            matchedBrands.push(currentBrand)
+            //The current matched brand exists before previously matched barnds in the product-title.
+            // So, update firstMatchPosition and matchedBrand
+            if(brandMatchPosition < firstMatchPosition) {
+                firstMatchPosition = brandMatchPosition
+                matchedBrand = currentBrand
             }
         }
-        console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
+
         const sourceId = product.source_id
         const meta = { matchedBrands }
-        const brand = matchedBrands.length ? matchedBrands[0] : null
-
+        const brand = [Number.MAX_SAFE_INTEGER, -1].includes(firstMatchPosition)? null : brandRepresentative[matchedBrand]
+        console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
+        console.log(`Brand representative: ${brand}`)
+        
         const key = `${source}_${countryCode}_${sourceId}`
         const uuid = stringToHash(key)
 
