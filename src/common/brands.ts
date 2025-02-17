@@ -227,7 +227,6 @@ function assignBrandToGroup(
  * main function to assign brands to pharmacy items
  * processes products, matches brands, sorts brands, and assigns a consistent brand per group
  */
-
 export async function assignBrandIfKnown(
   countryCode: countryCodes,
   source: sources,
