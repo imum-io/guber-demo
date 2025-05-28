@@ -153,6 +153,8 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
     const versionKey = "assignBrandIfKnown"
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
     let counter = 0
+
+    
     for (let product of products) {
         counter++
 
