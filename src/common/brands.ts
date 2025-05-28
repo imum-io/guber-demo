@@ -11,6 +11,14 @@ type BrandsMapping = {
     [key: string]: string[]
 }
 
+// Normalizes a string by removing diacritical marks and converting to lowercase
+export function normalizeString(str: string): string {
+    return str
+        .normalize("NFD") // 1. Normalize to decomposed form (NFD)
+        .replace(/[\u0300-\u036f]/g, "") // 2. Remove diacritical marks (accents)
+        .toLowerCase(); // 3. Convert to lowercase
+}
+
 export async function getBrandsMapping(): Promise<BrandsMapping> {
     //     const query = `
     //     SELECT
