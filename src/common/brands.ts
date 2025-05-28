@@ -154,7 +154,24 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
     let counter = 0
 
-    
+    // Task 1 constraints data
+    const ignoreBrands = ["bio", "neb"];
+    const frontBrands = [
+        "rich",
+        "rff",
+        "flex",
+        "ultra",
+        "gum",
+        "beauty",
+        "orto",
+        "free",
+        "112",
+        "kin",
+        "happy",
+    ];
+    const frontOrSecondBrands = ["heel", "contour", "nero", "rsv"];
+    const exactCapitalizationBrands = ["HAPPY"];
+
     for (let product of products) {
         counter++
 
