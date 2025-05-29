@@ -96,13 +96,21 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
         brand: string
     ): Set<string> => {
         const relatedBrands = new Set<string>();
-        const queue = [brand];
+        const queue = [];
+        const visited = new Set<string>(); // Track visited brands to avoid cycles
+
+        queue.push(brand); // Start with the starting brand
+        visited.add(brand); // Mark the starting brand as visited
+
         while (queue.length > 0) {
-            const current = queue.pop()!;
+            const current = queue.shift()!; // Use shift for BFS (breadth-first search)
+            console.log(`popped: ${current} \n`);
             if (map.has(current)) {
                 const brands = map.get(current)!;
                 for (const b of brands) {
-                    if (!relatedBrands.has(b)) {
+                    if (!visited.has(b)) {
+                        // Only process unvisited brands
+                        visited.add(b);
                         relatedBrands.add(b);
                         queue.push(b);
                     }
