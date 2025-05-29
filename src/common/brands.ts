@@ -247,7 +247,7 @@ export async function assignBrandIfKnown(
                     continue;
                 }
 
-                // Task 1, TODO-2: Handle special case for Babē = Babe
+                // Task 1, TODO-1: Handle special case like Babē = Babe
                 // Normalize both strings by removing diacritics for comparison
                 const normalizedTitle = normalizeString(product.title);
                 const normalizedBrand = normalizeString(brand);
