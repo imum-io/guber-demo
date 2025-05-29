@@ -149,6 +149,8 @@ async function getPharmacyItems(
     return finalProducts;
 }
 
+
+// This function checks if the brand is at the beginning, end, or a separate term in the input string (basically product title)
 export function checkBrandIsSeparateTerm(
     input: string,
     brand: string
@@ -164,6 +166,26 @@ export function checkBrandIsSeparateTerm(
 
     // Check if the brand is a separate term in the string
     const separateTerm = new RegExp(`\\b${escapedBrand}\\b`, "i").test(input);
+
+    // The brand should be at the beginning, end, or a separate term
+    return atBeginningOrEnd || separateTerm;
+}
+
+// This function checks if the brand is at the beginning, end, or a separate term in the input string with exact case matching
+export function checkBrandIsSeparateTermWithExactCase(
+    input: string,
+    brand: string
+): boolean {
+    // Escape any special characters in the brand name for use in a regular expression
+    const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    // Check if the brand is at the beginning or end of the string
+    const atBeginningOrEnd = new RegExp(
+        `^(?:${escapedBrand}\\s|.*\\s${escapedBrand}\\s.*|.*\\s${escapedBrand})$`
+    ).test(input);
+
+    // Check if the brand is a separate term in the string
+    const separateTerm = new RegExp(`\\b${escapedBrand}\\b`).test(input);
 
     // The brand should be at the beginning, end, or a separate term
     return atBeginningOrEnd || separateTerm;
@@ -225,11 +247,29 @@ export async function assignBrandIfKnown(
                 if (ignoreBrands.includes(normalizeString(brand))) {
                     continue;
                 }
-                
-                const isBrandMatch = checkBrandIsSeparateTerm(
-                    product.title,
-                    brand
-                );
+
+                // Task 1, TODO-2: Handle special case for Babē = Babe
+                // Normalize both strings by removing diacritics for comparison
+                const normalizedTitle = normalizeString(product.title);
+                const normalizedBrand = normalizeString(brand);
+
+                let isBrandMatch = false;
+
+                // Task 1, TODO-6: Handle case-sensitive matching for capitalized brands
+                if (exactCapitalizationBrands.includes(brand)) {
+                    // For brands requiring exact capitalization, use case-sensitive matching
+                    isBrandMatch = checkBrandIsSeparateTermWithExactCase(
+                        product.title,
+                        brand
+                    );
+                } else {
+                    // For other brands, use case-insensitive matching
+                    isBrandMatch = checkBrandIsSeparateTerm(
+                        normalizedTitle,
+                        normalizedBrand
+                    );
+                }
+
                 if (isBrandMatch) {
                     matchedBrands.push(brand);
                 }
