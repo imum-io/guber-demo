@@ -149,7 +149,6 @@ async function getPharmacyItems(
     return finalProducts;
 }
 
-
 // This function checks if the brand is at the beginning, end, or a separate term in the input string (basically product title)
 export function checkBrandIsSeparateTerm(
     input: string,
@@ -268,6 +267,38 @@ export async function assignBrandIfKnown(
                         normalizedTitle,
                         normalizedBrand
                     );
+                }
+
+                // Task 1, TODO-3 & 4: Check position constraints for specific brands only if the brand is matched already by other conditions
+                if (isBrandMatch) {
+                    // Split the title into words for position checking
+                    const words = normalizedTitle.trim().split(/\s+/);
+
+                    // Todo-3: For brands that must be at the front
+                    if (frontBrands.includes(normalizedBrand)) {
+                        // Check if the first word matches the brand
+                        if (words.length > 0 && words[0] !== normalizedBrand) {
+                            isBrandMatch = false;
+                        }
+                    }
+
+                    // For brands that can be at the front or second position
+                    if (frontOrSecondBrands.includes(normalizedBrand)) {
+                        // Check if the second word matches the brand
+                        let isFirstWordMatched = true;
+                        let isSecondWordMatched = true;
+
+                        if (words.length > 0 && words[0] !== normalizedBrand) {
+                            isFirstWordMatched = false;
+                        }
+
+                        if (words.length > 1 && words[1] !== normalizedBrand) {
+                            isSecondWordMatched = false;
+                        }
+
+                        isBrandMatch =
+                            isFirstWordMatched || isSecondWordMatched;
+                    }
                 }
 
                 if (isBrandMatch) {
