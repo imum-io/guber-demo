@@ -24,6 +24,42 @@ export function normalizeString(str: string): string {
         .toLowerCase(); // 3. Convert to lowercase
 }
 
+// Function to get canonical brands
+const getCanonicalBrands = (
+    brandsMapping: BrandsMapping
+): Record<string, string> => {
+    const canonicalBrands: Record<string, string> = {};
+
+    // Process each brand and create groups
+    const processedGroups = new Set<string>();
+
+    Object.keys(brandsMapping).forEach((brand) => {
+        const relatedBrands = brandsMapping[brand];
+
+        // Create a unique key for this group of brands
+        const groupKey = [...relatedBrands].sort().join("|");
+
+        // Skip if we've already processed this group
+        if (!processedGroups.has(groupKey)) {
+            // Choose the canonical brand (alphabetically first)
+            const canonicalBrand = [...relatedBrands].sort()[0];
+
+            // Assign the canonical brand to each brand in this group
+            relatedBrands.forEach((relatedBrand) => {
+                canonicalBrands[relatedBrand] = canonicalBrand;
+            });
+
+            // Also assign the canonical brand to the original brand itself
+            canonicalBrands[brand] = canonicalBrand;
+
+            // Mark this group as processed
+            processedGroups.add(groupKey);
+        }
+    });
+
+    return canonicalBrands;
+};
+
 export async function getBrandsMapping(): Promise<BrandsMapping> {
     //     const query = `
     //     SELECT
@@ -318,10 +354,25 @@ export async function assignBrandIfKnown(
             });
         }
 
+        const firstMatchedBrand = matchedBrands.length
+            ? matchedBrands[0]
+            : null;
+
+        // Task 2: Use the canonical brand instead of just the first matched brand
+        const canonicalBrands = getCanonicalBrands(brandsMapping);
+        let assignedBrand = null;
+        if (firstMatchedBrand) {
+            // Get the canonical brand for this match
+            assignedBrand =
+                canonicalBrands[firstMatchedBrand] || firstMatchedBrand;
+            console.log(
+                `Original match: ${firstMatchedBrand}, Canonical brand: ${assignedBrand}`
+            );
+        }
+
         console.log(`${product.title} -> ${_.uniq(matchedBrands)}`);
         const sourceId = product.source_id;
         const meta = { matchedBrands };
-        const brand = matchedBrands.length ? matchedBrands[0] : null;
 
         const key = `${source}_${countryCode}_${sourceId}`;
         const uuid = stringToHash(key);
