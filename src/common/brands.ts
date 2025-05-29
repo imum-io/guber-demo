@@ -11,6 +11,10 @@ type BrandsMapping = {
     [key: string]: string[]
 }
 
+type UnionFindState = {
+    parent: Record<string, string>;
+};
+
 export async function getBrandsMapping(): Promise<BrandsMapping> {
     //     const query = `
     //     SELECT
@@ -128,25 +132,80 @@ async function getPharmacyItems(countryCode: countryCodes, source: sources, vers
     return finalProducts
 }
 
+const brandNormalizationMap: Record<string, string> = { "Babē": "Babe" };
+const ignoredBrands = ["BIO", "NEB"];
+const frontOnlyBrands = ["RICH", "RFF", "flex", "ultra", "gum", "beauty", "orto", "free", "112", "kin", "happy"];
+const frontOrSecondOnlyBrands = ["heel", "contour", "nero", "rsv"];
+
 export function checkBrandIsSeparateTerm(input: string, brand: string): boolean {
+
+    // Normalize brand
+    const normalizedBrand = brandNormalizationMap[brand] || brand;
+
+    // Skip ignored brands
+    if (ignoredBrands.includes(normalizedBrand.toUpperCase())) {
+        return false;
+    }
+
+    // Case-sensitive match for "HAPPY"
+    if (normalizedBrand === "HAPPY" && !/\bHAPPY\b/.test(input)) {
+        return false;
+    }
+
+    // Lowercased word-split input for position checks
+    const words = input.toLowerCase().split(/\s+/);
+
+    //Lowercased brand name
+    const brandLower = normalizedBrand.toLowerCase();
+
+    // Only match if it's the first word
+    if (frontOnlyBrands.includes(brandLower)) {
+        return _.first(words) === brandLower;
+    }
+
+    // Only match if it's first or second word
+    if (frontOrSecondOnlyBrands.includes(brandLower)) {
+        return _.first(words) === brandLower || _.nth(words, 1) === brandLower;
+    }
+
     // Escape any special characters in the brand name for use in a regular expression
-    const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    const escapedBrand = normalizedBrand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 
-    // Check if the brand is at the beginning or end of the string
-    const atBeginningOrEnd = new RegExp(
-        `^(?:${escapedBrand}\\s|.*\\s${escapedBrand}\\s.*|.*\\s${escapedBrand})$`,
-        "i"
-    ).test(input)
+    const regex = new RegExp(`\\b${escapedBrand}\\b`, "i");
+    return regex.test(input);
+}
 
-    // Check if the brand is a separate term in the string
-    const separateTerm = new RegExp(`\\b${escapedBrand}\\b`, "i").test(input)
+// create or initialize unionFind
+function createUnionFind(): UnionFindState {
+    return { parent: {} };
+}
 
-    // The brand should be at the beginning, end, or a separate term
-    return atBeginningOrEnd || separateTerm
+// set item in unionFinder 
+function union(state: UnionFindState, x: string, y: string): void {
+    const rootX = find(state, x);
+    const rootY = find(state, y);
+    if (rootX !== rootY) {
+        const canonical = rootX < rootY ? rootX : rootY;
+        state.parent[rootX] = canonical;
+        state.parent[rootY] = canonical;
+    }
+}
+
+// find item in the unionFinder
+function find(state: UnionFindState, x: string): string {
+    if (!(x in state.parent)) {
+        state.parent[x] = x;
+    }
+    if (state.parent[x] !== x) {
+        state.parent[x] = find(state, state.parent[x]);
+    }
+    return state.parent[x];
 }
 
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
     const context = { scope: "assignBrandIfKnown" } as ContextType
+
+    const unionFinder = createUnionFind();
 
     const brandsMapping = await getBrandsMapping()
 
@@ -174,13 +233,23 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
                 }
             }
         }
-        console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
+        const uniqueMatchedBrands = _.uniq(matchedBrands)
+        console.log(`${product.title} -> ${uniqueMatchedBrands}`)
+
+        if (!_.isEmpty(uniqueMatchedBrands)) {
+            uniqueMatchedBrands.forEach((matchedBrand) => {
+                union(unionFinder, _.first(uniqueMatchedBrands), matchedBrand)
+            })
+        }
+
         const sourceId = product.source_id
         const meta = { matchedBrands }
-        const brand = matchedBrands.length ? matchedBrands[0] : null
+        const brand = matchedBrands.length ? find(unionFinder, matchedBrands[0]) : null
 
         const key = `${source}_${countryCode}_${sourceId}`
         const uuid = stringToHash(key)
+
+        console.log(`${uuid} -> ${key} -> ${brand}`)
 
         // Then brand is inserted into product mapping table
     }
