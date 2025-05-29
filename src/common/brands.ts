@@ -234,7 +234,7 @@ export async function assignBrandIfKnown(
             continue;
         }
 
-        let matchedBrands = [];
+        let matchedBrands: string[] = [];
         for (const brandKey in brandsMapping) {
             const relatedBrands = brandsMapping[brandKey];
             for (const brand of relatedBrands) {
@@ -306,6 +306,18 @@ export async function assignBrandIfKnown(
                 }
             }
         }
+
+        // Task 1, TODO-5: If multiple brands matched, prioritize matching at the beginning
+        if (matchedBrands.length > 1) {
+            // Sort brands by their position in the title (those at the beginning come first)
+            const normalizedProductTitle = normalizeString(product.title);
+            matchedBrands.sort((a, b) => {
+                const posA = normalizedProductTitle.indexOf(normalizeString(a));
+                const posB = normalizedProductTitle.indexOf(normalizeString(b));
+                return posA - posB;
+            });
+        }
+
         console.log(`${product.title} -> ${_.uniq(matchedBrands)}`);
         const sourceId = product.source_id;
         const meta = { matchedBrands };
