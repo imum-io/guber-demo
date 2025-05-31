@@ -4,14 +4,15 @@ import { ContextType } from "../libs/logger"
 import { jsonOrStringForDb, jsonOrStringToJson, stringOrNullForDb, stringToHash } from "../utils"
 import _ from "lodash"
 import { sources } from "../sites/sources"
-import items from "./../../pharmacyItems.json"
-import connections from "./../../brandConnections.json"
+import items from "../dataset/pharmacyItems.json"
+import connections from "../dataset/brandConnections.json"
+import { initBrand, findBrandParent, groupBrands } from "./brandsGroup"
 
 type BrandsMapping = {
     [key: string]: string[]
 }
 
-export async function getBrandsMapping(): Promise<BrandsMapping> {
+export async function getBrandsMapping(): Promise<Set<string>> {
     //     const query = `
     //     SELECT
     //     LOWER(p1.manufacturer) manufacturer_p1
@@ -42,59 +43,25 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
     // For this test day purposes exported the necessary object
     const brandConnections = connections
 
-    const getRelatedBrands = (map: Map<string, Set<string>>, brand: string): Set<string> => {
-        const relatedBrands = new Set<string>()
-        const queue = [brand]
-        while (queue.length > 0) {
-            const current = queue.pop()!
-            if (map.has(current)) {
-                const brands = map.get(current)!
-                for (const b of brands) {
-                    if (!relatedBrands.has(b)) {
-                        relatedBrands.add(b)
-                        queue.push(b)
-                    }
-                }
-            }
-        }
-        return relatedBrands
-    }
-
-    // Create a map to track brand relationships
-    const brandMap = new Map<string, Set<string>>()
+    const uniqueBrands = new Set<string>()
 
     brandConnections.forEach(({ manufacturer_p1, manufacturers_p2 }) => {
         const brand1 = manufacturer_p1.toLowerCase()
         const brands2 = manufacturers_p2.toLowerCase()
         const brand2Array = brands2.split(";").map((b) => b.trim())
-        if (!brandMap.has(brand1)) {
-            brandMap.set(brand1, new Set())
-        }
+
+        uniqueBrands.add(brand1)
+        initBrand(brand1)
+        
         brand2Array.forEach((brand2) => {
-            if (!brandMap.has(brand2)) {
-                brandMap.set(brand2, new Set())
-            }
-            brandMap.get(brand1)!.add(brand2)
-            brandMap.get(brand2)!.add(brand1)
+            uniqueBrands.add(brand2)
+            initBrand(brand2)
+
+            groupBrands(brand1, brand2)
         })
     })
 
-    // Build the final flat map
-    const flatMap = new Map<string, Set<string>>()
-
-    brandMap.forEach((_, brand) => {
-        const relatedBrands = getRelatedBrands(brandMap, brand)
-        flatMap.set(brand, relatedBrands)
-    })
-
-    // Convert the flat map to an object for easier usage
-    const flatMapObject: Record<string, string[]> = {}
-
-    flatMap.forEach((relatedBrands, brand) => {
-        flatMapObject[brand] = Array.from(relatedBrands)
-    })
-
-    return flatMapObject
+    return uniqueBrands
 }
 
 async function getPharmacyItems(countryCode: countryCodes, source: sources, versionKey: string, mustExist = true) {
@@ -148,7 +115,7 @@ export function checkBrandIsSeparateTerm(input: string, brand: string): boolean 
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
     const context = { scope: "assignBrandIfKnown" } as ContextType
 
-    const brandsMapping = await getBrandsMapping()
+    const uniqueBrands = await getBrandsMapping()
 
     const versionKey = "assignBrandIfKnown"
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
@@ -161,23 +128,17 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
             continue
         }
 
-        let matchedBrands = []
-        for (const brandKey in brandsMapping) {
-            const relatedBrands = brandsMapping[brandKey]
-            for (const brand of relatedBrands) {
-                if (matchedBrands.includes(brand)) {
-                    continue
-                }
-                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
-                if (isBrandMatch) {
-                    matchedBrands.push(brand)
-                }
+        const matchedBrands = []
+        uniqueBrands.forEach((brand) => {
+            if (checkBrandIsSeparateTerm(product.title, brand)) {
+                matchedBrands.push(brand)
             }
-        }
-        console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
+        })
+
+        console.log(`${product.title} -> ${matchedBrands}`)
         const sourceId = product.source_id
         const meta = { matchedBrands }
-        const brand = matchedBrands.length ? matchedBrands[0] : null
+        const brand = matchedBrands.length ? findBrandParent(matchedBrands[0]) : null
 
         const key = `${source}_${countryCode}_${sourceId}`
         const uuid = stringToHash(key)
