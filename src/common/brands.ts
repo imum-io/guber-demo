@@ -191,6 +191,15 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
 
     const brandsMapping = await getBrandsMapping()
 
+    const canonicalBrandMap: Record<string, string> = {};
+    for (const groupKey in brandsMapping) {
+        const group = [groupKey, ...brandsMapping[groupKey]].map(b => b.toLowerCase());
+        const canonical = group.sort()[0];
+        group.forEach(b => {
+            canonicalBrandMap[b] = canonical;
+        });
+    }
+
     const versionKey = "assignBrandIfKnown"
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
     let counter = 0
@@ -256,6 +265,13 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         }
 
         console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
+        
+        matchedBrands = matchedBrands
+        .map(b => canonicalBrandMap[b.toLowerCase()] || b)
+        .filter((b, i, arr) => arr.indexOf(b) === i);
+
+        console.log(`${product.title} -> ${matchedBrands} -> Assigned: ${brand}`)
+
         const sourceId = product.source_id
         const meta = { matchedBrands }
         const brand = matchedBrands.length ? matchedBrands[0] : null
