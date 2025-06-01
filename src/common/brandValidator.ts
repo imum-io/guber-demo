@@ -5,9 +5,10 @@ import {
     CASE_SENSITIVE_BRANDS,
     UNICODE_NORMALIZATIONS,
     VALIDATION_CONFIG
-} from './brandValidationConfig';
+} from "./brandValidationConfig";
+import { MatchedBrand } from "../types/common";
 
-export function normalizeBrandName(brandName: string, escapeRegex: boolean = false): string {
+export function normalizeBrandName(brandName: string): string {
     let normalized = brandName
         .toLowerCase()
         .normalize('NFD')
@@ -17,13 +18,18 @@ export function normalizeBrandName(brandName: string, escapeRegex: boolean = fal
         normalized = normalized.replace(from, to);
     });
     
-    normalized = normalized.trim();
-    
-    if (escapeRegex) {
-        normalized = normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    }
+    return normalized.trim();
+}
 
-    return normalized;
+export function getBrandPositionInProduct(input: string, brand: string, isCaseSensitive: boolean = false): number {
+    const normalizedInput = normalizeBrandName(input)
+    const normalizedBrand = normalizeBrandName(brand)
+
+    const escapedBrand = normalizedBrand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+
+    const match = new RegExp(`\\b${escapedBrand}\\b`, isCaseSensitive ? "" : "i").exec(normalizedInput)
+
+    return match ? match.index : -1;
 }
 
 function isGenericTerm(brand: string): boolean {
@@ -41,7 +47,7 @@ function isFlexiblePositionBrand(brand: string): boolean {
     return FLEXIBLE_POSITION_BRANDS.includes(normalizedBrand)
 }
 
-function validateCaseSensitive(productTitle: string, brand: string): boolean {
+function validateCaseSensitive(productTitle: string, brand: string): number {
     const normalizedBrand = normalizeBrandName(brand)
     
     const caseSensitiveRule = CASE_SENSITIVE_BRANDS.find(
@@ -49,78 +55,61 @@ function validateCaseSensitive(productTitle: string, brand: string): boolean {
     )
     
     if (caseSensitiveRule) {
-        return productTitle.includes(caseSensitiveRule.requiredCase)
-    }
-    
-    return true
-}
+        const position = getBrandPositionInProduct(productTitle, caseSensitiveRule.requiredCase, true);
 
-function getBrandPosition(text: string, brand: string): number {
-    const words = text.toLowerCase().split(/\s+/)
-    const normalizedBrand = normalizeBrandName(brand)
-    const normalizedText = normalizeBrandName(text)
-    
-    if (normalizedText.startsWith(normalizedBrand)) {
-        const nextCharIndex = normalizedBrand.length
-        if (nextCharIndex >= normalizedText.length || /\s/.test(normalizedText.charAt(nextCharIndex))) {
-            return 0
-        }
-    }
-    
-    for (let i = 0; i < words.length; i++) {
-        if (normalizeBrandName(words[i]) === normalizedBrand) {
-            return i
-        }
+        return position
     }
     
     return -1
 }
 
+function getWordPositionFromIndex(text: string, charIndex: number): number {  
+    if (charIndex <= 0) return charIndex
+  
+    const textBeforeMatch = text.substring(0, charIndex)
+    const words = textBeforeMatch.trim().split(/\s+/).filter(word => word.length > 0)
+    
+    return words.length
+}
 
-function validateBrandPosition(productTitle: string, brand: string, position: number): boolean {
-    if (isFrontOnlyBrand(brand) && position !== 0) {
+function validateBrandPosition(text: string, brand: string, position: number): boolean {
+    const wordPosition = getWordPositionFromIndex(text, position)
+
+    if (isFrontOnlyBrand(brand) && wordPosition !== 0) {
         return false
     }
     
-    if (isFlexiblePositionBrand(brand) && position > VALIDATION_CONFIG.MAX_FLEXIBLE_POSITION) {
+    if (isFlexiblePositionBrand(brand) && wordPosition > VALIDATION_CONFIG.MAX_FLEXIBLE_POSITION) {
         return false
     }
 
     return true
 }
 
-export function validateBrandMatch(input: string, brand: string): boolean {
+export function validateBrandMatch(input: string, brand: string): number {
     if (isGenericTerm(brand)) {
-        return false
+        return -1
     }
     
-    if (!validateCaseSensitive(input, brand)) {
-        return false
+    const caseSensitivePosition = validateCaseSensitive(input, brand)
+    if (caseSensitivePosition !== -1) {
+        return caseSensitivePosition
     }
     
-    const position = getBrandPosition(input, brand)
+    const position = getBrandPositionInProduct(input, brand)
     if (position === -1) {
-        return false
+        return -1
     }
-    
+
     if (!validateBrandPosition(input, brand, position)) {
-        return false
+        return -1
     }
     
-    return true
+    return position
 }
 
-export function prioritizeBrandsByPosition(productTitle: string, matchedBrands: string[]): string[] {
-    if (matchedBrands.length <= 1) {
-        return matchedBrands
-    }
-    
-    const brandsWithPosition = matchedBrands.map(brand => ({
-        brand,
-        position: getBrandPosition(productTitle, brand)
-    })).filter(item => item.position !== -1)
-    
-    brandsWithPosition.sort((a, b) => (a.position - b.position));
-    
-    return brandsWithPosition.map(item => item.brand)
+export function prioritizeBrandsByPosition(matchedBrands: MatchedBrand[]): string[] {
+    matchedBrands.sort((a, b) => (a.position - b.position));
+
+    return matchedBrands.map(item => item.brand)
 }

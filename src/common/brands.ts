@@ -7,7 +7,8 @@ import { sources } from "../sites/sources"
 import items from "../dataset/pharmacyItems.json"
 import connections from "../dataset/brandConnections.json"
 import { initBrand, findBrandParent, groupBrands } from "./brandsGroup"
-import { validateBrandMatch, prioritizeBrandsByPosition } from "./brandValidator"
+import { normalizeBrandName, validateBrandMatch, prioritizeBrandsByPosition } from "./brandValidator"
+import { MatchedBrand } from "../types/common"
 
 type BrandsMapping = {
     [key: string]: string[]
@@ -47,9 +48,9 @@ export async function getBrandsMapping(): Promise<Set<string>> {
     const uniqueBrands = new Set<string>()
 
     brandConnections.forEach(({ manufacturer_p1, manufacturers_p2 }) => {
-        const brand1 = manufacturer_p1.toLowerCase()
+        const brand1 = normalizeBrandName(manufacturer_p1.toLowerCase())
         const brands2 = manufacturers_p2.toLowerCase()
-        const brand2Array = brands2.split(";").map((b) => b.trim())
+        const brand2Array = brands2.split(";").map((b) =>normalizeBrandName(b.trim()))
 
         uniqueBrands.add(brand1)
         initBrand(brand1)
@@ -96,7 +97,7 @@ async function getPharmacyItems(countryCode: countryCodes, source: sources, vers
     return finalProducts
 }
 
-export function checkBrandIsSeparateTerm(input: string, brand: string): boolean {
+export function checkBrandIsSeparateTerm(input: string, brand: string): number {
     return validateBrandMatch(input, brand)
 }
 
@@ -116,21 +117,22 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
             continue
         }
 
-        const matchedBrands = []
+        const matchedBrands: MatchedBrand[] = []
         uniqueBrands.forEach((brand) => {
-            if (checkBrandIsSeparateTerm(product.title, brand)) {
-                matchedBrands.push(brand)
+            const position = checkBrandIsSeparateTerm(product.title, brand)
+            if (position !== -1) {
+                matchedBrands.push({
+                    brand, position
+                })
             }
         })
 
-        const prioritizedBrands = matchedBrands.length > 1 
-            ? prioritizeBrandsByPosition(product.title, matchedBrands)
-            : matchedBrands
+        const prioritizedBrands = prioritizeBrandsByPosition(matchedBrands)
 
         console.log(`Product Title: ${product.title}, Matched Brands: ${prioritizedBrands}, Prioritized Brand: ${prioritizedBrands[0]}`)
         const sourceId = product.source_id
         const meta = { matchedBrands: prioritizedBrands }
-        const brand = findBrandParent(prioritizedBrands[0])
+        const brand = findBrandParent(prioritizedBrands?.[0])
 
         const key = `${source}_${countryCode}_${sourceId}`
         const uuid = stringToHash(key)

@@ -81,3 +81,8 @@ export type dbActiveAd = {
     countryCode: string,
     linkId: string,
 }
+
+export type MatchedBrand = {
+    brand: string,
+    position: number,
+}
