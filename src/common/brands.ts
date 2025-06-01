@@ -4,8 +4,49 @@ import { ContextType } from "../libs/logger"
 import { jsonOrStringForDb, jsonOrStringToJson, stringOrNullForDb, stringToHash } from "../utils"
 import _ from "lodash"
 import { sources } from "../sites/sources"
-import items from "./../../pharmacyItems.json"
-import connections from "./../../brandConnections.json"
+import items from "../../data/pharmacyItems.json"
+import connections from "../../data/brandConnections.json"
+
+
+const FRONT_BRANDS = [
+  "rich", "rff", "flex", "ultra", "gum",
+  "beauty", "orto", "free", "112", "kin", "happy"
+];
+
+const FRONT_OR_SECOND_BRANDS = [
+  "heel", "contour", "nero", "rsv"
+];
+
+const IGNORED_BRANDS = [
+  "bio", "neb"
+];
+
+function normalizeTitle(input: string): string {
+  // 1. Normalize Babē to Babe
+  return input.replace(/babē/gi, "babe");
+}
+
+function shouldIgnoreBrand(brand: string): boolean {
+  // 2. Ignore BIO, NEB
+  return IGNORED_BRANDS.includes(brand.toLowerCase());
+}
+
+function isFrontBrand(brand: string): boolean {
+  // 3. These must be at the beginning
+  return FRONT_BRANDS.includes(brand.toLowerCase());
+}
+
+function isFrontOrSecondBrand(brand: string): boolean {
+  // 4. These must be at the front or 2nd word
+  return FRONT_OR_SECOND_BRANDS.includes(brand.toLowerCase());
+}
+
+function isHappyCaseSensitive(brand: string, title: string): boolean {
+  // 6. HAPPY needs to be matched as all uppercase
+  return brand === "HAPPY" ? /\bHAPPY\b/.test(title) : true;
+}
+
+
 
 type BrandsMapping = {
     [key: string]: string[]
@@ -165,15 +206,55 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         for (const brandKey in brandsMapping) {
             const relatedBrands = brandsMapping[brandKey]
             for (const brand of relatedBrands) {
-                if (matchedBrands.includes(brand)) {
-                    continue
+                // Normalize title and brand for matching
+                const normBrand = normalizeTitle(brand);
+                const normTitle = normalizeTitle(product.title);
+
+                // 2. Ignore certain brands
+                if (shouldIgnoreBrand(normBrand)){
+                    console.log(`SKIP: [${product.title}] ignored brand [${normBrand}]`);
+                    continue;
+                };
+
+                // 6. "HAPPY" must match all-uppercase
+                if (!isHappyCaseSensitive(normBrand, product.title)) {
+                    console.log(`SKIP: [${product.title}] not all caps [HAPPY]`);
+                    continue;
                 }
-                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
-                if (isBrandMatch) {
-                    matchedBrands.push(brand)
+
+                // 3. These brands must be at the beginning
+                if (isFrontBrand(normBrand) && !normTitle.toLowerCase().startsWith(normBrand.toLowerCase() + " ")) {
+                    console.log(`SKIP: [${product.title}] brand [${normBrand}] not at front`);
+                    continue;
+                }
+
+                // 4. These brands must be at the front or 2nd word
+                if (isFrontOrSecondBrand(normBrand)) {
+                    const words = normTitle.toLowerCase().split(/\s+/);
+                    
+                    if (!(words[0] === normBrand.toLowerCase() || (words[1] && words[1] === normBrand.toLowerCase()))) {
+                        console.log(`SKIP: [${product.title}] brand [${normBrand}] not front/second`);
+                        continue;
+                    }
+                }
+
+                // Main match (Babē normalization happens above)
+                const isBrandMatch = checkBrandIsSeparateTerm(normTitle, normBrand);
+
+                if (isBrandMatch && !matchedBrands.includes(normBrand)) {
+                    matchedBrands.push(normBrand);
                 }
             }
+
         }
+
+        if (matchedBrands.length > 1) {
+        matchedBrands = _.sortBy(
+            matchedBrands,
+            brand => normalizeTitle(product.title).toLowerCase().indexOf(brand.toLowerCase())
+        );
+        }
+
         console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
         const sourceId = product.source_id
         const meta = { matchedBrands }
