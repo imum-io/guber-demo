@@ -128,21 +128,55 @@ async function getPharmacyItems(countryCode: countryCodes, source: sources, vers
     return finalProducts
 }
 
+// 1st task to add some validations
 export function checkBrandIsSeparateTerm(input: string, brand: string): boolean {
-    // Escape any special characters in the brand name for use in a regular expression
-    const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    // Normalize Babē to Babe
+    const normalizedBrand = brand.replace(/ē/g, "e");
 
+    // Escape special characters in the normalized brand name for regex
+    const escapedBrand = normalizedBrand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    // Ignore BIO and NEB (case-insensitive)
+    if (["bio", "neb"].includes(normalizedBrand.toLowerCase())) {
+        return false;
+    }
+
+    // Define brands that must be at the start
+    const startOnlyBrands = [
+        "rich", "rff", "flex", "ultra", "gum", "beauty", "orto", "free", "112", "kin", "happy"
+    ].map(b => b.toLowerCase());
+
+    // Define brands that can be at the start or second word
+    const startOrSecondBrands = ["heel", "contour", "nero", "rsv"].map(b => b.toLowerCase());
+
+    // Determine if case-sensitive matching is needed for HAPPY
+    const isHappy = normalizedBrand === "HAPPY";
+    const regexFlags = isHappy ? "" : "i"; // Case-sensitive for HAPPY, otherwise case-insensitive
+
+    // Check if the brand must be at the start
+    if (startOnlyBrands.includes(normalizedBrand.toLowerCase())) {
+        const regex = new RegExp(`^${escapedBrand}\\b`, regexFlags);
+        return regex.test(input);
+    }
+
+    // Check if the brand can be at the start or second word
+    if (startOrSecondBrands.includes(normalizedBrand.toLowerCase())) {
+        const regex = new RegExp(`(?:^${escapedBrand}\\b|^\\w+\\s${escapedBrand}\\b)`, regexFlags);
+        return regex.test(input);
+    }
+
+    // Original logic for other brands
     // Check if the brand is at the beginning or end of the string
     const atBeginningOrEnd = new RegExp(
         `^(?:${escapedBrand}\\s|.*\\s${escapedBrand}\\s.*|.*\\s${escapedBrand})$`,
-        "i"
-    ).test(input)
+        regexFlags
+    ).test(input);
 
     // Check if the brand is a separate term in the string
-    const separateTerm = new RegExp(`\\b${escapedBrand}\\b`, "i").test(input)
+    const separateTerm = new RegExp(`\\b${escapedBrand}\\b`, regexFlags).test(input);
 
     // The brand should be at the beginning, end, or a separate term
-    return atBeginningOrEnd || separateTerm
+    return atBeginningOrEnd || separateTerm;
 }
 
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
@@ -165,6 +199,11 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         for (const brandKey in brandsMapping) {
             const relatedBrands = brandsMapping[brandKey]
             for (const brand of relatedBrands) {
+                // 2nd task - to always assign the same brand for whole group
+                // Here deleting the duplicate brand for the same group
+                if (brand !== brandKey) {
+                    brandsMapping[brand] = []
+                }
                 if (matchedBrands.includes(brand)) {
                     continue
                 }
