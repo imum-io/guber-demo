@@ -82,7 +82,54 @@ export type dbActiveAd = {
     linkId: string,
 }
 
-export type MatchedBrand = {
+export const GENERIC_TERMS = ['bio', 'neb']
+
+export const FRONT_ONLY_BRANDS = ['rich', 'rff', 'flex', 'ultra', 'gum', 'beauty', 'orto', 'free', '112', 'kin', 'happy']
+
+export const FLEXIBLE_POSITION_BRANDS = ['heel', 'contour', 'nero', 'rsv']
+
+export const CASE_SENSITIVE_BRANDS = [{ brand: 'happy', requiredCase: 'HAPPY' }]
+
+export const UNICODE_NORMALIZATIONS = [
+    { from: /[ēėę]/g, to: 'e' },
+    { from: /[āą]/g, to: 'a' },
+    { from: /[īį]/g, to: 'i' },
+    { from: /[ūų]/g, to: 'u' },
+    { from: /[ōø]/g, to: 'o' },
+    { from: /[ć]/g, to: 'c' },
+    { from: /[ń]/g, to: 'n' },
+    { from: /[ś]/g, to: 's' },
+    { from: /[ź]/g, to: 'z' },
+    { from: /[ł]/g, to: 'l' }
+]
+
+export type TrieNode = {
+    children: Map<string, TrieNode>,
+    isEndOfWord: boolean,
+    brands: Set<string>,
+    failureLink?: TrieNode,
+    outputLink?: TrieNode,
+    depth: number,
+}
+
+export type BrandMatch = {
     brand: string,
-    position: number,
+    startIndex: number,
+    endIndex: number,
+    wordPosition: number,
+}
+
+export enum ruleType {
+    GENERIC = 'generic',
+    FRONT_ONLY = 'front-only',
+    FLEXIBLE = 'flexible',
+    CASE_SENSITIVE = 'case-sensitive',
+    NORMAL = 'normal',
+}
+
+export type BrandRule = {
+    type: ruleType,
+    priority: number,
+    caseSensitiveCheck?: string,
+    maxPosition?: number,
 }

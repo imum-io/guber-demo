@@ -2,16 +2,26 @@ import { Job } from "bullmq"
 import { countryCodes, dbServers, EngineType } from "../config/enums"
 import { ContextType } from "../libs/logger"
 import { jsonOrStringForDb, jsonOrStringToJson, stringOrNullForDb, stringToHash } from "../utils"
-import _ from "lodash"
+import _, { get } from "lodash"
 import { sources } from "../sites/sources"
 import items from "../dataset/pharmacyItems.json"
 import connections from "../dataset/brandConnections.json"
-import { initBrand, findBrandParent, groupBrands } from "./brandsGroup"
-import { normalizeBrandName, validateBrandMatch, prioritizeBrandsByPosition } from "./brandValidator"
-import { MatchedBrand } from "../types/common"
+import { BrandsGroup } from "./brandsGroup"
+import { SimpleBrandEngine } from "./brandEngine"
+import { normalizeBrand } from "./utils"
 
 type BrandsMapping = {
     [key: string]: string[]
+}
+
+const brandsGroup = new BrandsGroup()
+let globalBrandEngine: SimpleBrandEngine | null = null
+
+async function initializeBrandEngine(brands: Set<string>): Promise<void> {
+    if (!globalBrandEngine) {
+        globalBrandEngine = new SimpleBrandEngine()
+    }
+    await globalBrandEngine.initialize(brands)
 }
 
 export async function getBrandsMapping(): Promise<Set<string>> {
@@ -48,18 +58,18 @@ export async function getBrandsMapping(): Promise<Set<string>> {
     const uniqueBrands = new Set<string>()
 
     brandConnections.forEach(({ manufacturer_p1, manufacturers_p2 }) => {
-        const brand1 = normalizeBrandName(manufacturer_p1.toLowerCase())
+        const brand1 = normalizeBrand(manufacturer_p1.toLowerCase())
         const brands2 = manufacturers_p2.toLowerCase()
-        const brand2Array = brands2.split(";").map((b) =>normalizeBrandName(b.trim()))
+        const brand2Array = brands2.split(";").map((b) => normalizeBrand(b.trim()))
 
         uniqueBrands.add(brand1)
-        initBrand(brand1)
+        brandsGroup.initBrand(brand1)
         
         brand2Array.forEach((brand2) => {
             uniqueBrands.add(brand2)
-            initBrand(brand2)
+            brandsGroup.initBrand(brand2)
 
-            groupBrands(brand1, brand2)
+            brandsGroup.groupBrands(brand1, brand2)
         })
     })
 
@@ -97,14 +107,12 @@ async function getPharmacyItems(countryCode: countryCodes, source: sources, vers
     return finalProducts
 }
 
-export function checkBrandIsSeparateTerm(input: string, brand: string): number {
-    return validateBrandMatch(input, brand)
-}
-
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
     const context = { scope: "assignBrandIfKnown" } as ContextType
 
     const uniqueBrands = await getBrandsMapping()
+
+    await initializeBrandEngine(uniqueBrands)
 
     const versionKey = "assignBrandIfKnown"
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
@@ -117,22 +125,13 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
             continue
         }
 
-        const matchedBrands: MatchedBrand[] = []
-        uniqueBrands.forEach((brand) => {
-            const position = checkBrandIsSeparateTerm(product.title, brand)
-            if (position !== -1) {
-                matchedBrands.push({
-                    brand, position
-                })
-            }
-        })
+        const prioritizedBrands: string[] = globalBrandEngine.getAllMatches(product.title)
+        const canonicalBrand = prioritizedBrands[0] ? brandsGroup.findBrandParent(prioritizedBrands[0]) : ""
 
-        const prioritizedBrands = prioritizeBrandsByPosition(matchedBrands)
-
-        console.log(`Product Title: ${product.title}, Matched Brands: ${prioritizedBrands}, Prioritized Brand: ${prioritizedBrands[0]}`)
+        console.log(`Product Title: ${product.title}, Matched Brands: ${prioritizedBrands}, Canonical Brand: ${canonicalBrand}`)
         const sourceId = product.source_id
         const meta = { matchedBrands: prioritizedBrands }
-        const brand = findBrandParent(prioritizedBrands?.[0])
+        const brand = canonicalBrand
 
         const key = `${source}_${countryCode}_${sourceId}`
         const uuid = stringToHash(key)
