@@ -182,14 +182,36 @@ export function checkBrandIsSeparateTerm(
   return atBeginningOrEnd || separateTerm;
 }
 
+export async function getCanonicalBrandMap(): Promise<Record<string, string>> {
+  const brandsMapping = await getBrandsMapping();
+  function getCanonicalBrand(group: string[]): string {
+    return group.slice().sort()[0];
+  }
+  const canonicalBrandMap: Record<string, string> = {};
+  for (const brandKey in brandsMapping) {
+    const group = brandsMapping[brandKey];
+    const canonical = getCanonicalBrand(group);
+    for (const b of group) {
+      canonicalBrandMap[b] = canonical;
+    }
+  }
+  return canonicalBrandMap;
+}
+
 export async function assignBrandIfKnown(
   countryCode: countryCodes,
   source: sources,
   job?: Job
 ) {
   const context = { scope: "assignBrandIfKnown" } as ContextType;
+  const canonicalBrandMap = await getCanonicalBrandMap();
 
   const brandsMapping = await getBrandsMapping();
+
+  // Helper: get canonical brand for a group (lex smallest)
+  function getCanonicalBrand(brandGroup: string[]): string {
+    return brandGroup.slice().sort()[0];
+  }
 
   const versionKey = "assignBrandIfKnown";
   let products = await getPharmacyItems(countryCode, source, versionKey, false);
@@ -202,33 +224,29 @@ export async function assignBrandIfKnown(
       continue;
     }
 
-    let matched: { brand: string; position: number }[] = [];
+    let matchedBrands: string[] = [];
 
     for (const brandKey in brandsMapping) {
       const relatedBrands = brandsMapping[brandKey];
       for (const brand of relatedBrands) {
-        const lowerTitle = product.title.toLowerCase();
-        const lowerBrand = brand.toLowerCase();
-
-        if (matched.find((m) => m.brand === brand)) continue;
-
-        // Special case for "HAPPY"
-        if (brand.toUpperCase() === "HAPPY") {
-          if (!/\bHAPPY\b/.test(product.title)) continue;
-        } else {
-          if (!checkBrandIsSeparateTerm(product.title, brand)) continue;
+        if (matchedBrands.includes(brand)) {
+          continue;
         }
-
-        const position = lowerTitle.indexOf(lowerBrand);
-        matched.push({ brand, position });
+        const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand);
+        if (isBrandMatch) {
+          const canonical = canonicalBrandMap[brand] || brand;
+          if (!matchedBrands.includes(canonical)) {
+            matchedBrands.push(canonical);
+          }
+        }
       }
     }
 
-    matched.sort((a, b) => a.position - b.position);
+    // Remove duplicates just in case
+    matchedBrands = _.uniq(matchedBrands);
 
-    const matchedBrands = matched.map((m) => m.brand);
+    console.log(`${product.title} -> ${matchedBrands}`);
 
-    console.log(`${product.title} -> ${_.uniq(matchedBrands)}`);
     const sourceId = product.source_id;
     const meta = { matchedBrands };
     const brand = matchedBrands.length ? matchedBrands[0] : null;
@@ -236,6 +254,6 @@ export async function assignBrandIfKnown(
     const key = `${source}_${countryCode}_${sourceId}`;
     const uuid = stringToHash(key);
 
-    // Then brand is inserted into product mapping table
+    // Then brand is inserted into product mapping table using 'brand' (canonical)
   }
 }
