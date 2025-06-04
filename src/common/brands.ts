@@ -2,17 +2,13 @@ import { Job } from "bullmq"
 import { countryCodes, dbServers, EngineType } from "../config/enums"
 import { ContextType } from "../libs/logger"
 import { jsonOrStringForDb, jsonOrStringToJson, stringOrNullForDb, stringToHash } from "../utils"
-import _, { get } from "lodash"
+import _ from "lodash"
 import { sources } from "../sites/sources"
 import items from "../dataset/pharmacyItems.json"
 import connections from "../dataset/brandConnections.json"
 import { BrandsGroup } from "./brandsGroup"
 import { SimpleBrandEngine } from "./brandEngine"
 import { normalizeBrand } from "./utils"
-
-type BrandsMapping = {
-    [key: string]: string[]
-}
 
 const brandsGroup = new BrandsGroup()
 let globalBrandEngine: SimpleBrandEngine | null = null
@@ -24,7 +20,7 @@ async function initializeBrandEngine(brands: Set<string>): Promise<void> {
     await globalBrandEngine.initialize(brands)
 }
 
-export async function getBrandsMapping(): Promise<Set<string>> {
+export async function getUniqueBrands(): Promise<Set<string>> {
     //     const query = `
     //     SELECT
     //     LOWER(p1.manufacturer) manufacturer_p1
@@ -110,7 +106,7 @@ async function getPharmacyItems(countryCode: countryCodes, source: sources, vers
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
     const context = { scope: "assignBrandIfKnown" } as ContextType
 
-    const uniqueBrands = await getBrandsMapping()
+    const uniqueBrands = await getUniqueBrands()
 
     await initializeBrandEngine(uniqueBrands)
 
@@ -126,9 +122,9 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         }
 
         const prioritizedBrands: string[] = globalBrandEngine.getAllMatches(product.title)
-        const canonicalBrand = prioritizedBrands[0] ? brandsGroup.findBrandParent(prioritizedBrands[0]) : ""
+        const canonicalBrand = brandsGroup.getCanonicalBrand(prioritizedBrands)
 
-        console.log(`Product Title: ${product.title}, Matched Brands: ${prioritizedBrands}, Canonical Brand: ${canonicalBrand}`)
+        console.log(`🎯🎯🎯 Product Title: ${product.title}, Matched Brands: ${prioritizedBrands}, Canonical Brand: ${canonicalBrand}`)
         const sourceId = product.source_id
         const meta = { matchedBrands: prioritizedBrands }
         const brand = canonicalBrand

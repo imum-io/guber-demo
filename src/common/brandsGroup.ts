@@ -42,6 +42,14 @@ export class BrandsGroup {
         }
     }
 
+    public getCanonicalBrand(brands: string[]): string | null {
+        if (brands.length === 0) {
+            return null;
+        }
+
+        return this.findBrandParent(brands[0]);
+    }
+
     public getAllGroups(): Map<string, string[]> {
         const groups = new Map<string, string[]>()
         
