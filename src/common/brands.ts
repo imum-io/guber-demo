@@ -211,7 +211,13 @@ export async function assignBrandIfKnown(
         const lowerBrand = brand.toLowerCase();
 
         if (matched.find((m) => m.brand === brand)) continue;
-        if (!checkBrandIsSeparateTerm(product.title, brand)) continue;
+
+        // Special case for "HAPPY"
+        if (brand.toUpperCase() === "HAPPY") {
+          if (!/\bHAPPY\b/.test(product.title)) continue;
+        } else {
+          if (!checkBrandIsSeparateTerm(product.title, brand)) continue;
+        }
 
         const position = lowerTitle.indexOf(lowerBrand);
         matched.push({ brand, position });
