@@ -684,6 +684,15 @@ function createCustomError(errorObject) {
   return customError;
 }
 
+function normalizeBrandName(brand: string): string {
+  const brandMap: Record<string, string> = {
+    babē: "babe",
+  };
+
+  const normalized = brand.toLowerCase().trim();
+  return brandMap[normalized] || normalized;
+}
+
 export {
   stringOrNullForDb,
   arrayToCSV,
@@ -741,4 +750,5 @@ export {
   decodeHtml,
   createCustomError,
   stringToHash,
+  normalizeBrandName,
 };
