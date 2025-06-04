@@ -6,6 +6,7 @@ import {
   jsonOrStringForDb,
   jsonOrStringToJson,
   normalizeBrandName,
+  priorityTerms,
   stringOrNullForDb,
   stringToHash,
 } from "../utils";
@@ -149,19 +150,24 @@ export function checkBrandIsSeparateTerm(
   input: string,
   brand: string
 ): boolean {
-  // Escape any special characters in the brand name for use in a regular expression
   const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const lowerBrand = brand.toLowerCase();
+  const lowerInput = input.toLowerCase();
 
-  // Check if the brand is at the beginning or end of the string
+  // Force at the start for priority terms
+  if (priorityTerms.has(lowerBrand)) {
+    const atStart = new RegExp(`^${escapedBrand}\\b`, "i").test(input);
+    return atStart;
+  }
+
+  // General case: match as separate term or at start/end
   const atBeginningOrEnd = new RegExp(
     `^(?:${escapedBrand}\\s|.*\\s${escapedBrand}\\s.*|.*\\s${escapedBrand})$`,
     "i"
   ).test(input);
 
-  // Check if the brand is a separate term in the string
   const separateTerm = new RegExp(`\\b${escapedBrand}\\b`, "i").test(input);
 
-  // The brand should be at the beginning, end, or a separate term
   return atBeginningOrEnd || separateTerm;
 }
 

@@ -695,6 +695,20 @@ function normalizeBrandName(brand: string): string {
 
 const ignoreBrands = new Set(["bio", "neb"]);
 
+const priorityTerms = new Set([
+  "rich",
+  "rff",
+  "flex",
+  "ultra",
+  "gum",
+  "beauty",
+  "orto",
+  "free",
+  "112",
+  "kin",
+  "happy",
+]);
+
 export {
   stringOrNullForDb,
   arrayToCSV,
@@ -754,4 +768,5 @@ export {
   stringToHash,
   normalizeBrandName,
   ignoreBrands,
+  priorityTerms,
 };
