@@ -2,6 +2,7 @@ import { Job } from "bullmq";
 import { countryCodes, dbServers, EngineType } from "../config/enums";
 import { ContextType } from "../libs/logger";
 import {
+  ignoreBrands,
   jsonOrStringForDb,
   jsonOrStringToJson,
   normalizeBrandName,
@@ -190,7 +191,10 @@ export async function assignBrandIfKnown(
       for (const brand of relatedBrands) {
         const normalizedBrand = normalizeBrandName(brand);
 
-        if (matchedBrands.includes(normalizedBrand)) {
+        if (
+          matchedBrands.includes(normalizedBrand) ||
+          ignoreBrands.has(normalizedBrand)
+        ) {
           continue;
         }
 

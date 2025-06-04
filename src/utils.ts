@@ -693,6 +693,8 @@ function normalizeBrandName(brand: string): string {
   return brandMap[normalized] || normalized;
 }
 
+const ignoreBrands = new Set(["bio", "neb"]);
+
 export {
   stringOrNullForDb,
   arrayToCSV,
@@ -751,4 +753,5 @@ export {
   createCustomError,
   stringToHash,
   normalizeBrandName,
+  ignoreBrands,
 };
