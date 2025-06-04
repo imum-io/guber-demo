@@ -709,6 +709,8 @@ const priorityTerms = new Set([
   "happy",
 ]);
 
+const beginningOrSecondWordTerms = new Set(["heel", "contour", "nero", "rsv"]);
+
 export {
   stringOrNullForDb,
   arrayToCSV,
@@ -769,4 +771,5 @@ export {
   normalizeBrandName,
   ignoreBrands,
   priorityTerms,
+  beginningOrSecondWordTerms,
 };

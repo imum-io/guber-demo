@@ -2,6 +2,7 @@ import { Job } from "bullmq";
 import { countryCodes, dbServers, EngineType } from "../config/enums";
 import { ContextType } from "../libs/logger";
 import {
+  beginningOrSecondWordTerms,
   ignoreBrands,
   jsonOrStringForDb,
   jsonOrStringToJson,
@@ -154,13 +155,23 @@ export function checkBrandIsSeparateTerm(
   const lowerBrand = brand.toLowerCase();
   const lowerInput = input.toLowerCase();
 
-  // Force at the start for priority terms
-  if (priorityTerms.has(lowerBrand)) {
-    const atStart = new RegExp(`^${escapedBrand}\\b`, "i").test(input);
-    return atStart;
+  if (ignoreBrands.has(lowerBrand)) {
+    return false;
   }
 
-  // General case: match as separate term or at start/end
+  const words = lowerInput.split(/\s+/);
+
+  // Priority terms must be first word
+  if (priorityTerms.has(lowerBrand)) {
+    return words[0] === lowerBrand;
+  }
+
+  // Terms that can be in first or second word
+  if (beginningOrSecondWordTerms.has(lowerBrand)) {
+    return words[0] === lowerBrand || words[1] === lowerBrand;
+  }
+
+  // General case
   const atBeginningOrEnd = new RegExp(
     `^(?:${escapedBrand}\\s|.*\\s${escapedBrand}\\s.*|.*\\s${escapedBrand})$`,
     "i"
@@ -191,28 +202,26 @@ export async function assignBrandIfKnown(
       continue;
     }
 
-    let matchedBrands = [];
+    let matched: { brand: string; position: number }[] = [];
+
     for (const brandKey in brandsMapping) {
       const relatedBrands = brandsMapping[brandKey];
       for (const brand of relatedBrands) {
-        const normalizedBrand = normalizeBrandName(brand);
+        const lowerTitle = product.title.toLowerCase();
+        const lowerBrand = brand.toLowerCase();
 
-        if (
-          matchedBrands.includes(normalizedBrand) ||
-          ignoreBrands.has(normalizedBrand)
-        ) {
-          continue;
-        }
+        if (matched.find((m) => m.brand === brand)) continue;
+        if (!checkBrandIsSeparateTerm(product.title, brand)) continue;
 
-        const isBrandMatch = checkBrandIsSeparateTerm(
-          product.title,
-          normalizedBrand
-        );
-        if (isBrandMatch) {
-          matchedBrands.push(normalizedBrand);
-        }
+        const position = lowerTitle.indexOf(lowerBrand);
+        matched.push({ brand, position });
       }
     }
+
+    matched.sort((a, b) => a.position - b.position);
+
+    const matchedBrands = matched.map((m) => m.brand);
+
     console.log(`${product.title} -> ${_.uniq(matchedBrands)}`);
     const sourceId = product.source_id;
     const meta = { matchedBrands };
