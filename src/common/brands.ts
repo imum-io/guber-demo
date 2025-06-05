@@ -6,6 +6,8 @@ import _ from "lodash"
 import { sources } from "../sites/sources"
 import items from "./../../pharmacyItems.json"
 import connections from "./../../brandConnections.json"
+import brandMapping from "../../brandsMapping.json"
+import validateBrand from "../helper/brandValidation"
 
 type BrandsMapping = {
     [key: string]: string[]
@@ -184,4 +186,24 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
 
         // Then brand is inserted into product mapping table
     }
+
+
+    // brand validations and also assign the same brand for whole group
+
+    // Tips 
+    // ----> Test inputs
+    // const inputs = [
+    //   "Babē skincare kit",
+    //   "BIO Babe Lotion",
+    //   "HAPPY baby diapers",
+    //   "heel support cream",
+    //   "bella baby happy lotion"
+    // ];
+
+    // -----> Run tests
+    // inputs.forEach(name => {
+    //   const result = validateBrand(name, brandMapping, connections);
+    //   console.log(`${name} => ${result}`);
+    // });
+    validateBrand("Happy Gum Kids", brandMapping, connections)
 }

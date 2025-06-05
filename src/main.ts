@@ -6,6 +6,7 @@ import { sources } from "./sites/sources"
 
 export async function runTest() {
     await assignBrandIfKnown(countryCodes.lt, sources.APO)
+
 }
 
 runTest()
