@@ -10,8 +10,32 @@ import connections from "./../../brandConnections.json"
 type BrandsMapping = {
     [key: string]: string[]
 }
+ 
+// Normalization map for brand name, (I am not clear if this is only for Babē or all letters like ā, ē, etc.)
+const normalizationMap: { [key: string]: string } = {
+    'Babē': 'Babe'
+}
 
-export async function getBrandsMapping(): Promise<BrandsMapping> {
+function normalizeBrandName(input: string): string {
+    let normalized = input
+    for (const [key, value] of Object.entries(normalizationMap)) {
+        normalized = normalized.replace(new RegExp(key, 'g'), value)
+    }
+    return normalized
+}
+
+// Words to ignore in brand matching
+const ignoreWords = new Set<string>(['BIO', 'NEB'])
+
+// front words that must appear at the start
+const prefixWords = new Set<string>(['RICH', 'RFF', 'flex', 'ultra', 'gum', 'beauty', 'orto', 'free', '112', 'kin', 'happy'])
+
+// front or second words
+const positionSensitiveWords = new Set<string>(['heel', 'contour', 'nero', 'rsv'])
+
+// exact matched brands
+const exactMatchedBrands = new Set<string>(['HAPPY'])
+export async function getBrandsMapping(): Promise<{ mapping: BrandsMapping, groupMap: Map<string, string> }> {
     //     const query = `
     //     SELECT
     //     LOWER(p1.manufacturer) manufacturer_p1
@@ -64,8 +88,9 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
     const brandMap = new Map<string, Set<string>>()
 
     brandConnections.forEach(({ manufacturer_p1, manufacturers_p2 }) => {
-        const brand1 = manufacturer_p1.toLowerCase()
-        const brands2 = manufacturers_p2.toLowerCase()
+        // Normalize the brand names then convert to lowercase
+        const brand1 = normalizeBrandName(manufacturer_p1).toLowerCase()
+        const brands2 = normalizeBrandName(manufacturers_p2).toLowerCase()
         const brand2Array = brands2.split(";").map((b) => b.trim())
         if (!brandMap.has(brand1)) {
             brandMap.set(brand1, new Set())
@@ -87,6 +112,15 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
         flatMap.set(brand, relatedBrands)
     })
 
+    const groupMap = new Map<string, string>()
+    brandMap.forEach((_, brand) => {
+        const relatedBrands = getRelatedBrands(brandMap, brand)
+        // Use the alphabetically first brand as the canonical brand for the group
+        const canonicalBrand = Array.from(relatedBrands).sort()[0]
+        relatedBrands.forEach(b => groupMap.set(b, canonicalBrand))
+        flatMap.set(brand, relatedBrands)
+    })
+
     // Convert the flat map to an object for easier usage
     const flatMapObject: Record<string, string[]> = {}
 
@@ -94,7 +128,7 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
         flatMapObject[brand] = Array.from(relatedBrands)
     })
 
-    return flatMapObject
+    return { mapping: flatMapObject, groupMap }
 }
 
 async function getPharmacyItems(countryCode: countryCodes, source: sources, versionKey: string, mustExist = true) {
@@ -148,7 +182,7 @@ export function checkBrandIsSeparateTerm(input: string, brand: string): boolean 
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
     const context = { scope: "assignBrandIfKnown" } as ContextType
 
-    const brandsMapping = await getBrandsMapping()
+    const { mapping: brandsMapping, groupMap } = await getBrandsMapping()
 
     const versionKey = "assignBrandIfKnown"
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
@@ -168,17 +202,59 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
                 if (matchedBrands.includes(brand)) {
                     continue
                 }
-                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
+
+                // Skip ignored words
+                if (ignoreWords.has(brand.toUpperCase())) {
+                    continue
+                }
+
+                // Normalize brand and title for matching
+                const normalizedBrand = normalizeBrandName(brand)
+                const normalizedTitle = normalizeBrandName(product.title)
+
+                
+                const isBrandMatch = checkBrandIsSeparateTerm(normalizedTitle, normalizedBrand)
+
+                if (!isBrandMatch) {
+                    continue
+                }
+
+                if (exactMatchedBrands.has(normalizedBrand) && !new RegExp(`\\b${normalizedBrand}\\b`).test(normalizedTitle)) {
+                    continue
+                }
+
+                // Validate position-sensitive words
+                const words = normalizedTitle.toLowerCase().split(/\s+/)
+                const brandWords = normalizedBrand.toLowerCase().split(/\s+/)
+                const firstBrandWord = brandWords[0]
+
+                // Prefix words must be at the start
+                if (prefixWords.has(firstBrandWord) && words[0] !== firstBrandWord) continue
+                
+                // Position-sensitive words must be at start or second word
+                if (positionSensitiveWords.has(firstBrandWord) && 
+                    words[0] !== firstBrandWord && 
+                    words[1] !== firstBrandWord) continue
+
                 if (isBrandMatch) {
                     matchedBrands.push(brand)
                 }
             }
         }
-        console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
+
+         matchedBrands.sort((a, b) => {
+            const aAtStart = product.title.toLowerCase().startsWith(a.toLowerCase()) ? -1 : 1
+            const bAtStart = product.title.toLowerCase().startsWith(b.toLowerCase()) ? -1 : 1
+            return aAtStart - bAtStart
+        })
+
+        // Use the canonical brand from the group
+        const matchedBrand = matchedBrands.length ? matchedBrands[0] : null
+        const brand = matchedBrand ? groupMap.get(matchedBrand) || matchedBrand : null
+
+        console.log(`${product.title} -> ${brand ? [brand] : []}`)
         const sourceId = product.source_id
         const meta = { matchedBrands }
-        const brand = matchedBrands.length ? matchedBrands[0] : null
-
         const key = `${source}_${countryCode}_${sourceId}`
         const uuid = stringToHash(key)
 
