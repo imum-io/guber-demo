@@ -132,7 +132,7 @@ export function checkBrandIsSeparateTerm(input: string, brand: string): boolean 
     // Normalize the input to remove diacritics and special characters
     input = removePhoneticCharacters(input)
     brand = removePhoneticCharacters(brand)
-    
+
     // Escape any special characters in the brand name for use in a regular expression
     const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 
@@ -161,6 +161,8 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
     const versionKey = "assignBrandIfKnown"
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
     let counter = 0
+    const brandIgnoreList = ["bio", "neb"]
+    
     for (let product of products) {
         counter++
 
@@ -173,6 +175,9 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         for (const brandKey in brandsMapping) {
             const relatedBrands = brandsMapping[brandKey]
             for (const brand of relatedBrands) {
+                if(brandIgnoreList.includes(brand)) {
+                    continue
+                }
                 if (matchedBrands.has(brand)) {
                     continue
                 }
