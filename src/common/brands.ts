@@ -208,6 +208,51 @@ function removePhoneticCharacters(input: string): string {
   return input.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
+/**
+ * DFS from the given brand to find all related brands.
+ */
+function visitKey(
+  brandsMapping: BrandsMapping,
+  brand: string,
+  visited: Set<string>
+) {
+  if (visited.has(brand)) {
+    return new Set();
+  }
+  visited.add(brand);
+  const relatedBrands = new Set<string>();
+  relatedBrands.add(brand);
+
+  for (const neighbour of brandsMapping[brand] || []) {
+    if (!visited.has(neighbour)) {
+      relatedBrands.add(neighbour);
+      const myRelatedBrands = visitKey(brandsMapping, neighbour, visited);
+      myRelatedBrands.forEach((b: string) => relatedBrands.add(b));
+    }
+  }
+
+  return relatedBrands;
+}
+
+/**
+ * groups related brands into a single array for each brand
+ * in the brandsMapping object. 
+ * 
+ */
+function flatenBrandsMapping(brandsMapping: BrandsMapping): BrandsMapping {
+  const brandMap: BrandsMapping = {};
+  const visited = new Set<string>();
+
+  //for each unvisited brand, find all related brands for it
+  for (const brand in brandsMapping) {
+    if (!visited.has(brand)) {
+      const relatedBrands = visitKey(brandsMapping, brand, visited);
+      brandMap[brand] = Array.from(relatedBrands as Set<string>);
+    }
+  }
+
+  return brandMap;
+}
 export async function assignBrandIfKnown(
   countryCode: countryCodes,
   source: sources,
@@ -216,6 +261,7 @@ export async function assignBrandIfKnown(
   const context = { scope: "assignBrandIfKnown" } as ContextType;
 
   const brandsMapping = await getBrandsMapping();
+  const flatBrandsMapping = flatenBrandsMapping(brandsMapping);
 
   const versionKey = "assignBrandIfKnown";
   let products = await getPharmacyItems(countryCode, source, versionKey, false);
@@ -230,8 +276,8 @@ export async function assignBrandIfKnown(
     }
 
     let matchedBrands = new Set<string>();
-    for (const brandKey in brandsMapping) {
-      const relatedBrands = brandsMapping[brandKey];
+    for (const brandKey in flatBrandsMapping) {
+      const relatedBrands = flatBrandsMapping[brandKey];
       for (const brand of relatedBrands) {
         if (BRAND_IGNORE_LIST.includes(brand)) {
           continue;
@@ -245,7 +291,7 @@ export async function assignBrandIfKnown(
           matchedBrands.size > 1 //we prioritize matches at the beginning of the title
         );
         if (isBrandMatch) {
-          matchedBrands.add(brand);
+          matchedBrands.add(brandKey);
         }
       }
     }
