@@ -129,6 +129,10 @@ async function getPharmacyItems(countryCode: countryCodes, source: sources, vers
 }
 
 export function checkBrandIsSeparateTerm(input: string, brand: string): boolean {
+    // Normalize the input to remove diacritics and special characters
+    input = removePhoneticCharacters(input)
+    brand = removePhoneticCharacters(brand)
+    
     // Escape any special characters in the brand name for use in a regular expression
     const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 
@@ -143,6 +147,10 @@ export function checkBrandIsSeparateTerm(input: string, brand: string): boolean 
 
     // The brand should be at the beginning, end, or a separate term
     return atBeginningOrEnd || separateTerm
+}
+
+function removePhoneticCharacters(input: string): string {
+    return input.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
 }
 
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
