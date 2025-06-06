@@ -279,7 +279,7 @@ export async function assignBrandIfKnown(
     for (const brandKey in flatBrandsMapping) {
       const relatedBrands = flatBrandsMapping[brandKey];
       for (const brand of relatedBrands) {
-        if (BRAND_IGNORE_LIST.includes(brand)) {
+        if (BRAND_IGNORE_LIST.includes(brand.toLowerCase())) {
           continue;
         }
         if (matchedBrands.has(brand)) {
