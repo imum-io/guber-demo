@@ -161,23 +161,23 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
             continue
         }
 
-        let matchedBrands = []
+        let matchedBrands = new Set<string>()
         for (const brandKey in brandsMapping) {
             const relatedBrands = brandsMapping[brandKey]
             for (const brand of relatedBrands) {
-                if (matchedBrands.includes(brand)) {
+                if (matchedBrands.has(brand)) {
                     continue
                 }
                 const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
                 if (isBrandMatch) {
-                    matchedBrands.push(brand)
+                    matchedBrands.add(brand)
                 }
             }
         }
-        console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
+        console.log(`${product.title} -> ${Array.from(matchedBrands).join(", ")}`)
         const sourceId = product.source_id
         const meta = { matchedBrands }
-        const brand = matchedBrands.length ? matchedBrands[0] : null
+        const brand = matchedBrands.size ? matchedBrands[0] : null
 
         const key = `${source}_${countryCode}_${sourceId}`
         const uuid = stringToHash(key)
