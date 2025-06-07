@@ -4,8 +4,32 @@ import { ContextType } from "../libs/logger"
 import { jsonOrStringForDb, jsonOrStringToJson, stringOrNullForDb, stringToHash } from "../utils"
 import _ from "lodash"
 import { sources } from "../sites/sources"
-import items from "./../../pharmacyItems.json"
-import connections from "./../../brandConnections.json"
+import items from "../../pharmacyItems.json"
+import connections from "../../brandConnections.json"
+import * as unorm from 'unorm';
+
+// Helper function to fully normalize, strip diacritics, and convert to lowercase
+function normalizeAndStripDiacritics(text: string | undefined | null): string {
+    if (!text) return "";
+    // NFKD normalize, then remove combining diacritical marks, then lowercase
+    return unorm.nfkd(text)
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+}
+
+// Helper function to normalize and tokenize text
+function tokenize(text: string): string[] {
+    if (!text) return [];
+    return normalizeAndStripDiacritics(text)
+        .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "") // Remove common punctuation
+        .split(/\s+/)
+        .filter(token => token.length > 0);
+}
+
+const STARTS_WITH_KEYWORDS = ["rich", "rff", "flex", "ultra", "gum", "beauty", "orto", "free", "112", "kin", "happy"].map(k => normalizeAndStripDiacritics(k));
+const START_OR_SECOND_WORD_KEYWORDS = ["heel", "contour", "nero", "rsv"].map(k => normalizeAndStripDiacritics(k));
+const IGNORED_BRANDS = ["bio", "neb"].map(k => normalizeAndStripDiacritics(k));
+
 
 type BrandsMapping = {
     [key: string]: string[]
@@ -129,26 +153,108 @@ async function getPharmacyItems(countryCode: countryCodes, source: sources, vers
 }
 
 export function checkBrandIsSeparateTerm(input: string, brand: string): boolean {
+    const normalizedStrippedInput = normalizeAndStripDiacritics(input); // Normalize the input string to NFKD form
+    const normalizedStrippedBrand = normalizeAndStripDiacritics(brand); // Normalize the brand name to NFKD form
+
     // Escape any special characters in the brand name for use in a regular expression
-    const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    const escapedBrand = normalizedStrippedBrand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 
     // Check if the brand is at the beginning or end of the string
     const atBeginningOrEnd = new RegExp(
         `^(?:${escapedBrand}\\s|.*\\s${escapedBrand}\\s.*|.*\\s${escapedBrand})$`,
         "i"
-    ).test(input)
+    ).test(normalizedStrippedInput)
 
     // Check if the brand is a separate term in the string
-    const separateTerm = new RegExp(`\\b${escapedBrand}\\b`, "i").test(input)
+    const separateTerm = new RegExp(`\\b${escapedBrand}\\b`, "i").test(normalizedStrippedInput)
 
     // The brand should be at the beginning, end, or a separate term
     return atBeginningOrEnd || separateTerm
+}
+
+function processProductBrands(
+    originalProductTitle: string,
+    filteredBrandsMapping: BrandsMapping, // Already filtered for BIO/NEB keys/values
+    context: ContextType // For potential future logging needs
+): string | null {
+    const normalizedStrippedTitle = normalizeAndStripDiacritics(originalProductTitle);
+    const tokenizedTitle = tokenize(originalProductTitle);
+
+    let potentialMatches: { brandName: string; matchStartIndex: number; originalBrandLength: number }[] = [];
+
+    for (const brandKey in filteredBrandsMapping) {
+        const relatedBrands = filteredBrandsMapping[brandKey];
+        for (const originalBrandFromMapping of relatedBrands) {
+            const normalizedStrippedBrand = normalizeAndStripDiacritics(originalBrandFromMapping);
+
+            // Rule: "HAPPY" capitalization
+            if (normalizedStrippedBrand === "happy" && !originalProductTitle.includes("HAPPY")) {
+                continue;
+            }
+
+            // Rule: Prefix checks
+            let prefixRuleMet = true;
+            if (STARTS_WITH_KEYWORDS.includes(normalizedStrippedBrand)) {
+                if (!tokenizedTitle.length || tokenizedTitle[0] !== normalizedStrippedBrand) {
+                    prefixRuleMet = false;
+                }
+            } else if (START_OR_SECOND_WORD_KEYWORDS.includes(normalizedStrippedBrand)) {
+                if (!tokenizedTitle.length || (tokenizedTitle[0] !== normalizedStrippedBrand && (tokenizedTitle.length < 2 || tokenizedTitle[1] !== normalizedStrippedBrand))) {
+                    prefixRuleMet = false;
+                }
+            }
+            if (!prefixRuleMet) {
+                continue;
+            }
+
+            if (checkBrandIsSeparateTerm(originalProductTitle, originalBrandFromMapping)) {
+                const matchIndex = normalizedStrippedTitle.indexOf(normalizedStrippedBrand);
+                if (matchIndex !== -1) {
+                    potentialMatches.push({
+                        brandName: originalBrandFromMapping,
+                        matchStartIndex: matchIndex,
+                        originalBrandLength: originalBrandFromMapping.length
+                    });
+                }
+            }
+        }
+    }
+
+    if (potentialMatches.length > 0) {
+        potentialMatches.sort((a, b) => {
+            if (a.matchStartIndex !== b.matchStartIndex) {
+                return a.matchStartIndex - b.matchStartIndex;
+            }
+            return b.originalBrandLength - a.originalBrandLength;
+        });
+        return potentialMatches[0].brandName;
+    }
+    return null;
 }
 
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
     const context = { scope: "assignBrandIfKnown" } as ContextType
 
     const brandsMapping = await getBrandsMapping()
+
+    const originalBrandsMapping = await getBrandsMapping()
+
+    // Filter out ignored brands from the mapping
+    const filteredBrandsMapping: BrandsMapping = {};
+    for (const brandKey in originalBrandsMapping) {
+        const normalizedStrippedBrandKey = normalizeAndStripDiacritics(brandKey);
+        if (IGNORED_BRANDS.includes(normalizedStrippedBrandKey)) {
+            continue;
+        }
+        const relatedBrands = originalBrandsMapping[brandKey]
+            .map(brand => ({ original: brand, normalizedStripped: normalizeAndStripDiacritics(brand) }))
+            .filter(brandObj => !IGNORED_BRANDS.includes(brandObj.normalizedStripped))
+            .map(brandObj => brandObj.original);
+
+        if (relatedBrands.length > 0) {
+            filteredBrandsMapping[brandKey] = relatedBrands;
+        }
+    }
 
     const versionKey = "assignBrandIfKnown"
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
@@ -161,23 +267,17 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
             continue
         }
 
-        let matchedBrands = []
-        for (const brandKey in brandsMapping) {
-            const relatedBrands = brandsMapping[brandKey]
-            for (const brand of relatedBrands) {
-                if (matchedBrands.includes(brand)) {
-                    continue
-                }
-                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
-                if (isBrandMatch) {
-                    matchedBrands.push(brand)
-                }
-            }
-        }
-        console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
-        const sourceId = product.source_id
-        const meta = { matchedBrands }
-        const brand = matchedBrands.length ? matchedBrands[0] : null
+        const finalBrandName = processProductBrands(
+            product.title,
+            filteredBrandsMapping,
+            context
+        );
+        console.log(`${product.title} -> ${finalBrandName || 'No brand matched'}`);
+        const sourceId = product.source_id;
+        let meta = typeof product.meta === 'string' ? jsonOrStringToJson(product.meta) : (product.meta || {});
+        meta.matchedBrands = finalBrandName ? [finalBrandName] : [];
+
+        const brand = finalBrandName; 
 
         const key = `${source}_${countryCode}_${sourceId}`
         const uuid = stringToHash(key)
@@ -185,3 +285,6 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         // Then brand is inserted into product mapping table
     }
 }
+
+// Export for testing purposes
+export const _processProductBrands = processProductBrands;
