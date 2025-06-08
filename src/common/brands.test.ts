@@ -175,3 +175,53 @@ describe('processProductBrands (Core Logic)', () => {
         expect(_processProductBrands(title, mapping, mockContext)).toBe("BrandXtra");
     });
 });
+
+// --- Tests for getBrandsMapping (Runtime Canonicalization) ---
+describe('getBrandsMapping', () => {
+    beforeEach(() => {
+        jest.resetModules(); 
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test('Simple Group: Zimpli Kids / Baff Bombz resolve to one canonical', async () => {
+        const mockConnections = [{ manufacturer_p1: "zimpli kids", manufacturers_p2: "baff-bombz" }];
+        jest.doMock('../../brandConnections.json', () => mockConnections, { virtual: true });
+        const { getBrandsMapping: actualGetBrandsMapping } = jest.requireActual('./brands');
+        
+        const mapping = await actualGetBrandsMapping();
+        const group = ["zimpli kids", "baff-bombz"].sort();
+        const canonical = group[0]; // "baff-bombz"
+
+        expect(mapping["zimpli kids"]).toEqual([canonical]);
+        expect(mapping["baff-bombz"]).toEqual([canonical]);
+        jest.dontMock('../../brandConnections.json');
+    });
+});
+
+// --- Tests for _processProductBrands with Canonicalized Input ---
+describe('_processProductBrands with Canonicalized Input', () => {
+    const mockContext: ContextType = { scope: "testProcessProductBrandsCanonicalInput" };
+
+    test('Title contains canonical brand: should identify the canonical brand', () => {
+        const title = "Product with alpha brand";
+        const canonicalizedMapping: BrandsMapping = {
+            "alpha brand": ["alpha brand"], 
+            "brand_y_alias_of_alpha": ["alpha brand"] 
+        };
+        expect(_processProductBrands(title, canonicalizedMapping, mockContext)).toBe("alpha brand");
+    });
+
+    test('Title contains an alias (whose canonical is different): should return null', () => {
+        const title = "Product with brand_y_alias_of_alpha";
+        const canonicalizedMapping: BrandsMapping = {
+            "alpha brand": ["alpha brand"],
+            "brand_y_alias_of_alpha": ["alpha brand"] 
+        };
+        // _processProductBrands searches for "alpha brand" (the canonical value in the map)
+        // Since "alpha brand" is not in "Product with brand_y_alias_of_alpha", it returns null.
+        expect(_processProductBrands(title, canonicalizedMapping, mockContext)).toBeNull();
+    });
+});

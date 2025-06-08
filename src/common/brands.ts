@@ -111,14 +111,38 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
         flatMap.set(brand, relatedBrands)
     })
 
-    // Convert the flat map to an object for easier usage
-    const flatMapObject: Record<string, string[]> = {}
+   // Runtime Canonicalization
+    const canonicalizedFlatMapObject: Record<string, string[]> = {};
+    const groupToCanonicalBrand = new Map<string, string>();
 
-    flatMap.forEach((relatedBrands, brand) => {
-        flatMapObject[brand] = Array.from(relatedBrands)
-    })
+    // First pass: Determine the canonical brand for each unique group
+    // flatMap.values() gives an iterable of all sets of related brands.
+    // Using a Set of groupKeys ensures we process each unique group only once.
+    const processedGroupKeys = new Set<string>();
 
-    return flatMapObject
+    for (const relatedBrandsSet of flatMap.values()) {
+        const sortedAliases = Array.from(relatedBrandsSet).sort();
+        const groupKey = sortedAliases.join(','); // Unique key for this specific group of aliases
+
+        if (!processedGroupKeys.has(groupKey)) {
+            const canonicalBrandForGroup = sortedAliases[0]; // Alphabetically first is canonical
+            groupToCanonicalBrand.set(groupKey, canonicalBrandForGroup);
+            processedGroupKeys.add(groupKey);
+        }
+    }
+
+    // Second pass: Populate the output object for every alias
+    // Iterate through all original brand aliases that were keys in flatMap
+    for (const brandAlias of flatMap.keys()) {
+        const relatedBrandsSet = flatMap.get(brandAlias)!; // Get the group for this alias
+        const sortedAliases = Array.from(relatedBrandsSet).sort();
+        const groupKey = sortedAliases.join(','); // Determine its group key
+
+        const canonicalBrand = groupToCanonicalBrand.get(groupKey)!; // Get the predetermined canonical for this group
+        canonicalizedFlatMapObject[brandAlias] = [canonicalBrand];
+    }
+
+    return canonicalizedFlatMapObject;
 }
 
 async function getPharmacyItems(countryCode: countryCodes, source: sources, versionKey: string, mustExist = true) {
