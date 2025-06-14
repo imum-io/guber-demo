@@ -4,8 +4,9 @@ import { ContextType } from "../libs/logger"
 import { jsonOrStringForDb, jsonOrStringToJson, stringOrNullForDb, stringToHash } from "../utils"
 import _ from "lodash"
 import { sources } from "../sites/sources"
-import items from "./../../pharmacyItems.json"
-import connections from "./../../brandConnections.json"
+import items from "../json/pharmacyItems.json"
+import connections from "../json/brandConnections.json"
+import { buildBrandTrie, getCanonicalBrand } from "./brand-trie-matcher"
 
 type BrandsMapping = {
     [key: string]: string[]
@@ -150,38 +151,68 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
 
     const brandsMapping = await getBrandsMapping()
 
+    const brandGroups: Record<string, string[]> = {}
+    for (const [key, values] of Object.entries(brandsMapping)) {
+        const canonical = values.sort()[0]
+        brandGroups[canonical] = Array.from(new Set([key, ...values]))
+    }
+
+    const brandToCanonical: Record<string, string> = {}
+    for (const [canonical, group] of Object.entries(brandGroups)) {
+        for (const b of group) {
+            brandToCanonical[b] = canonical
+        }
+    }
+
     const versionKey = "assignBrandIfKnown"
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
-    let counter = 0
+
+    const canonicalBrands = Object.keys(brandGroups)
+    const brandTrie = buildBrandTrie(canonicalBrands)
+
     for (let product of products) {
-        counter++
+        if (product.m_id) continue
 
-        if (product.m_id) {
-            // Already exists in the mapping table, probably no need to update
-            continue
+        let matchedBrands = brandTrie.match(product.title)
+
+        matchedBrands = matchedBrands.map((b) => b.normalize("NFD").replace(/[\u0300-\u036f]/g, ""))
+        matchedBrands = matchedBrands.map(b => b.toLowerCase() === 'babē' ? 'babe' : b)
+        matchedBrands = matchedBrands.filter(b => b.toLowerCase() !== 'bio' && b.toLowerCase() !== 'neb')
+
+        if (matchedBrands.includes('happy')) {
+            matchedBrands = matchedBrands.filter(b => b === 'HAPPY')
         }
 
-        let matchedBrands = []
-        for (const brandKey in brandsMapping) {
-            const relatedBrands = brandsMapping[brandKey]
-            for (const brand of relatedBrands) {
-                if (matchedBrands.includes(brand)) {
-                    continue
-                }
-                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
-                if (isBrandMatch) {
-                    matchedBrands.push(brand)
-                }
-            }
-        }
-        console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
+        const specialFrontWords = ['rich', 'rff', 'flex', 'ultra', 'gum', 'beauty', 'orto', 'free', '112', 'kin', 'happy']
+        const secondaryFrontWords = ['heel', 'contour', 'nero', 'rsv']
+
+        matchedBrands.sort((a, b) => {
+            const title = product.title.toLowerCase()
+            const indexA = title.indexOf(a.toLowerCase())
+            const indexB = title.indexOf(b.toLowerCase())
+
+            const isAFront = specialFrontWords.includes(a.toLowerCase()) && title.startsWith(a.toLowerCase())
+            const isBFront = specialFrontWords.includes(b.toLowerCase()) && title.startsWith(b.toLowerCase())
+            if (isAFront && !isBFront) return -1
+            if (!isAFront && isBFront) return 1
+
+            const isASecondary = secondaryFrontWords.includes(a.toLowerCase()) && (title.startsWith(a.toLowerCase()) || title.split(/\s+/)[1] === a.toLowerCase())
+            const isBSecondary = secondaryFrontWords.includes(b.toLowerCase()) && (title.startsWith(b.toLowerCase()) || title.split(/\s+/)[1] === b.toLowerCase())
+            if (isASecondary && !isBSecondary) return -1
+            if (!isASecondary && isBSecondary) return 1
+
+            return indexA - indexB
+        })
+
+        const canonicalMatched = [...new Set(matchedBrands.map(b => brandToCanonical[b] || b))]
+        const finalBrand = canonicalMatched.length ? canonicalMatched[0] : null
+
         const sourceId = product.source_id
-        const meta = { matchedBrands }
-        const brand = matchedBrands.length ? matchedBrands[0] : null
-
+        const meta = { matchedBrands: canonicalMatched }
         const key = `${source}_${countryCode}_${sourceId}`
         const uuid = stringToHash(key)
 
-        // Then brand is inserted into product mapping table
+        console.log(`${product.title} => ${finalBrand}`)
+        // Insert logic goes here
     }
 }
