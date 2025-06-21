@@ -66,43 +66,78 @@ export function checkBrandIsSeparateTerm(input: string, brand: string): boolean 
     return atBeginningOrEnd || separateTerm
 }
 
+function matchesWithRules(title: string, brand: string): boolean {
+    const normTitle = SPECIAL_NORMALIZE(title)
+    const normBrand = brand.toLowerCase()
+    const words = normTitle.split(/\s+/).map(w => w.toLowerCase())
+
+    if (IGNORE_TOKENS.includes(normBrand.toUpperCase())) {
+        return false
+    }
+
+    const idx = words.indexOf(normBrand)
+    if (idx === 0 && PRIORITY_FRONT.includes(normBrand.toUpperCase())) {
+        return true
+    }
+    if ((idx === 0 || idx === 1) && SECOND_POS.includes(normBrand)) {
+        return true
+    }
+
+    const isSeparate = checkBrandIsSeparateTerm(normTitle, normBrand)
+    if (!isSeparate) return false
+
+    if (PRIORITY_FRONT.includes(normBrand.toUpperCase())) {
+        return idx === 0
+    }
+    if (normBrand === "happy") {
+        return /HAPPY/.test(title)
+    }
+
+    return true
+}
+
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
-    const context = { scope: "assignBrandIfKnown" } as ContextType
+    const context = { scope: "assignBrandIfKnown" } as ContextType;
 
-    const brandsMapping = await getBrandsMapping()
+    const brandsMapping = await getBrandsMapping();
+    const lists = items;
 
-    const versionKey = "assignBrandIfKnown"
-    let products = await getPharmacyItems(countryCode, source, versionKey, false)
-    let counter = 0
-    for (let product of products) {
-        counter++
+    for (const product of lists) {
+        if (product.m_id) continue;
+        const matched: Set<string> = new Set();
+        const title = SPECIAL_NORMALIZE(product.title || "").toLowerCase();
 
-        if (product.m_id) {
-            // Already exists in the mapping table, probably no need to update
-            continue
-        }
-
-        let matchedBrands = []
-        for (const brandKey in brandsMapping) {
-            const relatedBrands = brandsMapping[brandKey]
-            for (const brand of relatedBrands) {
-                if (matchedBrands.includes(brand)) {
-                    continue
-                }
-                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
-                if (isBrandMatch) {
-                    matchedBrands.push(brand)
+        for (const [key, relatedList] of Object.entries(brandsMapping)) {
+            for (const brand of [key, ...relatedList]) {
+                if (matched.has(brand)) continue
+                if (matchesWithRules(title, brand)) {
+                    matched.add(brand)
                 }
             }
         }
-        console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
-        const sourceId = product.source_id
-        const meta = { matchedBrands }
-        const brand = matchedBrands.length ? matchedBrands[0] : null
 
-        const key = `${source}_${countryCode}_${sourceId}`
-        const uuid = stringToHash(key)
+        const matchedArr = Array.from(matched)
+        matchedArr.sort((a,b) => {
+            const ia = title.indexOf(a)
+            const ib = title.indexOf(b)
+            if (ia === -1) return 1
+            if (ib === -1) return -1
+            return ia - ib
+        })
 
-        // Then brand is inserted into product mapping table
+        const final = matchedArr[0] ?? null
+        console.log(`${product.title} -> ${matchedArr}`)
+        product.m_id = final ? stringToHash(final) : null
+        product.mappedBrand = final
     }
+
+    return lists;
 }
+
+const SPECIAL_NORMALIZE = (input: string) => 
+    input.replace(/babē/gi, "babe").trim();
+
+const IGNORE_TOKENS = ["BIO", "NEB"]
+const PRIORITY_FRONT = ["RICH","RFF","flex","ultra","gum","beauty","orto","free","112","kin","HAPPY"]
+const SECOND_POS = ["heel","contour","nero","rsv"]
+
