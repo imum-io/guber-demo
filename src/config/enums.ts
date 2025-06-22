@@ -229,6 +229,9 @@ export enum countryCodes {
     lt = "LT",
     lv = "LV",
     ee = "EE",
+    DE = 'DE',
+    AT = 'AT',
+    CH = 'CH'
 }
 
 export const searchResultTypes = {

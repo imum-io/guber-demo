@@ -1,0 +1,45 @@
+Brand Matching Analysis Report
+===============================
+
+Match Statistics
+---------------
+prefix: 200 items
+no_match: 49 items
+contains: 38 items
+
+Confidence Distribution
+---------------------
+Confidence 1: 227 items
+Confidence 0.8: 11 items
+Confidence 0: 49 items
+
+Top 20 Most Frequent Brands
+-------------------------
+svr: 19 matches
+swanson: 18 matches
+isdin: 13 matches
+eucerin: 10 matches
+bionike: 9 matches
+microlife: 9 matches
+gentle day: 7 matches
+filorga: 7 matches
+sapiens: 6 matches
+sensilis: 6 matches
+švf: 6 matches
+vitamin c: 6 matches
+quies: 4 matches
+hartmann: 4 matches
+idun minerals: 4 matches
+propolis: 4 matches
+ocutein: 4 matches
+contour: 3 matches
+otosan: 3 matches
+broncho norm: 3 matches
+
+Top 30 Common Unmatched Prefixes
+-----------------------------
+bab: 6 occurrences
+
+Potential New Brand Suggestions
+---------------------------
+bab: 6 occurrences
