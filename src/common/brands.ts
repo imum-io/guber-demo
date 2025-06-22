@@ -74,6 +74,23 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
     const versionKey = "assignBrandIfKnown"
     let products = await getPharmacyItems(countryCode, source, versionKey, false)
     let counter = 0
+
+    // 1st task to add some validations -> Brands edge case logics
+    // Brands edge case setup
+    const ignoredWords = ["bio", "neb"]
+    const mustBeFront = ["rich", "rff", "flex", "ultra", "gum", "beauty", "orto", "free", "112", "kin", "happy"]
+    const mustBeFrontOrSecond = ["heel", "contour", "nero", "rsv"]
+
+    // Brands edge case logic 1: Babē = Babe
+    function normalizeText(text: string): string {
+        return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+    }
+
+    // Brands edge case logic 2: ignore BIO, NEB; BIO → bio, NEB → neb, and then removed    
+    function getWordsWithoutIgnored(text: string): string[] {
+        return text.split(/\s+/).map(w => normalizeText(w)).filter(w => !ignoredWords.includes(w))
+    }
+
     for (let product of products) {
         counter++
 
@@ -82,24 +99,54 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
             continue
         }
 
+        const title = product.title || ""
+        const normalizedTitle = normalizeText(title)
+        const words = getWordsWithoutIgnored(normalizedTitle)
         let matchedBrands = []
         for (const brandKey in brandsMapping) {
             const relatedBrands = brandsMapping[brandKey]
             for (const brand of relatedBrands) {
-                if (matchedBrands.includes(brand)) {
+                const brandNorm = normalizeText(brand)
+                if (ignoredWords.includes(brandNorm)) {
                     continue
                 }
-                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
+                if (matchedBrands.includes(brandNorm)) {
+                    continue
+                }
+                const isBrandMatch = checkBrandIsSeparateTerm(normalizedTitle, brandNorm)
                 if (isBrandMatch) {
-                    matchedBrands.push(brand)
+                    // Brands edge case logic 3: RICH, RFF, flex, ultra, gum, beauty, orto, free, 112, kin, happy has to be in the front
+                    if (mustBeFront.includes(brandNorm) && words[0] !== brandNorm) {
+                        continue
+                    }
+
+                    // Brands edge case logic 4:  heel, contour, nero, rsv in front or 2nd word
+                    if (mustBeFrontOrSecond.includes(brandNorm) && words[0] !== brandNorm && words[1] !== brandNorm) {
+                        continue
+                    }
+
+                    // Brands edge case logic 6: HAPPY needs to be matched capitalized
+                    if (brandNorm === "happy" && !title.includes("HAPPY")) {
+                        continue
+                    }
+                    matchedBrands.push(brandNorm)
                 }
             }
         }
-        console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
+
+        // Brands edge case logic 5:  if >1 brands matched, prioritize matching beginning
+        matchedBrands.sort((a, b) => {
+            return normalizedTitle.indexOf(a) - normalizedTitle.indexOf(b)
+        })
+
+        // 2nd task - to always assign the same brand for whole group
+        const brand = matchedBrands.length ? matchedBrands[0] : null
+        const consistentBrand = brand ? (brandsMapping[brand.toLowerCase()] || [brand]).sort()[0] : null
+
+        console.log(`${product.title} -> ${_.uniq(matchedBrands)} => ${consistentBrand}`)
         const sourceId = product.source_id
         const meta = { matchedBrands }
-        const brand = matchedBrands.length ? matchedBrands[0] : null
-
+        
         const key = `${source}_${countryCode}_${sourceId}`
         const uuid = stringToHash(key)
 
