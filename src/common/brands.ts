@@ -146,8 +146,7 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         console.log(`${product.title} -> ${_.uniq(matchedBrands)} => ${consistentBrand}`)
         const sourceId = product.source_id
         const meta = { matchedBrands }
-        //const brand = matchedBrands.length ? matchedBrands[0] : null
-
+        
         const key = `${source}_${countryCode}_${sourceId}`
         const uuid = stringToHash(key)
 
