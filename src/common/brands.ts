@@ -88,10 +88,7 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
 
     // Brands edge case logic 2: ignore BIO, NEB; BIO → bio, NEB → neb, and then removed    
     function getWordsWithoutIgnored(text: string): string[] {
-        return text
-            .split(/\s+/)
-            .map(w => normalizeText(w))
-            .filter(w => !ignoredWords.includes(w))
+        return text.split(/\s+/).map(w => normalizeText(w)).filter(w => !ignoredWords.includes(w))
     }
 
     for (let product of products) {
