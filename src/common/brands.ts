@@ -66,43 +66,108 @@ export function checkBrandIsSeparateTerm(input: string, brand: string): boolean 
     return atBeginningOrEnd || separateTerm
 }
 
-export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
-    const context = { scope: "assignBrandIfKnown" } as ContextType
+function normalizeBrandName(brand: string): string {
+    // Normalize the brand name by converting to lowercase and trimming whitespace
+    return brand.toLowerCase().replace(/babē/gi, "babe").trim()
+}
 
-    const brandsMapping = await getBrandsMapping()
+function getCanonicalGroupMapping(): Map<string, string> {
+    const brandMap = new Map<string, Set<string>>()
 
-    const versionKey = "assignBrandIfKnown"
-    let products = await getPharmacyItems(countryCode, source, versionKey, false)
-    let counter = 0
-    for (let product of products) {
-        counter++
+    for (const conn of connections) {
+        const base = normalizeBrandName(conn.manufacturer_p1)
+        const linked = conn.manufacturers_p2.split(";").map(b => normalizeBrandName(b))
 
-        if (product.m_id) {
-            // Already exists in the mapping table, probably no need to update
-            continue
+        if (!brandMap.has(base)) brandMap.set(base, new Set())
+        for (const b of linked) {
+            if (!brandMap.has(b)) brandMap.set(b, new Set())
+            brandMap.get(base)!.add(b)
+            brandMap.get(b)!.add(base)
         }
+    }
 
-        let matchedBrands = []
-        for (const brandKey in brandsMapping) {
-            const relatedBrands = brandsMapping[brandKey]
-            for (const brand of relatedBrands) {
-                if (matchedBrands.includes(brand)) {
-                    continue
-                }
-                const isBrandMatch = checkBrandIsSeparateTerm(product.title, brand)
-                if (isBrandMatch) {
-                    matchedBrands.push(brand)
+    // Union-Find style grouping
+    const visited = new Set<string>()
+    const canonicalMap = new Map<string, string>()
+
+    for (const brand of brandMap.keys()) {
+        if (visited.has(brand)) continue
+        const group = new Set<string>()
+        const stack = [brand]
+
+        while (stack.length > 0) {
+            const curr = stack.pop()!
+            if (!visited.has(curr)) {
+                visited.add(curr)
+                group.add(curr)
+                for (const neighbor of brandMap.get(curr)!) {
+                    if (!visited.has(neighbor)) stack.push(neighbor)
                 }
             }
         }
-        console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
-        const sourceId = product.source_id
-        const meta = { matchedBrands }
-        const brand = matchedBrands.length ? matchedBrands[0] : null
 
-        const key = `${source}_${countryCode}_${sourceId}`
-        const uuid = stringToHash(key)
-
-        // Then brand is inserted into product mapping table
+        const canonical = Array.from(group).sort()[0] // Pick lexically first
+        for (const b of group) {
+            canonicalMap.set(b, canonical)
+        }
     }
+
+    return canonicalMap
+}
+
+function isMatchRules(title: string, brand: string): boolean {
+    const cleanTitle = title.replace(/babē/gi, "babe").toLowerCase()
+    const brandLower = brand.toLowerCase()
+    const words = cleanTitle.split(/\s+/)
+
+    const ignoreList = ['bio', 'neb']
+    const mustBeFirst = ['rich', 'rff', 'flex', 'ultra', 'gum', 'beauty', 'orto', 'free', '112', 'kin', 'happy']
+    const frontOrSecond = ['heel', 'contour', 'nero', 'rsv']
+
+    if (ignoreList.includes(brandLower)) return false
+    if (mustBeFirst.includes(brandLower) && words[0] !== brandLower) return false
+    if (frontOrSecond.includes(brandLower) && !(words[0] === brandLower || words[1] === brandLower)) return false
+    if (brand === 'happy' && !/HAPPY/.test(title)) return false
+
+    return new RegExp(`\\b${brandLower}\\b`, 'i').test(cleanTitle)
+}
+
+export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
+    const context = { scope: "assignBrandIfKnown" } as ContextType
+
+    const canonicalBrandMap = getCanonicalGroupMapping()
+    const productList = items
+
+    for (const product of productList) {
+        if (product.m_id) continue
+
+        const title = product.title
+        const matches: string[] = []
+
+        for (const candidate of canonicalBrandMap.keys()) {
+            if (isMatchRules(title, candidate)) {
+                matches.push(candidate)
+            }
+        }
+
+        // Prioritize brand appearing earlier in the title
+        matches.sort((a, b) => {
+            const aIdx = title.toLowerCase().indexOf(a.toLowerCase())
+            const bIdx = title.toLowerCase().indexOf(b.toLowerCase())
+            return aIdx - bIdx
+        })
+
+        const finalRaw = matches.length ? canonicalBrandMap.get(matches[0]) || matches[0] : null
+        const finalBrand = finalRaw ? finalRaw.toLowerCase() : null
+
+        if (finalBrand) {
+            product.mappedBrand = finalBrand
+            product.m_id = stringToHash(`${source}_${countryCode}_${product.source_id}_${finalBrand}`)
+        }
+
+        // For debugging
+        console.log(`${title} => ${finalBrand} [${matches.join(", ")}]`)
+    }
+
+    return productList
 }
