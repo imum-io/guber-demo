@@ -77,9 +77,9 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
 
     // 1st task to add some validations -> Brands edge case logics
     // Brands edge case setup
-    const ignoredWords = ['bio', 'neb']
-    const mustBeFront = ['rich', 'rff', 'flex', 'ultra', 'gum', 'beauty', 'orto', 'free', '112', 'kin', 'happy']
-    const mustBeFrontOrSecond = ['heel', 'contour', 'nero', 'rsv']
+    const ignoredWords = ["bio", "neb"]
+    const mustBeFront = ["rich", "rff", "flex", "ultra", "gum", "beauty", "orto", "free", "112", "kin", "happy"]
+    const mustBeFrontOrSecond = ["heel", "contour", "nero", "rsv"]
 
     // Brands edge case logic 1: Babē = Babe
     function normalizeText(text: string): string {
@@ -126,7 +126,7 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
                     }
 
                     // Brands edge case logic 6: HAPPY needs to be matched capitalized
-                    if (brandNorm === 'happy' && !title.includes('HAPPY')) {
+                    if (brandNorm === "happy" && !title.includes("HAPPY")) {
                         continue
                     }
                     matchedBrands.push(brandNorm)
