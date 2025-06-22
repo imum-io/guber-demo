@@ -1,0 +1,2785 @@
+[
+  {
+    "uuid": "2b4ea42d--4-8-",
+    "key": "pharmacy_DE_pmm0220815lt",
+    "title": "QUIES apsauginiai ausų kištukai, ryškių spalvų, 3 poros",
+    "assignedBrand": "quies",
+    "matchedBrands": [
+      "quies"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "77e61c64--4-8-",
+    "key": "pharmacy_DE_pmm0221037lt",
+    "title": "BD DISCARDIT 2ML, 2 DALIŲ ŠVIRKŠTAS SU ADATA (BD, JAV)",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "286320a6--4-8-",
+    "key": "pharmacy_DE_pmm0242605lt",
+    "title": "MEMOSTAR INFINITE kapsulės N60",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "94994367--4-8-",
+    "key": "pharmacy_DE_pmm0193814lt",
+    "title": "Gentle Day Far-IR Anion Teens MINI paketai T12",
+    "assignedBrand": "gentle day",
+    "matchedBrands": [
+      "gentle day"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "69159c0c--4-8-",
+    "key": "pharmacy_DE_pmm0244816lt",
+    "title": "SAPIENS Guminukai plaukams, 60 guminukų",
+    "assignedBrand": "sapiens",
+    "matchedBrands": [
+      "sapiens"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "c68edea3--4-8-",
+    "key": "pharmacy_DE_pmm0219549lt",
+    "title": "MICRO-TOUCH nesterilios medicininės pirštinės BLUE NITRILE, XL, N200",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "54a2aa68--4-8-",
+    "key": "pharmacy_DE_pmm0193543lt",
+    "title": "HEPASAN FORTE, 60 kapsulių",
+    "assignedBrand": "hepasan",
+    "matchedBrands": [
+      "hepasan"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "d5804164--4-8-",
+    "key": "pharmacy_DE_pmm0242607lt",
+    "title": "CARDUSCAPS kapsulės N60",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "a548b1ab--4-8-",
+    "key": "pharmacy_DE_pmm0171692lt",
+    "title": "CONTOUR gliukozės kiekio kraujyje stebėjimo sistema PLUS ELITE, N1",
+    "assignedBrand": "contour",
+    "matchedBrands": [
+      "contour"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "b778ee45--4-8-",
+    "key": "pharmacy_DE_pmm0237772lt",
+    "title": "CONTOUR MICROLET adata-lancetas, 25 vnt.",
+    "assignedBrand": "contour",
+    "matchedBrands": [
+      "contour"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "5ce13dcd--4-8-",
+    "key": "pharmacy_DE_pmm0203490lt",
+    "title": "FILORGA kremas po saulės UV-BRONZE AFTER SUN, 200ml",
+    "assignedBrand": "filorga",
+    "matchedBrands": [
+      "filorga"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "5e1a1a40--4-8-",
+    "key": "pharmacy_DE_pmm0232277lt",
+    "title": "EUCERIN odą atjauninantis serumas HYALURON-FILLER, 30 ml",
+    "assignedBrand": "eucerin",
+    "matchedBrands": [
+      "eucerin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "2f5d106f--4-8-",
+    "key": "pharmacy_DE_pmm0229744lt",
+    "title": "MANILLA CBD kūno aliejus su mentoliu ir Salicornia herbacea ekstr.30ml",
+    "assignedBrand": "manilla",
+    "matchedBrands": [
+      "manilla"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "c7d5cfa8--4-8-",
+    "key": "pharmacy_DE_pmm0244784lt",
+    "title": "PROVISOR Coenzyme Q10 STRONG, kapsulės N30",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "b13859c7--4-8-",
+    "key": "pharmacy_DE_pmm0234289lt",
+    "title": "COSMOS pleistras nudegimams 68x43mm, 8vnt.",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "d2ee2b01--4-8-",
+    "key": "pharmacy_DE_pmm0244406lt",
+    "title": "SENSILIS PURE AGE PERFECTION makiažo pagrindas, 01, 30 ml",
+    "assignedBrand": "sensilis",
+    "matchedBrands": [
+      "sensilis"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "c8ae0fa4--4-8-",
+    "key": "pharmacy_DE_pmm0244403lt",
+    "title": "SENSILIS UPGRADE stangrinamasis makiažo pagrindas, 01, 30 ml",
+    "assignedBrand": "sensilis",
+    "matchedBrands": [
+      "sensilis"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "11222ac3--4-8-",
+    "key": "pharmacy_DE_pmm0244404lt",
+    "title": "SENSILIS PURE AGE PERFECTION makiažo pagrindas, 02, 30 ml",
+    "assignedBrand": "sensilis",
+    "matchedBrands": [
+      "sensilis"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "4dfd8c20--4-8-",
+    "key": "pharmacy_DE_pmm0217270lt",
+    "title": "SVR priemonė nuo saulės SUN SECURE SPRAY SPF30+, 200ml",
+    "assignedBrand": "svr",
+    "matchedBrands": [
+      "svr"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "6b8f3ae7--4-8-",
+    "key": "pharmacy_DE_pmm0216056lt",
+    "title": "SVR kūno balzamas SUN SECURE BRUME SPF 50, 200ml",
+    "assignedBrand": "svr",
+    "matchedBrands": [
+      "svr"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "190928c9--4-8-",
+    "key": "pharmacy_DE_pmm0181808lt",
+    "title": "OTOSAN BABY\" nosies purškalas vaikams, 30ml",
+    "assignedBrand": "otosan",
+    "matchedBrands": [
+      "otosan"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "ec9279c7--4-8-",
+    "key": "pharmacy_DE_pmm0206626lt",
+    "title": "DR.BROWNS pirmasis šviežio maisto maitintuvas, žalias, N1",
+    "assignedBrand": "dr. brown s",
+    "matchedBrands": [
+      "dr. brown s",
+      "dr. browns"
+    ],
+    "confidence": 0.8
+  },
+  {
+    "uuid": "480c9287--4-8-",
+    "key": "pharmacy_DE_pmm0233051lt",
+    "title": "QUIES silikoniniai ausų kištukai vaikams, 3 poros",
+    "assignedBrand": "quies",
+    "matchedBrands": [
+      "quies"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "32113826--4-8-",
+    "key": "pharmacy_DE_pmm0198272lt",
+    "title": "DR. BROWNS pirmasis šviežio maisto maitintuvas, silikoninis, N1",
+    "assignedBrand": "dr. browns",
+    "matchedBrands": [
+      "dr. browns"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "a523506e--4-8-",
+    "key": "pharmacy_DE_pmm0205697lt",
+    "title": "DR.BROWNS šiaudelių rinkinys kūdikio gertuvei 300ml",
+    "assignedBrand": "dr. brown s",
+    "matchedBrands": [
+      "dr. brown s",
+      "dr. browns"
+    ],
+    "confidence": 0.8
+  },
+  {
+    "uuid": "a57e4f45--4-8-",
+    "key": "pharmacy_DE_pmm0182917lt",
+    "title": "OLEFAR DUO Oil Spray, 20ml",
+    "assignedBrand": "olefar",
+    "matchedBrands": [
+      "olefar",
+      "olefar duo"
+    ],
+    "confidence": 0.8
+  },
+  {
+    "uuid": "43e6c424--4-8-",
+    "key": "pharmacy_DE_pmm0181962lt",
+    "title": "BRONCHONORM, 250ml",
+    "assignedBrand": "broncho norm",
+    "matchedBrands": [
+      "broncho norm"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "ec2adb26--4-8-",
+    "key": "pharmacy_DE_pmm0181807lt",
+    "title": "NOSIES PURŠKALAS OTOSAN FORTE, 30 ml",
+    "assignedBrand": "otosan",
+    "matchedBrands": [
+      "otosan"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "92154e4--4-8-",
+    "key": "pharmacy_DE_pmm0233052lt",
+    "title": "QUIES silikoniniai ausų kištukai suaugusiems, 3 poros",
+    "assignedBrand": "quies",
+    "matchedBrands": [
+      "quies"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "ee2c7060--4-8-",
+    "key": "pharmacy_DE_pmm0182039lt",
+    "title": "SINURIN inhaliacinis pieštukas AIR STICK, 1ml",
+    "assignedBrand": "sinurin",
+    "matchedBrands": [
+      "sinurin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "9e6ca002--4-8-",
+    "key": "pharmacy_DE_pmm0181694lt",
+    "title": "BRONCHONORM, 100ml",
+    "assignedBrand": "broncho norm",
+    "matchedBrands": [
+      "broncho norm"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "158309e2--4-8-",
+    "key": "pharmacy_DE_pmm0202425lt",
+    "title": "CIZETA kelio įtvaras su angora HWJ180, L-XL dydis, N2",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "3df536c4--4-8-",
+    "key": "pharmacy_DE_pmm0203141lt",
+    "title": "CIZETA alkūnės įtvaras su angora HWD176, N2",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "2f95f52f--4-8-",
+    "key": "pharmacy_DE_pmm0220835lt",
+    "title": "AQUAMAG+B6 geriamasis tirpalas 15ml, N10",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "7448ffa8--4-8-",
+    "key": "pharmacy_DE_pmm0191101lt",
+    "title": "BIOMAGNIS B6 PREMIUM, milteliai, N28",
+    "assignedBrand": "biomagnis",
+    "matchedBrands": [
+      "biomagnis"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "6178192c--4-8-",
+    "key": "pharmacy_DE_pmm0232068lt",
+    "title": "ISDIN dantų pasta jautrių dantenų priežiūrai  BEXIDENT GUMS, 75ml",
+    "assignedBrand": "isdin",
+    "matchedBrands": [
+      "isdin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "bc3a3262--4-8-",
+    "key": "pharmacy_DE_pmm0232066lt",
+    "title": "ISDIN burnos skalavimo skystis jautrioms dantenoms BEXIDENT, 250ml",
+    "assignedBrand": "isdin",
+    "matchedBrands": [
+      "isdin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "81fba38c--4-8-",
+    "key": "pharmacy_DE_pmm0224292lt",
+    "title": "AQUAMAG+B6 Forte milteliai 1.2g, N28",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "ad3f68c--4-8-",
+    "key": "pharmacy_DE_pmm0195312lt",
+    "title": "STOPOROSE milteliai, N50",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "167fe9a1--4-8-",
+    "key": "pharmacy_DE_pmm0182784lt",
+    "title": "SPORT&JOINTS bioMagnis+bioKalis, N14",
+    "assignedBrand": "sport&joints",
+    "matchedBrands": [
+      "sport&joints"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "1152bbca--4-8-",
+    "key": "pharmacy_DE_pmm0182606lt",
+    "title": "BIOMAGNESIUM Forte, 500mg, milteliai pakeliuose, 20 vnt.",
+    "assignedBrand": "biomagnesium",
+    "matchedBrands": [
+      "biomagnesium"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "e5cc0ba4--4-8-",
+    "key": "pharmacy_DE_pmm0194090lt",
+    "title": "20 MILLIARDS milteliai, N7",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "85a7974f--4-8-",
+    "key": "pharmacy_DE_pmm0182894lt",
+    "title": "SPORT&BASIC bioMagnis + bioKalis, milteliai, N14",
+    "assignedBrand": "biomagnis",
+    "matchedBrands": [
+      "biomagnis"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "bd9cae89--4-8-",
+    "key": "pharmacy_DE_pmm0182377lt",
+    "title": "SPORT&CARDIO bioMagnis + bioKalis, milteliai, N14",
+    "assignedBrand": "biomagnis",
+    "matchedBrands": [
+      "biomagnis"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "4360ea8a--4-8-",
+    "key": "pharmacy_DE_pmm0180983lt",
+    "title": "BIOMAGNESIUM, 300 mg, milteliai, N30",
+    "assignedBrand": "biomagnesium",
+    "matchedBrands": [
+      "biomagnesium"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "d405838e--4-8-",
+    "key": "pharmacy_DE_pmm0242812lt",
+    "title": "ISDIN FUSION WATER URBAN apsauginė veido emulsija SPF 30, 50ml",
+    "assignedBrand": "isdin",
+    "matchedBrands": [
+      "isdin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "d96b88e5--4-8-",
+    "key": "pharmacy_DE_pmm0232070lt",
+    "title": "FILORGA priemonė nuo saulės UV BRONZE BODY SPF50+, 150ml",
+    "assignedBrand": "filorga",
+    "matchedBrands": [
+      "filorga"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "5e977b47--4-8-",
+    "key": "pharmacy_DE_pmm0243311lt",
+    "title": "ISDIN Fusion Gel apsauginis gelis nuo saulės SPF 50 sportui 100ml",
+    "assignedBrand": "isdin",
+    "matchedBrands": [
+      "isdin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "3ccc5464--4-8-",
+    "key": "pharmacy_DE_pmm0181148lt",
+    "title": "SINUNORM sirupas, 100ml",
+    "assignedBrand": "sinunorm",
+    "matchedBrands": [
+      "sinunorm"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "7223f8ef--4-8-",
+    "key": "pharmacy_DE_pmm0181798lt",
+    "title": "SINUNORM DUO, 15 kapsulių",
+    "assignedBrand": "sinunorm",
+    "matchedBrands": [
+      "sinunorm"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "6ff9004d--4-8-",
+    "key": "pharmacy_DE_pmm0181242lt",
+    "title": "SINURIN nosies lašai, 10ml",
+    "assignedBrand": "sinurin",
+    "matchedBrands": [
+      "sinurin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "ac748828--4-8-",
+    "key": "pharmacy_DE_pmm0182255lt",
+    "title": "SINURIN nosies purškalas SPRAY, 30ml",
+    "assignedBrand": "sinurin",
+    "matchedBrands": [
+      "sinurin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "fa841526--4-8-",
+    "key": "pharmacy_DE_pmm0202502lt",
+    "title": "CIZETA riešo įtvarai su angora HWP160, N2",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "eb4a06c5--4-8-",
+    "key": "pharmacy_DE_pmm0205157lt",
+    "title": "HARTMANN tvarstis fiksavimui PEHA-FIX 8cm x 4m*, N1",
+    "assignedBrand": "hartmann",
+    "matchedBrands": [
+      "hartmann"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "7d876be2--4-8-",
+    "key": "pharmacy_DE_pmm0209495lt",
+    "title": "HARTMANN tvarstis fiksavimui PEHA-FIX 6cm x 4m*, N1",
+    "assignedBrand": "hartmann",
+    "matchedBrands": [
+      "hartmann"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "22701d2a--4-8-",
+    "key": "pharmacy_DE_pmm0205158lt",
+    "title": "HARTMANN tvarstis fiksavimui PEHA-FIX 10cm x 4m*, N1",
+    "assignedBrand": "hartmann",
+    "matchedBrands": [
+      "hartmann"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "7f57774e--4-8-",
+    "key": "pharmacy_DE_pmm0204292lt",
+    "title": "URGO pleistras iš celiuliozės PORE, 1.25cm x 5m, N1",
+    "assignedBrand": "urgo",
+    "matchedBrands": [
+      "urgo"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "92e88e65--4-8-",
+    "key": "pharmacy_DE_pmm0216313lt",
+    "title": "Testas narkotinėms medžiagoms aptikti šlapime PRIMA, 1 vnt.",
+    "assignedBrand": "prima",
+    "matchedBrands": [
+      "prima"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "d5f654a7--4-8-",
+    "key": "pharmacy_DE_pmm0226572lt",
+    "title": "SVR gelis nuo randų CICAVIT+ DM+ CICATRICES, 15g",
+    "assignedBrand": "svr",
+    "matchedBrands": [
+      "svr"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "d52187ef--4-8-",
+    "key": "pharmacy_DE_pmm0220817lt",
+    "title": "QUIES apsauginiai mini ausų kištukai (tinka vaikams), 3 poros",
+    "assignedBrand": "quies",
+    "matchedBrands": [
+      "quies"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "8b382fc0--4-8-",
+    "key": "pharmacy_DE_pmm0218695lt",
+    "title": "ISDIN apsauginė dulksna vaikams FOTOPROTECTOR PEDIATRICS SPF50, 250ml",
+    "assignedBrand": "isdin",
+    "matchedBrands": [
+      "isdin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "b4ed8cc5--4-8-",
+    "key": "pharmacy_DE_pmm0242808lt",
+    "title": "ISDIN FP Gel Cream apsauginis gelis-kremas nuo saulės SPF 50, 250ml",
+    "assignedBrand": "isdin",
+    "matchedBrands": [
+      "isdin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "c5bcdb01--4-8-",
+    "key": "pharmacy_DE_pmm0243353lt",
+    "title": "MoliCare skin kepurė su šampūnu",
+    "assignedBrand": "molicare",
+    "matchedBrands": [
+      "molicare"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "fd0a3fc3--4-8-",
+    "key": "pharmacy_DE_pmm0180913lt",
+    "title": "SWANSON GABA 500mg kapsulės N100",
+    "assignedBrand": "swanson",
+    "matchedBrands": [
+      "swanson"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "49425f44--4-8-",
+    "key": "pharmacy_DE_pmm0180387lt",
+    "title": "Gentle Day Far-IR Anion ekologiški kasdieniai įklotai N30",
+    "assignedBrand": "gentle day",
+    "matchedBrands": [
+      "gentle day"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "e9eb8ec9--4-8-",
+    "key": "pharmacy_DE_pmm0181101lt",
+    "title": "Gentle Day Far-IR Anion ekologiški sugeriantys iklotai N20",
+    "assignedBrand": "gentle day",
+    "matchedBrands": [
+      "gentle day"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "ab67376b--4-8-",
+    "key": "pharmacy_DE_pmm0182540lt",
+    "title": "GOOD SLEEP kapsulės, N30",
+    "assignedBrand": "good sleep",
+    "matchedBrands": [
+      "good sleep"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "2892ad68--4-8-",
+    "key": "pharmacy_DE_pmm0181405lt",
+    "title": "HEPASAN FORTE, 30 kapsulių",
+    "assignedBrand": "hepasan",
+    "matchedBrands": [
+      "hepasan"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "a5ee21c7--4-8-",
+    "key": "pharmacy_DE_pmm0201371lt",
+    "title": "IMUNOSIL VIRUFIX, 60+30 kapsulių",
+    "assignedBrand": "imunosil",
+    "matchedBrands": [
+      "imunosil",
+      "imunosil virufix"
+    ],
+    "confidence": 0.8
+  },
+  {
+    "uuid": "e6b5a9ed--4-8-",
+    "key": "pharmacy_DE_pmm0181895lt",
+    "title": "SWANSON L-Glutaminas N100",
+    "assignedBrand": "swanson",
+    "matchedBrands": [
+      "swanson"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "8eb33924--4-8-",
+    "key": "pharmacy_DE_pmm0231014lt",
+    "title": "BioNike lūpų blizgesys LIP PLUMP, Nr. 004, 6 ml",
+    "assignedBrand": "bionike",
+    "matchedBrands": [
+      "bionike"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "ecb59f62--4-8-",
+    "key": "pharmacy_DE_pmm0231012lt",
+    "title": "BioNike lūpų blizgesys LIP PLUMP, Nr. 002, 6 ml",
+    "assignedBrand": "bionike",
+    "matchedBrands": [
+      "bionike"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "3bf51be6--4-8-",
+    "key": "pharmacy_DE_pmm0231016lt",
+    "title": "BioNike lūpų blizgesys LIP PLUMP, Nr. 006, 6 ml",
+    "assignedBrand": "bionike",
+    "matchedBrands": [
+      "bionike"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "e279001--4-8-",
+    "key": "pharmacy_DE_pmm0231011lt",
+    "title": "BioNike lūpų blizgesys LIP PLUMP, Nr. 001, 6 ml",
+    "assignedBrand": "bionike",
+    "matchedBrands": [
+      "bionike"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "5d670c85--4-8-",
+    "key": "pharmacy_DE_pmm0231015lt",
+    "title": "BioNike lūpų blizgesys LIP PLUMP, Nr. 005, 6 ml",
+    "assignedBrand": "bionike",
+    "matchedBrands": [
+      "bionike"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "5eb431c3--4-8-",
+    "key": "pharmacy_DE_pmm0231013lt",
+    "title": "BioNike lūpų blizgesys LIP PLUMP, Nr. 003, 6 ml",
+    "assignedBrand": "bionike",
+    "matchedBrands": [
+      "bionike"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "ec4350a--4-8-",
+    "key": "pharmacy_DE_pmm0193918lt",
+    "title": "SWANSON N-Acetyl Cysteine N100",
+    "assignedBrand": "swanson",
+    "matchedBrands": [
+      "swanson"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "261556c6--4-8-",
+    "key": "pharmacy_DE_pmm0201602lt",
+    "title": "ATLANT milteliai, N28",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "71b75a0f--4-8-",
+    "key": "pharmacy_DE_pmm0181446lt",
+    "title": "BIOCALCIUM FORTE, 600mg, milteliai, N30",
+    "assignedBrand": "biocalcium",
+    "matchedBrands": [
+      "biocalcium"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "fb37b0e2--4-8-",
+    "key": "pharmacy_DE_pmm0182899lt",
+    "title": "BIOGLUCOSAMINE MARINE, 1500 mg, milteliai, N60",
+    "assignedBrand": "bio-glucosamine",
+    "matchedBrands": [
+      "bio-glucosamine"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "8ab50cac--4-8-",
+    "key": "pharmacy_DE_pmm0194098lt",
+    "title": "bioVitaminas D3, N20",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "2ac8476d--4-8-",
+    "key": "pharmacy_DE_pmm0182061lt",
+    "title": "bioKALCIS 1200 mg + FOSFORAS + VITAMINAI K ir D, milteliai, N15",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "492e0c28--4-8-",
+    "key": "pharmacy_DE_pmm0182376lt",
+    "title": "BIOCINKAS, 30 mg, milteliai, geriamajam tirpalui ruošti, N20",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "9863db6c--4-8-",
+    "key": "pharmacy_DE_pmm0181041lt",
+    "title": "BIOKALIS FORTE, 750mg, milteliai, N30",
+    "assignedBrand": "biokalis",
+    "matchedBrands": [
+      "biokalis"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "2878e80d--4-8-",
+    "key": "pharmacy_DE_pmm0194099lt",
+    "title": "bioVITAMIN C + Zn, N14",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "a7f87bed--4-8-",
+    "key": "pharmacy_DE_pmm0181411lt",
+    "title": "BIOKALIS, 400mg, milteliai, N30",
+    "assignedBrand": "biokalis",
+    "matchedBrands": [
+      "biokalis"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "cd3af7e7--4-8-",
+    "key": "pharmacy_DE_pmm0181790lt",
+    "title": "BIOFERRUM ACEROLA, milteliai, N28",
+    "assignedBrand": "acerola",
+    "matchedBrands": [
+      "acerola"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "69d8334d--4-8-",
+    "key": "pharmacy_DE_pmm0199962lt",
+    "title": "URGO nepastebimas pleistras pleistras 3 dydžių DISCREET, N20",
+    "assignedBrand": "urgo",
+    "matchedBrands": [
+      "urgo"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "eb189e87--4-8-",
+    "key": "pharmacy_DE_pmm0232243lt",
+    "title": "EUCERIN atkuriamasis lūpų balzamas AQUAPHOR, nuo 3 m., 10ml",
+    "assignedBrand": "eucerin",
+    "matchedBrands": [
+      "eucerin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "7f8a1aad--4-8-",
+    "key": "pharmacy_DE_pmm0232294lt",
+    "title": "EUCERIN pėdų kremas su 10% šlapalo UREAREPAIR PLUS, 100 ml",
+    "assignedBrand": "eucerin",
+    "matchedBrands": [
+      "eucerin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "9117dc41--4-8-",
+    "key": "pharmacy_DE_pmm0232300lt",
+    "title": "EUCERIN dieninis veido kremas su 5% šlapalo UREAREPAIR, 50 ml",
+    "assignedBrand": "eucerin",
+    "matchedBrands": [
+      "eucerin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "640c54f--4-8-",
+    "key": "pharmacy_DE_pmm0233194lt",
+    "title": "EUCERIN losjonas su 5 % šlapalo sausai odai UREAREPAIR PLUS, 250 ml",
+    "assignedBrand": "eucerin",
+    "matchedBrands": [
+      "eucerin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "bc29ddef--4-8-",
+    "key": "pharmacy_DE_pmm0232296lt",
+    "title": "EUCERIN kūno losjonas sausai odai 5% šlapalo UREAREPAIR PLUS, 250 ml",
+    "assignedBrand": "eucerin",
+    "matchedBrands": [
+      "eucerin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "d828e50e--4-8-",
+    "key": "pharmacy_DE_pmm0234578lt",
+    "title": "ISDIN FUSION WATER veido emulsija SPF50 su spalva MEDIUM, 50ml",
+    "assignedBrand": "isdin",
+    "matchedBrands": [
+      "isdin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "a864ad00--4-8-",
+    "key": "pharmacy_DE_pmm0191118lt",
+    "title": "BIOODA, milteliai, N28",
+    "assignedBrand": "biooda",
+    "matchedBrands": [
+      "biooda"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "dc0d902e--4-8-",
+    "key": "pharmacy_DE_pmm0191161lt",
+    "title": "CLEAN ME, milteliai, N21",
+    "assignedBrand": "oclean",
+    "matchedBrands": [
+      "oclean"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "31bab582--4-8-",
+    "key": "pharmacy_DE_pmm0193954lt",
+    "title": "BIOODA MAXFILLER, Milteliai geriamajam tirpalui, N28",
+    "assignedBrand": "biooda",
+    "matchedBrands": [
+      "biooda"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "9d21482d--4-8-",
+    "key": "pharmacy_DE_pmm0230951lt",
+    "title": "BACK TO LIFE, milteliai geriamajam tirpalui, N14",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "5ffb1e88--4-8-",
+    "key": "pharmacy_DE_pmm0195114lt",
+    "title": "LIEKNĖK, milteliai, N30",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "9d529784--4-8-",
+    "key": "pharmacy_DE_pmm0234473lt",
+    "title": "SmartHit IV Ferrum Gummies N30",
+    "assignedBrand": "smart hit",
+    "matchedBrands": [
+      "smart hit"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "2dfd6768--4-8-",
+    "key": "pharmacy_DE_pmm0216682lt",
+    "title": "HyaMAX 500mg, milteliai, N28",
+    "assignedBrand": "hyamax",
+    "matchedBrands": [
+      "hyamax"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "d8296562--4-8-",
+    "key": "pharmacy_DE_pmm0236127lt",
+    "title": "BioNike Gynexelle, intymios higienos prausimosi putos, 150 ml",
+    "assignedBrand": "bionike",
+    "matchedBrands": [
+      "bionike"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "c7f9936c--4-8-",
+    "key": "pharmacy_DE_pmm0232248lt",
+    "title": "EUCERIN prausimosi aliejus atopinei odai ATOPICONTROL, 400ml",
+    "assignedBrand": "eucerin",
+    "matchedBrands": [
+      "eucerin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "f044186e--4-8-",
+    "key": "pharmacy_DE_pmm0241019lt",
+    "title": "BABĒ Apsauginis lūpų pieštukas SPF50 INVISIBLE STICK LIP PROTECTOR, 4g",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "6bee9c20--4-8-",
+    "key": "pharmacy_DE_pmm0241017lt",
+    "title": "BABĒ losjonas nuo plaukų slinkimo ANTI HAIR LOSS LOTION, 100ml",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "a7541fc1--4-8-",
+    "key": "pharmacy_DE_pmm0232245lt",
+    "title": "EUCERIN balzamas sausai, atopinei odai ATOPICONTROL, nuo 3 mėn., 400ml",
+    "assignedBrand": "eucerin",
+    "matchedBrands": [
+      "eucerin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "84752dea--4-8-",
+    "key": "pharmacy_DE_pmm0204481lt",
+    "title": "BIONIKE valomasis gelinis vanduo jautriai odai DEFENCE, 400ml",
+    "assignedBrand": "bionike",
+    "matchedBrands": [
+      "bionike"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "3f8c9d81--4-8-",
+    "key": "pharmacy_DE_pmm0180911lt",
+    "title": "SWANSON Česnakas 400mg kapsulės N60",
+    "assignedBrand": "swanson",
+    "matchedBrands": [
+      "swanson"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "12e43940--4-8-",
+    "key": "pharmacy_DE_pmm0180585lt",
+    "title": "ŠVF žolelių arbata MEŠKAUOGIŲ LAPAI, 50g",
+    "assignedBrand": "švf",
+    "matchedBrands": [
+      "švf"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "66a31788--4-8-",
+    "key": "pharmacy_DE_pmm0196043lt",
+    "title": "ŠVF žolelių arbata SIDABRAŽOLIŲ ŠAKNIESTIEBIAI, 50g",
+    "assignedBrand": "švf",
+    "matchedBrands": [
+      "švf"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "789a11ac--4-8-",
+    "key": "pharmacy_DE_pmm0180352lt",
+    "title": "ŠVF žolelių arbata ŠALALVIJŲ LAPAI, 50g",
+    "assignedBrand": "švf",
+    "matchedBrands": [
+      "švf"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "b200d36e--4-8-",
+    "key": "pharmacy_DE_pmm0181227lt",
+    "title": "SWANSON Melatoninas kapsulės N120",
+    "assignedBrand": "swanson",
+    "matchedBrands": [
+      "swanson"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "e5235e85--4-8-",
+    "key": "pharmacy_DE_pmm0181963lt",
+    "title": "SEDANORM, 30 kapsulių",
+    "assignedBrand": "sedanorm",
+    "matchedBrands": [
+      "sedanorm"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "45e79b0a--4-8-",
+    "key": "pharmacy_DE_pmm0191893lt",
+    "title": "SOLURO DUO, 15+15 kapsulių",
+    "assignedBrand": "soluro",
+    "matchedBrands": [
+      "soluro",
+      "soluro duo"
+    ],
+    "confidence": 0.8
+  },
+  {
+    "uuid": "11bca18d--4-8-",
+    "key": "pharmacy_DE_pmm0240785lt",
+    "title": "FORMULA VITALE MULTI+ prolong, N60",
+    "assignedBrand": "formula vitale",
+    "matchedBrands": [
+      "formula vitale"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "d4e7fbcb--4-8-",
+    "key": "pharmacy_DE_pmm0195142lt",
+    "title": "EMILI medetkų žiedai, 40g",
+    "assignedBrand": "emili",
+    "matchedBrands": [
+      "emili"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "8ba82a8d--4-8-",
+    "key": "pharmacy_DE_pmm0244583lt",
+    "title": "CUMLAUDE drėkinamasis intymios higienos aliejinis prausiklis, 200 ml",
+    "assignedBrand": "cumlaude",
+    "matchedBrands": [
+      "cumlaude"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "ae6a87ac--4-8-",
+    "key": "pharmacy_DE_pmm0244582lt",
+    "title": "CUMLAUDE drėkinamasis intymios higienos aliejus, 30 ml",
+    "assignedBrand": "cumlaude",
+    "matchedBrands": [
+      "cumlaude"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "8157f30b--4-8-",
+    "key": "pharmacy_DE_pmm0242608lt",
+    "title": "FERROCAPS Q10 kapsulės N60",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "9c0c3645--4-8-",
+    "key": "pharmacy_DE_pmm0242606lt",
+    "title": "MEMOSTAR FOCUS paketėliai N30",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "4fa36884--4-8-",
+    "key": "pharmacy_DE_pmm0194966lt",
+    "title": "BRONCHONORM Caps,15 kapsulių",
+    "assignedBrand": "broncho norm",
+    "matchedBrands": [
+      "broncho norm"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "bbd18923--4-8-",
+    "key": "pharmacy_DE_pmm0221928lt",
+    "title": "ATEROLIP D, 30 kapsulių",
+    "assignedBrand": "aterolip",
+    "matchedBrands": [
+      "aterolip"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "a0d68a--4-8-",
+    "key": "pharmacy_DE_pmm0181535lt",
+    "title": "SAMBUCUS Imunosil, 100ml",
+    "assignedBrand": "sambucus",
+    "matchedBrands": [
+      "sambucus"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "e6d87401--4-8-",
+    "key": "pharmacy_DE_pmm0210047lt",
+    "title": "MANTRA IMUNITETUI STIPRINTI, 90 kapsulių",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "67486061--4-8-",
+    "key": "pharmacy_DE_pmm0202330lt",
+    "title": "Šaldomasis masažo balzamas HERBAMEDICUS HORSE BALSAM",
+    "assignedBrand": "herbamedicus",
+    "matchedBrands": [
+      "herbamedicus"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "23b89b62--4-8-",
+    "key": "pharmacy_DE_pmm0182778lt",
+    "title": "Gentle Day ekologiški su anijonų juostele Extra Heavy paketai N06",
+    "assignedBrand": "gentle day",
+    "matchedBrands": [
+      "gentle day"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "4d64a8ab--4-8-",
+    "key": "pharmacy_DE_pmm0195135lt",
+    "title": "SWANSON MACA kapsulės N60",
+    "assignedBrand": "swanson",
+    "matchedBrands": [
+      "swanson"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "d48e2e2e--4-8-",
+    "key": "pharmacy_DE_pmm0239315lt",
+    "title": "ColonWell Activ 350 g",
+    "assignedBrand": "acti",
+    "matchedBrands": [
+      "acti"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "913a332d--4-8-",
+    "key": "pharmacy_DE_pmm0220419lt",
+    "title": "ECOSH bioaktyvus vitaminas B12, 1200µg, 90 kapsulių",
+    "assignedBrand": "ecosh",
+    "matchedBrands": [
+      "ecosh"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "9172f165--4-8-",
+    "key": "pharmacy_DE_pmm0245326lt",
+    "title": "ECOSH D-manozė su ežiuole, 60 kapsulių",
+    "assignedBrand": "ecosh",
+    "matchedBrands": [
+      "ecosh"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "1438070a--4-8-",
+    "key": "pharmacy_DE_pmm0181175lt",
+    "title": "ŠVF žolelių arbata MELISŲ LAPAI, 50g",
+    "assignedBrand": "švf",
+    "matchedBrands": [
+      "švf"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "6f313665--4-8-",
+    "key": "pharmacy_DE_pmm0240354lt",
+    "title": "Imunital Vitamin C 1000 Shots",
+    "assignedBrand": "vitamin d3",
+    "matchedBrands": [
+      "vitamin d3"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "ebbedd64--4-8-",
+    "key": "pharmacy_DE_pmm0214561lt",
+    "title": "BIONIKE drėkinamasis veido kremas riebiai odai AKNET HYDRAMAT, 40ml",
+    "assignedBrand": "bionike",
+    "matchedBrands": [
+      "bionike"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "add1166--4-8-",
+    "key": "pharmacy_DE_pmm0243310lt",
+    "title": "ISDIN apsauginis fluidas nuo saulės ERYFOTONA AK-NMSC SPF100+, 50ml",
+    "assignedBrand": "isdin",
+    "matchedBrands": [
+      "isdin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "7970a725--4-8-",
+    "key": "pharmacy_DE_pmm0217189lt",
+    "title": "IDUN MINERALS birus makiažo pagrindas EMBLA Nr. 1045, 7g",
+    "assignedBrand": "idun minerals",
+    "matchedBrands": [
+      "idun minerals"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "aaacaa47--4-8-",
+    "key": "pharmacy_DE_pmm0244400lt",
+    "title": "SENSILIS Origin PRO EGF-5 atkuriamasis veido serumas, 30 ml",
+    "assignedBrand": "sensilis",
+    "matchedBrands": [
+      "sensilis"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "fa2b14c0--4-8-",
+    "key": "pharmacy_DE_pmm0244399lt",
+    "title": "SENSILIS Origin PRO EGF-5 atkuriamasis kremas su augimo faktoriais, 50",
+    "assignedBrand": "sensilis",
+    "matchedBrands": [
+      "sensilis"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "63975066--4-8-",
+    "key": "pharmacy_DE_pmm0244401lt",
+    "title": "SENSILIS UPGRADE stangrinamasis makiažo pagrindas, 02, 30 ml",
+    "assignedBrand": "sensilis",
+    "matchedBrands": [
+      "sensilis"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "80d93647--4-8-",
+    "key": "pharmacy_DE_pmm0244343lt",
+    "title": "BABÉ antioksidacinis serumas ANTIOX, 30ml",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "50d466--4-8-",
+    "key": "pharmacy_DE_pmm0244342lt",
+    "title": "BABÉ atkuriamasis serumas REPAIR, 30ml",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "a890c585--4-8-",
+    "key": "pharmacy_DE_pmm0244341lt",
+    "title": "BABÉ drėkinamasis serumas HYDRA, 30ml",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "5492d743--4-8-",
+    "key": "pharmacy_DE_pmm0214306lt",
+    "title": "MATH regeneruojantis kremas SKIN SHIELD, 40ml",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "7836ac80--4-8-",
+    "key": "pharmacy_DE_pmm0218192lt",
+    "title": "FILORGA HYDRA-HYAL koncentruotas drėkinamasis veido serumas, 30 ml",
+    "assignedBrand": "filorga",
+    "matchedBrands": [
+      "filorga"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "5fd48aca--4-8-",
+    "key": "pharmacy_DE_pmm0241084lt",
+    "title": "FILORGA veido kremas HYDRA-HYAL GEL CREME, 50 ml",
+    "assignedBrand": "filorga",
+    "matchedBrands": [
+      "filorga"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "7334c84f--4-8-",
+    "key": "pharmacy_DE_pmm0229575lt",
+    "title": "FILORGA akių srities kremas nuo raukšlių TIME- FILLER 5XP, 15 ml",
+    "assignedBrand": "filorga",
+    "matchedBrands": [
+      "filorga"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "a1d246c6--4-8-",
+    "key": "pharmacy_DE_pmm0223422lt",
+    "title": "FILORGA SLEEP & PEEL 4.5 naktinis veido kremas, 40ml",
+    "assignedBrand": "filorga",
+    "matchedBrands": [
+      "filorga"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "f42f34a6--4-8-",
+    "key": "pharmacy_DE_pmm0237054lt",
+    "title": "FILORGA antioksidacinis veido serumas HYDRA-AOX [5], 30 ml",
+    "assignedBrand": "filorga",
+    "matchedBrands": [
+      "filorga"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "aac87545--4-8-",
+    "key": "pharmacy_DE_pmm0182359lt",
+    "title": "PHARMACERIS A stangrinamasis kremas SENSI RELASTINE E SPF20, 50ml",
+    "assignedBrand": "pharmaceris",
+    "matchedBrands": [
+      "pharmaceris"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "91a90c26--4-8-",
+    "key": "pharmacy_DE_pmm0217614lt",
+    "title": "SVR XERIAL 30 GEL CRÈME gelis su šlapalu nuo įaugančių plaukelių, 75ml",
+    "assignedBrand": "svr",
+    "matchedBrands": [
+      "svr"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "d81e98a--4-8-",
+    "key": "pharmacy_DE_pmm0218572lt",
+    "title": "SVR SPIRIAL DEO-CRÈME kreminis antiperspirantas nuo prakaitavimo,50 ml",
+    "assignedBrand": "svr",
+    "matchedBrands": [
+      "svr"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "52625ce8--4-8-",
+    "key": "pharmacy_DE_pmm0228562lt",
+    "title": "SVR SEBIACLEAR AMPOULE [AZ] FLASH koncentruotas serumas, 30 ml",
+    "assignedBrand": "svr",
+    "matchedBrands": [
+      "svr"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "4259a307--4-8-",
+    "key": "pharmacy_DE_pmm0237055lt",
+    "title": "SVR veido kremas SENSIFINE AR CREME TEINTEE, 40ml",
+    "assignedBrand": "svr",
+    "matchedBrands": [
+      "svr"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "b85b7c05--4-8-",
+    "key": "pharmacy_DE_pmm0218582lt",
+    "title": "SVR CICAVIT+ SPF50+ specialus atstatomasis kremas pažeistai odai, 40ml",
+    "assignedBrand": "svr",
+    "matchedBrands": [
+      "svr"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "6ba50808--4-8-",
+    "key": "pharmacy_DE_pmm0241086lt",
+    "title": "SVR lūpų balzamas TOPIALYSE LÈVRES, 4g",
+    "assignedBrand": "svr",
+    "matchedBrands": [
+      "svr"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "99308aeb--4-8-",
+    "key": "pharmacy_DE_pmm0241085lt",
+    "title": "SVR kūno prausiklis SPIRIAL DEO-DOUCHE, 400ml",
+    "assignedBrand": "svr",
+    "matchedBrands": [
+      "svr"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "6f655ced--4-8-",
+    "key": "pharmacy_DE_pmm0238894lt",
+    "title": "SVR drėkinamasis kremas dehidratuotai odai HYDRALIANE LÉGÈRE, 50ml",
+    "assignedBrand": "svr",
+    "matchedBrands": [
+      "svr"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "710909cc--4-8-",
+    "key": "pharmacy_DE_pmm0218574lt",
+    "title": "SVR SPIRIAL ROLL ON rutulinis antiperspiran.nuo prakaitavimo 50ml NEW",
+    "assignedBrand": "rolly",
+    "matchedBrands": [
+      "rolly"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "ed7da3eb--4-8-",
+    "key": "pharmacy_DE_pmm0225609lt",
+    "title": "SVR veido kremas SEBIACLEAR MAT + PORES, 40ml",
+    "assignedBrand": "svr",
+    "matchedBrands": [
+      "svr"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "fba0264b--4-8-",
+    "key": "pharmacy_DE_pmm0239615lt",
+    "title": "SVR kūno prausiklis TOPIALYSE HUILE LAVANTE, 1000ml",
+    "assignedBrand": "svr",
+    "matchedBrands": [
+      "svr"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "fe6919e6--4-8-",
+    "key": "pharmacy_DE_pmm0218581lt",
+    "title": "SVR SENSIFINE AR CRÈME SPF 50+ veido kremas raustančiai, jautriai odai",
+    "assignedBrand": "svr",
+    "matchedBrands": [
+      "svr"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "3a5b5aae--4-8-",
+    "key": "pharmacy_DE_pmm0228564lt",
+    "title": "SVR naktinis veido ir kaklo kremas DENSITIUM BAUME NUIT, 50 ml",
+    "assignedBrand": "svr",
+    "matchedBrands": [
+      "svr"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "8639b9af--4-8-",
+    "key": "pharmacy_DE_pmm0218577lt",
+    "title": "SVR kūno kremas XERIAL 10 LAIT, 400ml",
+    "assignedBrand": "svr",
+    "matchedBrands": [
+      "svr"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "83efc70e--4-8-",
+    "key": "pharmacy_DE_pmm0218576lt",
+    "title": "SVR XERIAL 10 LAIT kūno kremas su grynuoju šlapalu (10 %), 200ml",
+    "assignedBrand": "svr",
+    "matchedBrands": [
+      "svr"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "36e6564--4-8-",
+    "key": "pharmacy_DE_pmm0237056lt",
+    "title": "SVR prausimosi balzamas TOPIALYSE GEL LAVANT, 1000ml",
+    "assignedBrand": "svr",
+    "matchedBrands": [
+      "svr"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "ab1284a9--4-8-",
+    "key": "pharmacy_DE_pmm0217185lt",
+    "title": "IDUN MINERALS birus makiažo pagrindas Svea Nr. 1039, 7g",
+    "assignedBrand": "idun minerals",
+    "matchedBrands": [
+      "idun minerals"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "62807b2c--4-8-",
+    "key": "pharmacy_DE_pmm0233917lt",
+    "title": "IDUN veido kremas su spalva SPF 30, Nr. 1411 27ml",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "db6e10e2--4-8-",
+    "key": "pharmacy_DE_pmm0233919lt",
+    "title": "IDUN veido kremas su spalva SPF 30, Nr. 1413 27ml",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "f497a92b--4-8-",
+    "key": "pharmacy_DE_pmm0212759lt",
+    "title": "MATH drėkinantis kremas odai linkusiai į bėrimus BALANCE3, 40ml",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "49d457eb--4-8-",
+    "key": "pharmacy_DE_pmm0217187lt",
+    "title": "IDUN Minerals birus makiažo pagrindas Ingrid Nr. 1012, 7 g",
+    "assignedBrand": "idun minerals",
+    "matchedBrands": [
+      "idun minerals"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "9f817e84--4-8-",
+    "key": "pharmacy_DE_pmm0217188lt",
+    "title": "IDUN MINERALS birus makiažo pagrindas YLVA Nr. 1014, 7g",
+    "assignedBrand": "idun minerals",
+    "matchedBrands": [
+      "idun minerals"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "626ac3--4-8-",
+    "key": "pharmacy_DE_pmm0233918lt",
+    "title": "IDUN veido kremas su spalva SPF 30, Nr. 1412 27ml",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "ed518444--4-8-",
+    "key": "pharmacy_DE_pmm0240355lt",
+    "title": "Nataspin Control Pro (90 dienų vartojimo kursas)",
+    "assignedBrand": "nataspin",
+    "matchedBrands": [
+      "nataspin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "acdb8106--4-8-",
+    "key": "pharmacy_DE_pmm0241624lt",
+    "title": "Neuromed Sleep Forte, N30",
+    "assignedBrand": "neuromed",
+    "matchedBrands": [
+      "neuromed"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "cd4cc41--4-8-",
+    "key": "pharmacy_DE_pmm0210560lt",
+    "title": "SWANSON Ciberžolė su juodaisiais pipirais N60",
+    "assignedBrand": "swanson",
+    "matchedBrands": [
+      "swanson"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "53ccc7cc--4-8-",
+    "key": "pharmacy_DE_pmm0181894lt",
+    "title": "SWANSON Alfa lipo rūgštis 100mg kapsulės N120",
+    "assignedBrand": "swanson",
+    "matchedBrands": [
+      "swanson"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "ab2db6e6--4-8-",
+    "key": "pharmacy_DE_pmm0230886lt",
+    "title": "SWANSON L-Triptofanas 500mg kapsulės N60",
+    "assignedBrand": "swanson",
+    "matchedBrands": [
+      "swanson"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "3c773965--4-8-",
+    "key": "pharmacy_DE_pmm0180904lt",
+    "title": "SWANSON Lecitinas 1200mg minkštos kapsulės N90",
+    "assignedBrand": "swanson",
+    "matchedBrands": [
+      "swanson"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "30a940ee--4-8-",
+    "key": "pharmacy_DE_pmm0243039lt",
+    "title": "SWANSON Magnio Bisglicinatas 700mg kapsulės N90",
+    "assignedBrand": "swanson",
+    "matchedBrands": [
+      "swanson"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "2b67430e--4-8-",
+    "key": "pharmacy_DE_pmm0228676lt",
+    "title": "SWANSON Nakvišų aliejus 500mg N100",
+    "assignedBrand": "swanson",
+    "matchedBrands": [
+      "swanson"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "d4f5a8e0--4-8-",
+    "key": "pharmacy_DE_pmm0180899lt",
+    "title": "SWANSON Saw Palmetto (Gulsčioji Serenoja) kaps. N100",
+    "assignedBrand": "swanson",
+    "matchedBrands": [
+      "swanson"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "a5c66d2d--4-8-",
+    "key": "pharmacy_DE_pmm0227964lt",
+    "title": "SWANSON Spirulina (Ekologiška JAV) 500mg tabletės N180",
+    "assignedBrand": "swanson",
+    "matchedBrands": [
+      "swanson"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "b418dd8e--4-8-",
+    "key": "pharmacy_DE_pmm0198708lt",
+    "title": "APIVITA muilas su medumi/levandomis NATURAL, 125g",
+    "assignedBrand": "apivita",
+    "matchedBrands": [
+      "apivita"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "bec4c561--4-8-",
+    "key": "pharmacy_DE_pmm0198707lt",
+    "title": "APIVITA muilas su jazminais/levandomis NATURAL, 125g",
+    "assignedBrand": "apivita",
+    "matchedBrands": [
+      "apivita"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "b240d02f--4-8-",
+    "key": "pharmacy_DE_pmm0198709lt",
+    "title": "APIVITA muilas su propoliu/čiobreliais NATURAL, 125g",
+    "assignedBrand": "apivita",
+    "matchedBrands": [
+      "apivita"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "b75a94ee--4-8-",
+    "key": "pharmacy_DE_pmm0222863lt",
+    "title": "SUPERFOODS MEMOACT PLUS, 30 kapsulių",
+    "assignedBrand": "superfoods",
+    "matchedBrands": [
+      "superfoods"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "d273a089--4-8-",
+    "key": "pharmacy_DE_pmm0222864lt",
+    "title": "SUPERFOODS OSTEOAID, 30 kapsulių",
+    "assignedBrand": "superfoods",
+    "matchedBrands": [
+      "superfoods"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "21316182--4-8-",
+    "key": "pharmacy_DE_pmm0197873lt",
+    "title": "TEPE tarpdančių šepetėliai 1.5mm SIZE 8, juodi, N6",
+    "assignedBrand": "tepe",
+    "matchedBrands": [
+      "tepe"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "5a0ece45--4-8-",
+    "key": "pharmacy_DE_pmm0217374lt",
+    "title": "SWANSON Berberinas (natūralus) tabletės N60",
+    "assignedBrand": "swanson",
+    "matchedBrands": [
+      "swanson"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "fbe98802--4-8-",
+    "key": "pharmacy_DE_pmm0203103lt",
+    "title": "VIRIDIAN MSM, N90",
+    "assignedBrand": "viridian",
+    "matchedBrands": [
+      "viridian"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "bae10d86--4-8-",
+    "key": "pharmacy_DE_pmm0180385lt",
+    "title": "Gentle Day Far-IR Anion ekologiški paketai N10",
+    "assignedBrand": "gentle day",
+    "matchedBrands": [
+      "gentle day"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "625310e5--4-8-",
+    "key": "pharmacy_DE_pmm0180386lt",
+    "title": "Gentle Day Far-IR Anion ekologiški naktiniai paketai N08",
+    "assignedBrand": "gentle day",
+    "matchedBrands": [
+      "gentle day"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "f4026a89--4-8-",
+    "key": "pharmacy_DE_pmm0220585lt",
+    "title": "SAFFRA MOOD su šafranu, 30 kapsulių",
+    "assignedBrand": "saffra mood",
+    "matchedBrands": [
+      "saffra mood"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "58fe4743--4-8-",
+    "key": "pharmacy_DE_pmm0207034lt",
+    "title": "CLINERAL BY AHAVA kūno kremas PSO, 200ml",
+    "assignedBrand": "clineral",
+    "matchedBrands": [
+      "clineral",
+      "clineral by ahava"
+    ],
+    "confidence": 0.8
+  },
+  {
+    "uuid": "89a193ea--4-8-",
+    "key": "pharmacy_DE_pmm0239614lt",
+    "title": "SVR veido kremas [COLLAGEN] BIOTIC, 50ml",
+    "assignedBrand": "svr",
+    "matchedBrands": [
+      "svr"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "314b023--4-8-",
+    "key": "pharmacy_DE_pmm0193955lt",
+    "title": "DETOX, milteliai, N1",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "ed18b0ab--4-8-",
+    "key": "pharmacy_DE_pmm0193991lt",
+    "title": "ŠVF žolelių arbata URO HERBA, 1,5g x N20",
+    "assignedBrand": "švf",
+    "matchedBrands": [
+      "švf"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "3c29dde8--4-8-",
+    "key": "pharmacy_DE_pmm0181045lt",
+    "title": "Gentle Day ekologiškos drėgnos servetėlės intymiai higienai 10 vnt",
+    "assignedBrand": "gentle day",
+    "matchedBrands": [
+      "gentle day"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "31daa2--4-8-",
+    "key": "pharmacy_DE_pmm0181902lt",
+    "title": "SWANSON L-Lizinas 500mg kapsulės N100",
+    "assignedBrand": "swanson",
+    "matchedBrands": [
+      "swanson"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "fe99feab--4-8-",
+    "key": "pharmacy_DE_pmm0242493lt",
+    "title": "APOTHEKA Vitaminas A+E, kapsulės N30",
+    "assignedBrand": "apotheke",
+    "matchedBrands": [
+      "apotheke"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "d69ba001--4-8-",
+    "key": "pharmacy_DE_pmm0245012lt",
+    "title": "FORMULA VITALE Hepato, tabletės N30",
+    "assignedBrand": "formula vitale",
+    "matchedBrands": [
+      "formula vitale"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "ea05124f--4-8-",
+    "key": "pharmacy_DE_pmm0240787lt",
+    "title": "FORMULA VITALE Coenzyme+ Q10 + vitaminas C, N30",
+    "assignedBrand": "formula vitale",
+    "matchedBrands": [
+      "formula vitale"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "bd1524cf--4-8-",
+    "key": "pharmacy_DE_pmm0181226lt",
+    "title": "SWANSON L-Tirozinas kapsulės N100",
+    "assignedBrand": "swanson",
+    "matchedBrands": [
+      "swanson"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "fbce322--4-8-",
+    "key": "pharmacy_DE_pmm0221992lt",
+    "title": "ATEROLIP COMPLEX caps, 30 kapsulių",
+    "assignedBrand": "b complex",
+    "matchedBrands": [
+      "b complex"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "6411b043--4-8-",
+    "key": "pharmacy_DE_pmm0237271lt",
+    "title": "PROVISOR VITAMINAS D 4000 TV, kapsulės  N90",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "580a6c4a--4-8-",
+    "key": "pharmacy_DE_pmm0181517lt",
+    "title": "BIO Ca+K+Mg+Zn su vitaminu D3, milteliai, N28",
+    "assignedBrand": "vitamin c",
+    "matchedBrands": [
+      "vitamin c"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "5e16bd2a--4-8-",
+    "key": "pharmacy_DE_pmm0242609lt",
+    "title": "FERRONEMIS su CoQ10 + vit. B amp. N20",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "f50b4ea6--4-8-",
+    "key": "pharmacy_DE_pmm0172333lt",
+    "title": "JOWAE drėkinamasis paakių gelis su kinkanų ekstraktu, 15ml",
+    "assignedBrand": "jowae",
+    "matchedBrands": [
+      "jowae"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "f9e22426--4-8-",
+    "key": "pharmacy_DE_pmm0233050lt",
+    "title": "Toninis BB veido kremas SPF50+, šviesaus atspalvio ACTIPUR, 30ml.",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "d83dfbac--4-8-",
+    "key": "pharmacy_DE_pmm0244807lt",
+    "title": "SAPIENS Magnis, apelsinų skonio milteliai, 30 pakelių",
+    "assignedBrand": "sapiens",
+    "matchedBrands": [
+      "sapiens"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "d706476f--4-8-",
+    "key": "pharmacy_DE_pmm0244815lt",
+    "title": "SAPIENS Guminukai miegui (su melatoninu), 60 guminukų",
+    "assignedBrand": "sapiens",
+    "matchedBrands": [
+      "sapiens"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "fa416a67--4-8-",
+    "key": "pharmacy_DE_pmm0245544lt",
+    "title": "SAPIENS Multi guminukai vaikams, 60 guminukų",
+    "assignedBrand": "sapiens",
+    "matchedBrands": [
+      "sapiens"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "96ec50e2--4-8-",
+    "key": "pharmacy_DE_pmm0243314lt",
+    "title": "ISDIN ISDINCEUTICS naktinis serumas nuo raukšlių RETINAL INTENSE, 50ml",
+    "assignedBrand": "isdin",
+    "matchedBrands": [
+      "isdin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "68769c8b--4-8-",
+    "key": "pharmacy_DE_pmm0242806lt",
+    "title": "ISDINCEUTICS šveičiam.glikolio rūgšties veido gelis GLICOISDIN10 50ml",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "f3e5fed--4-8-",
+    "key": "pharmacy_DE_pmm0242811lt",
+    "title": "ISDIN švelni valomoji veido emulsija ACNIBEN REPAIR, 180ml",
+    "assignedBrand": "isdin",
+    "matchedBrands": [
+      "isdin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "4054754c--4-8-",
+    "key": "pharmacy_DE_pmm0242810lt",
+    "title": "ISDIN drėkinamasis veido gelis-kremas ACNIBEN REPAIR, 40ml",
+    "assignedBrand": "isdin",
+    "matchedBrands": [
+      "isdin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "fec05602--4-8-",
+    "key": "pharmacy_DE_pmm0218091lt",
+    "title": "Vienkartinės vinilinės pirštinės SYNSATION, dydis XL, N100",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "83296d88--4-8-",
+    "key": "pharmacy_DE_pmm0232497lt",
+    "title": "HARTMANN hidrokoloidinis tvarstis  HYDROCOLL THIN, 10x10cm, N10",
+    "assignedBrand": "hartmann",
+    "matchedBrands": [
+      "hartmann"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "5f5482c5--4-8-",
+    "key": "pharmacy_DE_pmm0245632lt",
+    "title": "ISDIN priemonė nuo karpų VERRUTOP, 0,1 ml x N4",
+    "assignedBrand": "isdin",
+    "matchedBrands": [
+      "isdin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "cb86ade2--4-8-",
+    "key": "pharmacy_DE_pmm0206362lt",
+    "title": "COR4 Complex, N28",
+    "assignedBrand": "b complex",
+    "matchedBrands": [
+      "b complex"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "e568ae40--4-8-",
+    "key": "pharmacy_DE_pmm0202331lt",
+    "title": "Šildomasis masažo balzamas HERBAMEDICUS HORSE BALSAM",
+    "assignedBrand": "herbamedicus",
+    "matchedBrands": [
+      "herbamedicus"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "e510902f--4-8-",
+    "key": "pharmacy_DE_pmm0171696lt",
+    "title": "CONTOUR gliukozės kiekio kraujyje stebėjimo sistema PLUS ONE, N1",
+    "assignedBrand": "contour",
+    "matchedBrands": [
+      "contour"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "6ff4900f--4-8-",
+    "key": "pharmacy_DE_pmm0226901lt",
+    "title": "DEXCOM ONE jutiklis, N1",
+    "assignedBrand": "dexcom",
+    "matchedBrands": [
+      "dexcom",
+      "dexcom one"
+    ],
+    "confidence": 0.8
+  },
+  {
+    "uuid": "4c3b9929--4-8-",
+    "key": "pharmacy_DE_pmm0182003lt",
+    "title": "Apinasal, 20ml",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "316caa4c--4-8-",
+    "key": "pharmacy_DE_pmm0195055lt",
+    "title": "Gliukozė su vitaminu C, apelsinų kvapo, N10",
+    "assignedBrand": "vitamin c",
+    "matchedBrands": [
+      "vitamin c"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "495509e1--4-8-",
+    "key": "pharmacy_DE_pmm0195058lt",
+    "title": "Gliukozė su vitaminu C, vyšnių kvapo, N10",
+    "assignedBrand": "vitamin c",
+    "matchedBrands": [
+      "vitamin c"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "22d7b0c2--4-8-",
+    "key": "pharmacy_DE_pmm0202751lt",
+    "title": "Gliukozė su vitaminu C, žemuogių kvapo, N10",
+    "assignedBrand": "vitamin c",
+    "matchedBrands": [
+      "vitamin c"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "7cc0160--4-8-",
+    "key": "pharmacy_DE_pmm0180293lt",
+    "title": "Vitaminas C 500mg tabletės, N50",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "c16f8baf--4-8-",
+    "key": "pharmacy_DE_pmm0195056lt",
+    "title": "Gliukozė su vitaminu C, aviečių kvapo, N10",
+    "assignedBrand": "vitamin c",
+    "matchedBrands": [
+      "vitamin c"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "fe096ac7--4-8-",
+    "key": "pharmacy_DE_pmm0245533lt",
+    "title": "ANIMPLUS kapsulės N42",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "4da99aed--4-8-",
+    "key": "pharmacy_DE_pmm0180140lt",
+    "title": "Propolio kapsulės, N40",
+    "assignedBrand": "propolis",
+    "matchedBrands": [
+      "propolis"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "d6449e47--4-8-",
+    "key": "pharmacy_DE_pmm0179801lt",
+    "title": "Gliukozės milteliai, 75g",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "fd8f1888--4-8-",
+    "key": "pharmacy_DE_pmm0179879lt",
+    "title": "Propolio aliejus, 15ml",
+    "assignedBrand": "propolis",
+    "matchedBrands": [
+      "propolis"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "356e6d2a--4-8-",
+    "key": "pharmacy_DE_pmm0191828lt",
+    "title": "Propolio purškalas, 30ml",
+    "assignedBrand": "propolis",
+    "matchedBrands": [
+      "propolis"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "2b8fd92c--4-8-",
+    "key": "pharmacy_DE_pmm0180150lt",
+    "title": "Propolio-medetkų tepalas, 20g",
+    "assignedBrand": "propolio",
+    "matchedBrands": [
+      "propolio"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "692220ab--4-8-",
+    "key": "pharmacy_DE_pmm0182625lt",
+    "title": "Microlife Bekontaktis termometras NC200",
+    "assignedBrand": "microlife",
+    "matchedBrands": [
+      "microlife"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "2f1d8363--4-8-",
+    "key": "pharmacy_DE_pmm0193933lt",
+    "title": "Microlife Kraujospūdžio matuolis BPB2 Basic",
+    "assignedBrand": "basica",
+    "matchedBrands": [
+      "basica"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "715d040--4-8-",
+    "key": "pharmacy_DE_pmm0198001lt",
+    "title": "Microlife Inhaliatorius Neb 200",
+    "assignedBrand": "microlife",
+    "matchedBrands": [
+      "microlife"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "91c2a10a--4-8-",
+    "key": "pharmacy_DE_pmm0228715lt",
+    "title": "Microlife Inhaliatorius Neb800 Mesh",
+    "assignedBrand": "microlife",
+    "matchedBrands": [
+      "microlife"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "50fde249--4-8-",
+    "key": "pharmacy_DE_pmm0195261lt",
+    "title": "Microlife Pulsoksimetras OXY 300",
+    "assignedBrand": "microlife",
+    "matchedBrands": [
+      "microlife"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "62829ccd--4-8-",
+    "key": "pharmacy_DE_pmm0179762lt",
+    "title": "Microlife Termometras lanksčiu galu MT1931GT",
+    "assignedBrand": "microlife",
+    "matchedBrands": [
+      "microlife"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "83638104--4-8-",
+    "key": "pharmacy_DE_pmm0198764lt",
+    "title": "MAGNESIUM CITRATE, milteliai, N50",
+    "assignedBrand": "magnesium",
+    "matchedBrands": [
+      "magnesium"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "1efdf803--4-8-",
+    "key": "pharmacy_DE_pmm0191920lt",
+    "title": "Microlife Termometras skaitmeninis MT16F1",
+    "assignedBrand": "microlife",
+    "matchedBrands": [
+      "microlife"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "84b05069--4-8-",
+    "key": "pharmacy_DE_pmm0197997lt",
+    "title": "Microlife Kraujospūdžio matuoklis BPB3 Comfort",
+    "assignedBrand": "4-comfort",
+    "matchedBrands": [
+      "4-comfort"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "1477248a--4-8-",
+    "key": "pharmacy_DE_pmm0197994lt",
+    "title": "Microlife Kraujospūdžio matuoklis BPB6 Connect",
+    "assignedBrand": "microlife",
+    "matchedBrands": [
+      "microlife"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "cdd3b68e--4-8-",
+    "key": "pharmacy_DE_pmm0224193lt",
+    "title": "Microlife Kraujospūdžio matuoklis BPB1 CLASSIC",
+    "assignedBrand": "microlife",
+    "matchedBrands": [
+      "microlife"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "6f1579e1--4-8-",
+    "key": "pharmacy_DE_pmm0198000lt",
+    "title": "Microlife Inhaliatorius Neb Pro  2in 1",
+    "assignedBrand": "microlife",
+    "matchedBrands": [
+      "microlife"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "ec129da8--4-8-",
+    "key": "pharmacy_DE_pmm0233193lt",
+    "title": "EUCERIN lūpų pieštukas LIP ACTIVE SPF 15, 4.8 g",
+    "assignedBrand": "eucerin",
+    "matchedBrands": [
+      "eucerin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "dcfe6f48--4-8-",
+    "key": "pharmacy_DE_pmm0198801lt",
+    "title": "NATURA HOUSE raminamasis gelis po uodų įkandimų vaikams ir kūdikiams,",
+    "assignedBrand": "natura+",
+    "matchedBrands": [
+      "natura+"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "a0da2121--4-8-",
+    "key": "pharmacy_DE_pmm0232298lt",
+    "title": "EUCERIN prausimosi gelis su 5% šlapalo UREAREPAIR PLUS, 400 ml",
+    "assignedBrand": "eucerin",
+    "matchedBrands": [
+      "eucerin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "e2754965--4-8-",
+    "key": "pharmacy_DE_pmm0179931lt",
+    "title": "APILAKAS 50, N20",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "ee6197e4--4-8-",
+    "key": "pharmacy_DE_pmm0242809lt",
+    "title": "ISDIN FU REDNESS apsauginė veido emulsija jautriai odai SPF 50, 50ml",
+    "assignedBrand": "isdin",
+    "matchedBrands": [
+      "isdin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "19ffa069--4-8-",
+    "key": "pharmacy_DE_pmm0179777lt",
+    "title": "Bičių duonelės pastilės, N50",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "d62f4029--4-8-",
+    "key": "pharmacy_DE_pmm0196042lt",
+    "title": "ŠVF žolelių arbata SALDŽIŲJŲ PANKOLIŲ VAISIAI, 1,5g x N24",
+    "assignedBrand": "švf",
+    "matchedBrands": [
+      "švf"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "95ecee8--4-8-",
+    "key": "pharmacy_DE_pmm0180132lt",
+    "title": "Propolio lašai, 30ml",
+    "assignedBrand": "propolis",
+    "matchedBrands": [
+      "propolis"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "e3de46f--4-8-",
+    "key": "pharmacy_DE_pmm0182104lt",
+    "title": "GOOD SLEEP SPRAY, 30ml",
+    "assignedBrand": "good sleep",
+    "matchedBrands": [
+      "good sleep"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "2936cca6--4-8-",
+    "key": "pharmacy_DE_pmm0220160lt",
+    "title": "ATEROLIP COMPLEX caps, 90 kapsulių",
+    "assignedBrand": "b complex",
+    "matchedBrands": [
+      "b complex"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "43c3fbe9--4-8-",
+    "key": "pharmacy_DE_pmm0180908lt",
+    "title": "SWANSON Jonažolė 375mg kapsulės N60",
+    "assignedBrand": "swanson",
+    "matchedBrands": [
+      "swanson"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "3f68b66--4-8-",
+    "key": "pharmacy_DE_pmm0194975lt",
+    "title": "COLIEF laktazės lašai INFANT DROPS, 7ml",
+    "assignedBrand": "colief",
+    "matchedBrands": [
+      "colief"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "e57cab46--4-8-",
+    "key": "pharmacy_DE_pmm0182387lt",
+    "title": "OTOSAN  FORTUSS sirupas, 180g",
+    "assignedBrand": "otosan",
+    "matchedBrands": [
+      "otosan"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "8bc9ae6c--4-8-",
+    "key": "pharmacy_DE_pmm0244861lt",
+    "title": "SAPIENS Ciberžolė su juodaisiais pipirais PRO, 90 kapsulių",
+    "assignedBrand": "sapiens",
+    "matchedBrands": [
+      "sapiens"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "88a98641--4-8-",
+    "key": "pharmacy_DE_pmm0244828lt",
+    "title": "SAPIENS Vitamino C guminukai, 50 guminukų",
+    "assignedBrand": "vitamin c",
+    "matchedBrands": [
+      "vitamin c"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "94baa30f--4-8-",
+    "key": "pharmacy_DE_pmm0244826lt",
+    "title": "SAPIENS Gerosios bakterijos - guminukai, 60 guminukų",
+    "assignedBrand": "sapiens",
+    "matchedBrands": [
+      "sapiens"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "8ade522e--4-8-",
+    "key": "pharmacy_DE_pmm0206946lt",
+    "title": "SAMARIN milteliai geriamajam tirpalui, 6 paketėliai",
+    "assignedBrand": "samarin",
+    "matchedBrands": [
+      "samarin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "86a6eac7--4-8-",
+    "key": "pharmacy_DE_pmm0206222lt",
+    "title": "SAMARIN milteliai geriamajam tirpalui, 18 paketėlių",
+    "assignedBrand": "samarin",
+    "matchedBrands": [
+      "samarin"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "92a0916f--4-8-",
+    "key": "pharmacy_DE_pmm0233408lt",
+    "title": "BIODERMA purškalas niežtinčiai odai ATODERM SOS SPRAY, 200ml",
+    "assignedBrand": "bioderma",
+    "matchedBrands": [
+      "bioderma"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "b5d49d29--4-8-",
+    "key": "pharmacy_DE_pmm0181033lt",
+    "title": "Ocutein Sensitive Plus akių lašai 15 ml",
+    "assignedBrand": "ocutein",
+    "matchedBrands": [
+      "ocutein"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "b76b37c9--4-8-",
+    "key": "pharmacy_DE_pmm0227690lt",
+    "title": "CURASEPT vaikiška dantų pasta be fluoro BIOSMALTO BABY-KID, 50ml",
+    "assignedBrand": "curasept",
+    "matchedBrands": [
+      "curasept"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "84b59a49--4-8-",
+    "key": "pharmacy_DE_pmm0242408lt",
+    "title": "Ocutein Kristal kapsulės N30",
+    "assignedBrand": "ocutein",
+    "matchedBrands": [
+      "ocutein"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "1621df44--4-8-",
+    "key": "pharmacy_DE_pmm0181296lt",
+    "title": "Ocutein Brillant kapsulės N30",
+    "assignedBrand": "ocutein",
+    "matchedBrands": [
+      "ocutein"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "bdc0f027--4-8-",
+    "key": "pharmacy_DE_pmm0180708lt",
+    "title": "Ocutein Forte kapsulės N30",
+    "assignedBrand": "ocutein",
+    "matchedBrands": [
+      "ocutein"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "14617945--4-8-",
+    "key": "pharmacy_DE_pmm0181509lt",
+    "title": "Ocutein Retin kapsulės N30",
+    "assignedBrand": "retina",
+    "matchedBrands": [
+      "retina"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "319066a1--4-8-",
+    "key": "pharmacy_DE_pmm0191191lt",
+    "title": "CURAPROX siūlas implantams ir breketams DF 845, N50",
+    "assignedBrand": "curaprox",
+    "matchedBrands": [
+      "curaprox"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "8abbf645--4-8-",
+    "key": "pharmacy_DE_pmm0203731lt",
+    "title": "CURAPROX šepetėlis protezų valymui BDC 152, N1",
+    "assignedBrand": "curaprox",
+    "matchedBrands": [
+      "curaprox"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "7f5f6146--4-8-",
+    "key": "pharmacy_DE_pmm0195192lt",
+    "title": "OLIDETRIM VITAMINAS D 2000TV, 60 minkštų kapsulių",
+    "assignedBrand": "olidetrim",
+    "matchedBrands": [
+      "olidetrim"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "5b2f7001--4-8-",
+    "key": "pharmacy_DE_pmm0201056lt",
+    "title": "LIVOL EXTRA Ginkgo biloba, 60 tabl.",
+    "assignedBrand": "livol",
+    "matchedBrands": [
+      "livol",
+      "livol extra"
+    ],
+    "confidence": 0.8
+  },
+  {
+    "uuid": "3bf68d0e--4-8-",
+    "key": "pharmacy_DE_pmm0247086lt",
+    "title": "BABÉ apsauginė veido emulsija Healthy Aging+ SPF50, 40ml",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "bafb774a--4-8-",
+    "key": "pharmacy_DE_pmm0183098lt",
+    "title": "Kamistad baby dantenas masažuojantis gelis 10ml",
+    "assignedBrand": "kamistad n",
+    "matchedBrands": [
+      "kamistad n"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "30ac27a8--4-8-",
+    "key": "pharmacy_DE_pmm0213678lt",
+    "title": "Miradent Xylitol kramtomoji guma HAGER&WERKEN, cinamono skonio, 30 vnt",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "3236be47--4-8-",
+    "key": "pharmacy_DE_pmm0213677lt",
+    "title": "Miradent Xylitol kramtomoji guma HAGER&WERKEN, arbūzo skonio, 30 vnt",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "bea96ba0--4-8-",
+    "key": "pharmacy_DE_pmm0235050lt",
+    "title": "Miradent Xylitol kramtomoji guma HAGER&WERKEN, pipirmėtės skonio, 30 v",
+    "assignedBrand": null,
+    "matchedBrands": [],
+    "confidence": 0
+  },
+  {
+    "uuid": "2e869d8c--4-8-",
+    "key": "pharmacy_DE_pmm0181757lt",
+    "title": "Clavin Ultra kapsulės N4",
+    "assignedBrand": "clavin",
+    "matchedBrands": [
+      "clavin",
+      "clavin ultra"
+    ],
+    "confidence": 0.8
+  },
+  {
+    "uuid": "c1e393a6--4-8-",
+    "key": "pharmacy_DE_pmm0196977lt",
+    "title": "TOPICREM drėkinamasis kompensuojamasis kremas AC COMPENSATING, 40ml",
+    "assignedBrand": "topicrem",
+    "matchedBrands": [
+      "topicrem"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "88db64f--4-8-",
+    "key": "pharmacy_DE_pmm0197023lt",
+    "title": "FITTYDENT dantų protezų fiksuojamasis kremas SUPER, 20g",
+    "assignedBrand": "fittydent",
+    "matchedBrands": [
+      "fittydent"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "77f6fc86--4-8-",
+    "key": "pharmacy_DE_pmm0205527lt",
+    "title": "G.U.M.  dantų pasta BIO, 75ml",
+    "assignedBrand": "g.u.m",
+    "matchedBrands": [
+      "g.u.m",
+      "g.u.m."
+    ],
+    "confidence": 0.8
+  },
+  {
+    "uuid": "e8286a65--4-8-",
+    "key": "pharmacy_DE_pmm0198589lt",
+    "title": "GUM Dantų pasta Paroex  75ml su 0,06% chlorheksidinu ir 0.05% (1750)",
+    "assignedBrand": "gum",
+    "matchedBrands": [
+      "gum"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "b9469aaa--4-8-",
+    "key": "pharmacy_DE_pmm0191367lt",
+    "title": "GUM Travel soft Dantų šepetėlis kelioninis",
+    "assignedBrand": "sooft",
+    "matchedBrands": [
+      "sooft"
+    ],
+    "confidence": 1
+  },
+  {
+    "uuid": "8822f064--4-8-",
+    "key": "pharmacy_DE_pmm0216404lt",
+    "title": "LIVOL EXTRA Vitaminas D 4000 TV, 120 tabl.",
+    "assignedBrand": "livol",
+    "matchedBrands": [
+      "livol",
+      "livol extra"
+    ],
+    "confidence": 0.8
+  }
+]

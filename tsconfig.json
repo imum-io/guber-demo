@@ -1,14 +1,15 @@
 {
     "compilerOptions": {
       "experimentalDecorators": true,
-      "target": "es6",
+      "target": "es2017",
       "module": "commonjs",
       "rootDir": "src",
       "outDir": "dist",
       "sourceMap": true,
       "resolveJsonModule": true,
-      "lib": ["es6", "dom", "ES2021.String"],
-      "esModuleInterop": true
+      "lib": ["es2017", "dom", "ES2021.String"],
+      "esModuleInterop": true,
+      "skipLibCheck": true
     },
     "include": [
       "src/**/*.ts"

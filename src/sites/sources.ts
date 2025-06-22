@@ -8,6 +8,7 @@ export enum sources {
     PGU = 'PGU',
     TOP = 'TOP',
     APO = 'APO',
+    pharmacy = 'pharmacy'
 }
 
 export const sourceFromUrl = {
