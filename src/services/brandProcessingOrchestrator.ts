@@ -31,14 +31,6 @@ export class BrandProcessingOrchestrator {
         };
     }
 
-    private async validatePrerequisites(): Promise<void> {
-        const dataValidation = await this.dataLayer.validateDataIntegrity();
-
-        if (!dataValidation.isValid) {
-            throw new Error(`Data integrity issues: ${dataValidation.issues.join(', ')}`);
-        }
-    }
-
     private async prepareBrandRelationships(): Promise<BrandRelationshipMap> {
         const connectionData = await this.dataLayer.fetchBrandConnections();
         return this.graphService.buildRelationshipGraph(connectionData);
@@ -146,7 +138,6 @@ export class BrandProcessingOrchestrator {
 
         const processingStartTime = Date.now();
         try {
-            await this.validatePrerequisites();
             const brandRelationships = await this.prepareBrandRelationships();
 
             this.matchingEngine.initializeWithRelationships(brandRelationships);
