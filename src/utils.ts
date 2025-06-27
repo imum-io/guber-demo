@@ -670,7 +670,7 @@ function stringToHash(value: string, useLegacyUnlowercased = false) {
   return uuidv5(useLegacyUnlowercased ? value : lowercased, namespace);
 }
 
-export function isValidHash(hashString: string): boolean {
+function isValidHash(hashString: string): boolean {
   const hexPattern = /^[0-9a-fA-F]+$/;
   return hashString.length > 0 && hexPattern.test(hashString);
 }
@@ -746,4 +746,5 @@ export {
   decodeHtml,
   createCustomError,
   stringToHash,
+  isValidHash
 };
