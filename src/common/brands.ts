@@ -50,9 +50,46 @@ async function getPharmacyItems(countryCode: countryCodes, source: sources, vers
 }
 
 export function checkBrandIsSeparateTerm(input: string, brand: string): boolean {
+    brand = brand.toLowerCase()
+
     // Escape any special characters in the brand name for use in a regular expression
     const escapedBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    
+    //Babē = Babe, replacing all occurrences of ē for e
+    brand = brand.replace("babē", "babe")
+    //Not sure if the task means to replace all the occurrences of ē, then it should be brand.replace("ē", "e").
+    //However, if it means to replace all the similar characters then, we need to replace with unicode range
 
+    //Ignore BIO, NEB
+    if(["bio", "neb"].includes(brand)){
+        return false
+    }
+    //Here I wasn't sure if we should check only for the words bio, neb or any brand name that contains bio, neb
+    //If it means to check if a brand name has bio as part of the brand name it should be brand.includes("bio")
+
+    const intputArray = input.toLowerCase().split(" ")
+
+    //RICH, RFF, flex, ultra, gum, beauty, orto, free, 112, kin, happy has to be in the front        
+    const hasToBeFirst = ["rich", "rff", "flex", "ultra", "gum", "beauty", "orto", "free", "112", "kin", "happy"]
+
+    if(hasToBeFirst.includes(brand)){
+        if(intputArray[0]==brand){
+            //HAPPY needs to be matched capitalized
+            if(brand == "HAPPY"){
+                return (intputArray[0]=="HAPPY")
+            }
+            return true
+        }
+        return false
+    }
+
+    //heel, contour, nero, rsv in front or 2nd word
+    const hasToBeFirstOrSecond =  ["heel", "contour", "nero", "rsv"]
+
+    if(hasToBeFirstOrSecond.includes(brand)){
+        return (intputArray.slice(0, 2).includes(brand))
+    }
+    
     // Check if the brand is at the beginning or end of the string
     const atBeginningOrEnd = new RegExp(
         `^(?:${escapedBrand}\\s|.*\\s${escapedBrand}\\s.*|.*\\s${escapedBrand})$`,
@@ -64,6 +101,53 @@ export function checkBrandIsSeparateTerm(input: string, brand: string): boolean 
 
     // The brand should be at the beginning, end, or a separate term
     return atBeginningOrEnd || separateTerm
+}
+
+export function assignSameBrandToGroup(brandsMapping):Map<string, string> {
+    let assignedBrands = new Map<string, string>();
+    let brandGroups = new Map<string, string>();
+    
+    for (let brand in brandsMapping) {
+        if(typeof assignedBrands[brand]!="undefined"){
+            continue
+        }
+        let group = [brand, ...brandsMapping[brand]];
+        if(Object.keys(assignedBrands).length==0){
+            assignedBrands[brand] = group.sort()[0]
+            brandGroups[brand] = group
+            continue
+        }
+        
+        let found = false
+        for(let a_group in brandGroups){
+            if(brandGroups[a_group].includes(brand)){
+                assignedBrands[brand] = assignedBrands[a_group]
+                brandGroups[brand] = group
+                found = true
+                break
+            }
+        }
+        
+        if(!found){
+            for(let abrand of group){
+                if(typeof assignedBrands[abrand]!='undefined'){
+                    assignedBrands[brand] = assignedBrands[abrand]
+                    brandGroups[brand] = group
+                    found = true
+                    break
+                }
+            }
+        }
+        
+        
+        if(!found){
+            assignedBrands[brand] = group.sort()[0]
+            brandGroups[brand] = group
+        }
+        
+    }
+
+    return assignedBrands;
 }
 
 export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
@@ -95,6 +179,18 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
                 }
             }
         }
+        
+        //2nd task - to always assign the same brand for whole group  in all possible cases we should assign only 1
+        matchedBrands = matchedBrands.map((brand)=>assignSameBrandToGroup[brand]||brand)
+        
+        //if>1 brands matched, prioritize matching beginning
+        matchedBrands = [...new Set(matchedBrands)].sort((a, b) => {
+            const productTitle = product.title.toLowerCase();
+            const aInBeginning = productTitle.startsWith(a.toLowerCase()) ? 0 : 1;
+            const bInBeginning = productTitle.startsWith(b.toLowerCase()) ? 0 : 1;
+            return ((aInBeginning - bInBeginning) || a.localeCompare(b));
+        });
+        
         console.log(`${product.title} -> ${_.uniq(matchedBrands)}`)
         const sourceId = product.source_id
         const meta = { matchedBrands }
