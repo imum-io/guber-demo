@@ -90,7 +90,8 @@ Error count: 0
 Processing time: 6 ms
 ```
 
-**Results Interpretation:**
-```
-All 3946 products are being skipped because they already have m_id values set, which means they're considered "already processed."
-```
+## Known Data Issue
+### Brand Connections Mismatch
+The `brandConnections.json` file doesn't contain the brands that actually appear in the provided pharmacy products. This causes 0 successful matches despite proper brand detection.
+
+To find missing brands: Uncomment `await findAllDetectedBrands();` in the `runTest()` function and run the application. This will output all detected brands that need to be added to `brandConnections.json`.
