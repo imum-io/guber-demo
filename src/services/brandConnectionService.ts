@@ -110,4 +110,9 @@ export class BrandConnectionService {
 
         return this.brandGroups;
     }
+
+    getCanonicalBrand(brandVariant: string): string | null {
+        const normalizedBrand = this.normalizeBrandName(brandVariant);
+        return this.canonicalMapping.get(normalizedBrand) || null;
+    }
 }
