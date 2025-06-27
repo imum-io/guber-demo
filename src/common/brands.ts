@@ -44,9 +44,11 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
 }
 
 async function getPharmacyItems(countryCode: countryCodes, source: sources, versionKey: string, mustExist = true) {
-    const finalProducts = items
+    let filterProducts = items.filter(
+        item => item.country_code === countryCode && item.source === source
+    )
 
-    return finalProducts
+    return filterProducts
 }
 
 export function checkBrandIsSeparateTerm(input: string, brand: string): boolean {
