@@ -38,6 +38,45 @@ export class BrandConnectionService {
         return mapping;
     }
 
+    private traverseComponent(
+        currentBrand: string,
+        component: Set<string>,
+        visitedNodes: Set<string>
+    ): void {
+        if (visitedNodes.has(currentBrand)) {
+            return;
+        }
+
+        visitedNodes.add(currentBrand);
+        component.add(currentBrand);
+
+        const connectedBrands = this.relationshipGraph.get(currentBrand) || new Set();
+        connectedBrands.forEach(connectedBrand => {
+            this.traverseComponent(connectedBrand, component, visitedNodes);
+        });
+    }
+
+    private generateGroupId(): string {
+        return `group_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+
+    private createBrandGroup(brandMembers: Set<string>): void {
+        const sortedMembers = Array.from(brandMembers).sort();
+        const canonicalName = sortedMembers[0];
+        const groupId = this.generateGroupId();
+
+        const brandGroup: BrandGroup = {
+            canonicalName,
+            members: brandMembers,
+            groupId,
+        };
+
+        brandMembers.forEach(member => {
+            this.brandGroups.set(member, brandGroup);
+            this.canonicalMapping.set(member, canonicalName);
+        });
+    }
+
     buildRelationshipGraph(connections: BrandConnection[]): BrandRelationshipMap {
         this.relationshipGraph.clear();
 
@@ -54,5 +93,21 @@ export class BrandConnectionService {
         });
 
         return this.convertGraphToMapping();
+    }
+
+    establishBrandGroups(): Map<string, BrandGroup> {
+        const visitedNodes = new Set<string>();
+        this.brandGroups.clear();
+        this.canonicalMapping.clear();
+
+        this.relationshipGraph.forEach((_, brandName) => {
+            if (!visitedNodes.has(brandName)) {
+                const connectedComponent = new Set<string>();
+                this.traverseComponent(brandName, connectedComponent, visitedNodes);
+                this.createBrandGroup(connectedComponent);
+            }
+        });
+
+        return this.brandGroups;
     }
 }
