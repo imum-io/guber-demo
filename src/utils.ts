@@ -262,11 +262,11 @@ function htmlToFile(text, filename, portalId, isSaveImages, imageId) {
 function isValidURL(str) {
   var pattern = new RegExp(
     "^(https?:\\/\\/)?" + // protocol
-      "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // domain name
-      "((\\d{1,3}\\.){3}\\d{1,3}))" + // OR ip (v4) address
-      "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // port and path
-      "(\\?[;&a-z\\d%_.~+=-]*)?" + // query string
-      "(\\#[-a-z\\d_]*)?$",
+    "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // domain name
+    "((\\d{1,3}\\.){3}\\d{1,3}))" + // OR ip (v4) address
+    "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // port and path
+    "(\\?[;&a-z\\d%_.~+=-]*)?" + // query string
+    "(\\#[-a-z\\d_]*)?$",
     "i"
   ); // fragment locator
   return !!pattern.test(str);
@@ -670,6 +670,11 @@ function stringToHash(value: string, useLegacyUnlowercased = false) {
   return uuidv5(useLegacyUnlowercased ? value : lowercased, namespace);
 }
 
+function isValidHash(hashString: string): boolean {
+  const hexPattern = /^[0-9a-fA-F]+$/;
+  return hashString.length > 0 && hexPattern.test(hashString);
+}
+
 function createCustomError(errorObject) {
   if (!errorObject.message) {
     throw new Error("Error Object should always contain 'message'");
@@ -741,4 +746,5 @@ export {
   decodeHtml,
   createCustomError,
   stringToHash,
+  isValidHash
 };

@@ -6,6 +6,7 @@ import _ from "lodash"
 import { sources } from "../sites/sources"
 import items from "./../../pharmacyItems.json"
 import connections from "./../../brandConnections.json"
+import { BrandProcessingOrchestrator } from "../services/brandProcessingOrchestrator"
 
 type BrandsMapping = {
     [key: string]: string[]
@@ -44,9 +45,11 @@ export async function getBrandsMapping(): Promise<BrandsMapping> {
 }
 
 async function getPharmacyItems(countryCode: countryCodes, source: sources, versionKey: string, mustExist = true) {
-    const finalProducts = items
+    let filterProducts = items.filter(
+        item => item.country_code === countryCode && item.source === source
+    )
 
-    return finalProducts
+    return filterProducts
 }
 
 export function checkBrandIsSeparateTerm(input: string, brand: string): boolean {
@@ -66,7 +69,7 @@ export function checkBrandIsSeparateTerm(input: string, brand: string): boolean 
     return atBeginningOrEnd || separateTerm
 }
 
-export async function assignBrandIfKnown(countryCode: countryCodes, source: sources, job?: Job) {
+export async function assignBrandIfKnownOld(countryCode: countryCodes, source: sources, job?: Job) {
     const context = { scope: "assignBrandIfKnown" } as ContextType
 
     const brandsMapping = await getBrandsMapping()
@@ -104,5 +107,32 @@ export async function assignBrandIfKnown(countryCode: countryCodes, source: sour
         const uuid = stringToHash(key)
 
         // Then brand is inserted into product mapping table
+    }
+}
+
+export async function assignBrandIfKnown(
+    countryCode: countryCodes,
+    source: sources
+): Promise<void> {
+    const orchestrator = new BrandProcessingOrchestrator();
+
+    try {
+        orchestrator.executeBrandAssignment(countryCode, source)
+            .then((processingStats) => {
+                console.log(`Brand processing completed`);
+                console.log(`Total processed: ${processingStats.totalProcessed}`);
+                console.log(`Successful matches: ${processingStats.successfulMatches}`);
+                console.log(`Skipped items: ${processingStats.skippedItems}`);
+                console.log(`Error count: ${processingStats.errorCount}`);
+                console.log(`Processing time: ${processingStats.processingTimeMs} ms`);
+            })
+            .catch(error => {
+                console.error('Brand processing failed:', error);
+                throw error;
+            });
+
+    } catch (error) {
+        console.error('Brand processing failed:', error);
+        throw error;
     }
 }
