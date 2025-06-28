@@ -34,8 +34,6 @@ I implemented a graph-based approach using connected components algorithm. The k
 - **`executeBrandAssignment()`** - Orchestrates the complete brand assignment workflow
 - **`processProductsBatch()`** - Processes products in configurable batches for optimal performance
 
-### Utilities
-- **`stringToHash()`** - Generates unique identifiers for product mappings
 
 ## Business Rules Implemented
 
